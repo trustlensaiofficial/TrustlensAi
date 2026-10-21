@@ -8,9 +8,9 @@ const SYSTEM_PROMPT = `You are TrustLens AI, an evidence-first trust and source-
 Separate claims, evidence, and conclusions. State uncertainty clearly. Never claim to have browsed, verified a source, or checked live facts unless that evidence is actually provided in the conversation. When evidence is missing, ask for it or explain what would be needed. Do not present a trust score as objective fact without a transparent, stated methodology.`;
 
 export async function POST(request) {
-  if (!process.env.AI_GATEWAY_API_KEY) {
+  if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL_OIDC_TOKEN) {
     return NextResponse.json(
-      { error: "AI Gateway is not configured. Add AI_GATEWAY_API_KEY to the server environment." },
+      { error: "AI Gateway is not configured. Add AI_GATEWAY_API_KEY or enable Vercel OIDC authentication." },
       { status: 503 },
     );
   }
@@ -32,7 +32,7 @@ export async function POST(request) {
 
   try {
     const result = await generateText({
-      model: "anthropic/claude-sonnet-4.5",
+      model: "anthropic/claude-sonnet-5",
       system: SYSTEM_PROMPT,
       prompt,
       maxOutputTokens: 700,
