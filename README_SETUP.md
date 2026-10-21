@@ -10,9 +10,9 @@
 Copy `.env.example` to `.env.local` for local development and set:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `AI_GATEWAY_API_KEY`
+- `AI_GATEWAY_API_KEY` for local development; Vercel deployments can use Vercel OIDC when enabled
 
-Create an AI Gateway key in the [Vercel AI Gateway dashboard](https://vercel.com/ai-gateway), then add it to Vercel project environment variables. Keep the key server-side and never commit real credentials or expose it via a `NEXT_PUBLIC_` variable. The app calls `anthropic/claude-sonnet-4.5` from a server route; the model can be changed in `app/api/ai/route.js`.
+Create an AI Gateway key in the [Vercel AI Gateway dashboard](https://vercel.com/ai-gateway), then add it to Vercel project environment variables. Keep the key server-side and never commit real credentials or expose it via a `NEXT_PUBLIC_` variable. The app calls `anthropic/claude-sonnet-5` from a server route; the model can be changed in `app/api/ai/route.js`.
 
 For Vercel, configure Preview first to validate the pull request deployment. Add Production values after the preview is reviewed.
 
@@ -20,6 +20,7 @@ For Vercel, configure Preview first to validate the pull request deployment. Add
 - `POST /api/ai` accepts JSON: `{ "prompt": "..." }`
 - Returns JSON: `{ "text": "..." }`
 - Input is limited to 8,000 characters and output is capped.
+- `/ai-test` provides a minimal browser UI for testing the integration.
 - The system prompt instructs Claude to distinguish claims from verified facts and not claim to have checked external sources unless evidence is provided.
 
 ## Safety and current scope
