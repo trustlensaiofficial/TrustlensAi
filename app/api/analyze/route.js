@@ -14,48 +14,12 @@ Respond in concise, plain English with: Overall interpretation; Why; What remain
 
 function detectSignals(input) {
   const checks = [
-    {
-      id: "urgency",
-      title: "Urgency or pressure",
-      pattern: /\b(immediately|urgent|within \d+ minutes?|today only|last chance|account.{0,25}(blocked|suspended|closed)|act now)\b/i,
-      detail: "The text creates time pressure or threatens a negative consequence. Scammers often use urgency to discourage independent checks.",
-      severity: "high",
-    },
-    {
-      id: "credential",
-      title: "Request for sensitive credentials",
-      pattern: /\b(otp|one[- ]time password|password|pin|cvv|recovery code|verification code)\b/i,
-      detail: "The text mentions an authentication secret. Never share OTPs, passwords, PINs, or recovery codes with a person who contacts you.",
-      severity: "high",
-    },
-    {
-      id: "payment",
-      title: "Money or payment pressure",
-      pattern: /\b(pay|payment|transfer|wire|deposit|fee|gift card|crypto|cryptocurrency|refund|bank account)\b/i,
-      detail: "The text references money or financial account activity. Verify requests using a trusted channel you locate independently.",
-      severity: "check",
-    },
-    {
-      id: "link",
-      title: "Link included in the message",
-      pattern: /(?:https?:\/\/|www\.)\S+/i,
-      detail: "A link appears in the submitted text. Its presence alone does not prove malicious intent; inspect the exact domain and avoid signing in through unexpected links.",
-      severity: "check",
-    },
-    {
-      id: "impersonation",
-      title: "Possible authority or brand pressure",
-      pattern: /\b(bank|police|tax department|government|customs|courier|support team|ceo|manager|official)\b/i,
-      detail: "The message invokes an institution or authority. Verify through the institution's official app, website, or a number obtained independently.",
-      severity: "check",
-    },
-    {
-      id: "reward",
-      title: "Unexpected reward or prize",
-      pattern: /\b(you (have )?won|winner|prize|free gift|claim your reward|lottery)\b/i,
-      detail: "The text suggests an unexpected prize or reward. Check whether you entered the promotion and never pay a fee to unlock a supposed prize without independent verification.",
-      severity: "check",
-    },
+    { id: "urgency", title: "Urgency or pressure", pattern: /\b(immediately|urgent|within \d+ minutes?|today only|last chance|account.{0,25}(blocked|suspended|closed)|act now)\b/i, detail: "The text creates time pressure or threatens a negative consequence. Scammers often use urgency to discourage independent checks.", severity: "high" },
+    { id: "credential", title: "Sensitive credential mentioned", pattern: /\b(otp|one[- ]time password|password|pin|cvv|recovery code|verification code)\b/i, detail: "The text mentions an authentication secret. Never share OTPs, passwords, PINs, or recovery codes with a person who contacts you.", severity: "high" },
+    { id: "payment", title: "Money or payment pressure", pattern: /\b(pay|payment|transfer|wire|deposit|fee|gift card|crypto|cryptocurrency|refund|bank account)\b/i, detail: "The text references money or financial account activity. Verify requests using a trusted channel you locate independently.", severity: "check" },
+    { id: "link", title: "Link included in the message", pattern: /(?:https?:\/\/|www\.)\S+/i, detail: "A link appears in the submitted text. Its presence alone does not prove malicious intent; inspect the exact domain and avoid signing in through unexpected links.", severity: "check" },
+    { id: "impersonation", title: "Possible authority or brand pressure", pattern: /\b(bank|police|tax department|government|customs|courier|support team|ceo|manager|official)\b/i, detail: "The message invokes an institution or authority. Verify through the institution's official app, website, or a number obtained independently.", severity: "check" },
+    { id: "reward", title: "Unexpected reward or prize", pattern: /\b(you (have )?won|winner|prize|free gift|claim your reward|lottery)\b/i, detail: "The text suggests an unexpected prize or reward. Check whether you entered the promotion and never pay a fee to unlock a supposed prize without independent verification.", severity: "check" },
   ];
   return checks.filter((check) => check.pattern.test(input)).map(({ pattern, ...signal }) => signal);
 }
@@ -68,12 +32,18 @@ export async function POST(request) {
   const input = typeof body?.input === "string" ? body.input.trim() : "";
   if (!input) return NextResponse.json({ error: "Paste a message or claim to analyze." }, { status: 400 });
   if (input.length > 8000) return NextResponse.json({ error: "Input must be 8,000 characters or fewer." }, { status: 413 });
-
   if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL_OIDC_TOKEN) {
     return NextResponse.json({ error: "Claude is not connected yet. Add an AI Gateway key in Vercel project environment variables, then redeploy." }, { status: 503 });
   }
 
   const signals = detectSignals(input);
+  const verdict = signals.some((signal) => signal.severity === "high") ? "high_risk" : signals.length ? "caution" : "needs_review";
+  const recommendedActions = [
+    "Do not share passwords, OTPs, PINs, or recovery codes.",
+    "Verify important requests through an official channel you find independently.",
+    "Do not click unexpected links or transfer money until the request is independently confirmed.",
+  ];
+
   try {
     const result = await generateText({
       model: "anthropic/claude-sonnet-5",
@@ -88,19 +58,23 @@ export async function POST(request) {
       const supabase = await createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { error } = await supabase.from("analysis_history").insert({
+        const { error } = await supabase.from("analysis_reports").insert({
           user_id: user.id,
+          input_type: /https?:\/\//i.test(input) ? "url" : "message",
           input_text: input,
-          analysis_text: result.text,
+          verdict,
+          summary: result.text,
+          findings: signals,
+          recommended_actions: recommendedActions,
         });
         if (!error) saved = true;
-        else console.error("TrustLens history save failed:", error.message);
+        else console.error("TrustLens report save failed:", error.message);
       }
     } catch (error) {
-      console.error("TrustLens history connection unavailable:", error instanceof Error ? error.message : "unknown");
+      console.error("TrustLens report connection unavailable:", error instanceof Error ? error.message : "unknown");
     }
 
-    return NextResponse.json({ analysis: result.text, signals, saved });
+    return NextResponse.json({ analysis: result.text, signals, saved, verdict });
   } catch (error) {
     console.error("TrustLens analysis failed:", error);
     return NextResponse.json({ error: "Claude could not complete this review. Check AI Gateway access and usage limits, then try again." }, { status: 502 });
