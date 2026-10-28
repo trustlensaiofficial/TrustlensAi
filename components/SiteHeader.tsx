@@ -1,16 +1,21 @@
 import Link from 'next/link';
-import { LensIcon } from './icons';
+import { BrandMark } from './BrandMark';
 import { ThemeToggle } from './ThemeToggle';
 
 /**
- * Temporary text-based identity. Replace `brand-mark` and the wordmark with
- * the official logo when it is supplied — nothing else depends on it.
+ * Brand lockup: the TrustLens mark plus the wordmark.
+ *
+ * The mark lives in public/logo-mark.svg. To swap in a different official
+ * file, replace that asset (or change the `src` below) — no other component
+ * reads it, and the wordmark is plain text so it stays crisp and themeable.
  */
 export function Brand() {
   return (
     <Link href="/" className="brand" aria-label="TrustLens AI — home">
-      <span className="brand-mark" aria-hidden="true"><LensIcon /></span>
-      <span>
+      <span className="brand-mark" aria-hidden="true">
+        <BrandMark size={30} idSuffix="hdr" />
+      </span>
+      <span className="brand-full">
         TrustLens <span className="brand-accent">AI</span>
       </span>
     </Link>
