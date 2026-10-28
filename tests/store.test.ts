@@ -57,6 +57,24 @@ describe('storeStatus', () => {
     expect(storeStatus().enabled).toBe(false);
   });
 
+  it('treats an empty variable as absent so it cannot shadow the other name', () => {
+    // Exactly the state of one project: SUPABASE_URL exists but is empty,
+    // while the correct value lives under NEXT_PUBLIC_SUPABASE_URL.
+    process.env.SUPABASE_URL = '   ';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://abcdefgh.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
+    expect(storeStatus().enabled).toBe(true);
+  });
+
+  it('reports a missing URL when every candidate name is empty', () => {
+    process.env.SUPABASE_URL = '';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
+    const status = storeStatus();
+    expect(status.enabled).toBe(false);
+    expect(status.reason).toMatch(/URL is missing/i);
+  });
+
   it('is enabled once a valid URL and a server key are both present', () => {
     process.env.SUPABASE_URL = 'https://abcdefgh.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
