@@ -26,12 +26,28 @@ export interface StoreStatus {
   reason?: string;
 }
 
+/**
+ * Treats an empty or whitespace-only variable as absent.
+ *
+ * `??` only falls through on null/undefined, so a variable that exists in the
+ * dashboard but holds an empty string would otherwise shadow the correctly set
+ * alternative name. One project in this account is in exactly that state.
+ */
+function envValue(...names: string[]): string | undefined {
+  for (const name of names) {
+    const raw = process.env[name];
+    if (typeof raw === 'string' && raw.trim().length > 0) return raw.trim();
+  }
+  return undefined;
+}
+
 function readEnv(): { url?: string; key?: string } {
   // Accept either the names the Vercel/Supabase integration injects or the
   // plain ones, so the same code works however the project was wired.
-  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
-  return { url, key };
+  return {
+    url: envValue('SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL'),
+    key: envValue('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY'),
+  };
 }
 
 /**

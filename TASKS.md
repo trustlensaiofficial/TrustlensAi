@@ -3,6 +3,14 @@
 Live working state. Read with [`AGENTS.md`](./AGENTS.md).
 **Last updated:** 2026-10-28 · by the desktop coding agent (Claude Code).
 
+## 🟢 LIVE
+
+**Production (judge-facing, no login required):**
+<https://trustlensai-u2r6-void-076c.vercel.app>
+
+Project `trustlensai-u2r6` · commit `cc80629` · verified publicly reachable with
+plain `curl` and no bypass token.
+
 ---
 
 ## Blockers — owner action required
@@ -97,6 +105,45 @@ All commands below were actually run on 2026-10-28; results are as printed.
   supersedes it. Both remain in git history.
 - `vitest` and `zod` moved to current majors to clear 4 advisories, one of them
   memory exhaustion during oversized input validation — directly relevant here.
+
+---
+
+## Production release — `cc80629`
+
+PR #4 merged to `main` on 2026-10-28 after the preview passed acceptance.
+
+**All four projects were in `ERROR` before this.** Three are now `READY`,
+because the merge restored the application that the "Restore main to
+pre-starter state" commits had deleted.
+
+| Project | Production | Notes |
+|---|---|---|
+| **`trustlensai-u2r6`** | **READY — canonical, public** | <https://trustlensai-u2r6-void-076c.vercel.app> |
+| `trustlensai` | READY | still protected; has the two public Supabase vars |
+| `trustlensaivoid` | READY | still protected |
+| `trustlensaivoid.` | ERROR | `"Resource provisioning failed"` — infrastructure, not code; identical commit built on the other three. Retry from the dashboard. Not canonical, so not pursued. |
+
+### Verified on live production, unauthenticated
+
+| Check | Result |
+|---|---|
+| `/`, `/analyze`, `/history`, `/api/health` | all **200**, no login wall |
+| Unknown route | 404 |
+| All 7 demo cases | correct levels; both benign controls at 0 signals |
+| **SSRF: `169.254.169.254`, `127.0.0.1`, `10.0.0.1`** | **all refused before connecting** |
+| Live fetch `https://example.com` | HTTP 200, 4 public addresses, real page title |
+| Capabilities | honestly reported as degraded (no AI key, no database) |
+
+### What a judge sees right now
+
+Fully working: input validation, 17 deterministic rules with exact matched
+spans, offline URL and lookalike analysis, live DNS + HTTP evidence with SSRF
+refusal, provenance separation, uncertainty reporting, the verify-first
+checklist, all 7 demo cases, light/dark, mobile, and honest degradation
+notices.
+
+Not yet working, and clearly labelled as such in the UI: contextual model
+analysis (**B2**) and saved report history (**B3**, **B5**).
 
 ---
 
