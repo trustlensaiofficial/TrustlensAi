@@ -34,12 +34,33 @@ function readEnv(): { url?: string; key?: string } {
   return { url, key };
 }
 
+/**
+ * A Supabase project URL must be an https origin. Checking this explicitly
+ * turns a confusing runtime failure into a clear message: at least one project
+ * in this account has a SUPABASE_URL holding a base64 blob rather than a URL,
+ * which would otherwise surface as an opaque client error on first write.
+ */
+function isValidProjectUrl(url: string): boolean {
+  try {
+    return new URL(url).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 export function storeStatus(): StoreStatus {
   const { url, key } = readEnv();
   if (!url && !key) {
     return { enabled: false, reason: 'No Supabase URL or server key is configured on this deployment, so reports are not saved.' };
   }
   if (!url) return { enabled: false, reason: 'Supabase URL is missing, so reports are not saved.' };
+  if (!isValidProjectUrl(url)) {
+    return {
+      enabled: false,
+      reason:
+        'The configured Supabase URL is not a valid https address, so reports are not saved. Check the SUPABASE_URL environment variable — it should look like https://<project-ref>.supabase.co.',
+    };
+  }
   if (!key) return { enabled: false, reason: 'Supabase server key is missing, so reports are not saved.' };
   return { enabled: true };
 }

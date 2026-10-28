@@ -9,36 +9,41 @@ Live working state. Read with [`AGENTS.md`](./AGENTS.md).
 
 | # | Blocker | Who | Why it matters |
 |---|---|---|---|
-| B1 | **Canonical Vercel project is ambiguous.** Owner named `trustlensai` for the Supabase integration but `trustlensai-u2r6` for the judge-facing URL. Current config evidence favours `trustlensai` — see below. | Owner | Deployment target cannot be chosen. Code is identical either way, so this blocks *only* deployment. |
+| ~~B1~~ | ~~Canonical project ambiguous~~ — **RESOLVED 2026-10-28: `trustlensai-u2r6`.** Owner confirmed when asked a second time with the config evidence laid out. | — | Closed. |
 | B2 | **No AI credential anywhere.** Verified live: `/api/ai` on the existing preview returned HTTP 503. | Owner | Contextual layer cannot run. App still works and says so honestly. |
-| B3 | **Supabase partially wired.** `trustlensai` now has `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` across all three environments (added by the owner on 2026-10-28, after the first inspection). **`SUPABASE_SERVICE_ROLE_KEY` is still missing.** | Owner | Writes need the service key: RLS denies the publishable key by design, so the publishable key alone cannot save a report. |
-| B4 | **Vercel Authentication is ON for all four projects** (`ssoProtection: all_except_custom_domains`). Unauthenticated request returned HTTP 302 to a login wall. | Owner | **Judges would hit a login screen.** Not changed — owner has not authorised a security change. |
+| B3 | **Supabase is wired to the wrong project.** The two public vars went to `trustlensai`, but the canonical project is now `trustlensai-u2r6`, which has only a malformed `SUPABASE_URL` (a base64 blob, Production only). | Owner | No persistence on the canonical project. Needs the Supabase integration attached to **`trustlensai-u2r6`**, and the malformed `SUPABASE_URL` deleted first so it cannot shadow the correct value. |
+| ~~B4~~ | ~~Vercel Authentication blocks judges~~ — **RESOLVED 2026-10-28** with the owner's explicit authorisation. `trustlensai-u2r6` is now `ssoProtection: {deploymentType: 'preview'}`: Production is public, Previews stay protected. The other three projects are unchanged. | — | Closed. Rollback: set `deploymentType` back to `all_except_custom_domains`. |
 | B5 | **`scans` table does not exist yet.** Migration written, not applied. | Owner / browser agent | Writes fail until applied. The app degrades honestly rather than erroring. |
 
 ### Exact owner steps
 
-**B2 — AI credential (pick one).** The code accepts either, no change needed:
+**B2 — AI credential (pick one), on `trustlensai-u2r6`.** The code accepts either, no change needed:
 - Preferred: create a key at <https://vercel.com/ai-gateway>, then add
-  `AI_GATEWAY_API_KEY` to the canonical project for **Production, Preview and
+  `AI_GATEWAY_API_KEY` to **`trustlensai-u2r6`** for **Production, Preview and
   Development**. Confirm the gateway has credit — the team is on the Hobby plan.
 - Alternative: add `ANTHROPIC_API_KEY` instead.
 
-**B3 — Supabase.** The two public variables are already set on `trustlensai`.
-Only the server key is outstanding. Either complete the integration (Vercel →
-`trustlensai` → Integrations → Supabase → connect the existing project, scoped
-to Production + Preview + Development, which injects the full set), or add just
-`SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API → `service_role`)
-to all three environments. `SUPABASE_SECRET_KEY` is accepted as an alternative
-name. Do **not** paste it anywhere except the Vercel dashboard or a
-`vercel env add` prompt.
+**B3 — Supabase, on `trustlensai-u2r6`.** Two steps, in this order:
+
+1. **Delete the existing `SUPABASE_URL`** on `trustlensai-u2r6`. Its value is a
+   base64 blob, not a URL, and the code reads `SUPABASE_URL` in preference to
+   `NEXT_PUBLIC_SUPABASE_URL`, so leaving it would shadow the correct value.
+   The app now detects this and says so rather than failing opaquely, but it
+   still blocks persistence.
+2. Vercel → `trustlensai-u2r6` → Integrations → Supabase → connect the existing
+   project, scoped to Production + Preview + Development. That injects the full
+   set including `SUPABASE_SERVICE_ROLE_KEY`, which is genuinely required: RLS
+   denies the publishable key by design, so it alone cannot write a report.
+
+`SUPABASE_SECRET_KEY` is accepted as an alternative name. Paste values only into
+the Vercel dashboard or a `vercel env add` prompt — never into chat or a commit.
 
 **B5 — migration.** Supabase dashboard → SQL Editor → paste and run
 `supabase/migrations/0001_scans.sql`. It is additive: it creates one table and
 one index, drops nothing, and alters no existing policy.
 
-**B4 — judge access.** Vercel → *canonical project* → Settings → Deployment
-Protection → turn **Vercel Authentication off** for Production only. Reversible
-in one click. Not done without explicit authorisation.
+**B4 — judge access.** Done on 2026-10-28 with the owner's authorisation.
+`trustlensai-u2r6` Production is public; Previews remain protected.
 
 > **Secrets rule:** paste values only into the Vercel or Supabase dashboard, or
 > into a `vercel env add` prompt. Never into chat, a commit, or a screenshot.

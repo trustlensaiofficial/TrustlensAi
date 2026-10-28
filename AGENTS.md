@@ -17,9 +17,11 @@ before working. Durable decisions live here; moment-to-moment state lives in
 | Repository (source of truth) | `trustlensaiofficial/TrustlensAi` |
 | Vercel team | `void-076c` ("VOID", Hobby plan) |
 
-**Canonical Vercel project: UNRESOLVED — see `TASKS.md` §Blockers.** The owner
-has indicated both `trustlensai` and `trustlensai-u2r6` in different answers.
-Do not deploy to production until this is settled in writing.
+**Canonical Vercel project: `trustlensai-u2r6`.** Confirmed by the owner on
+2026-10-28 (asked twice, same answer). Its Production deployments are public;
+Preview deployments remain behind Vercel Authentication. The other three
+projects are untouched and still fully protected — do not delete or rename any
+of them without the owner's explicit approval.
 
 ---
 
