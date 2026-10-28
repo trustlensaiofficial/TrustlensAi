@@ -1,7 +1,7 @@
 # TASKS.md — current state
 
 Live working state. Read with [`AGENTS.md`](./AGENTS.md).
-**Last updated:** 2026-10-28 · by the desktop coding agent (Claude Code).
+**Last updated:** 2026-10-29 · by the desktop coding agent (Claude Code).
 
 ## 🟢 LIVE
 
@@ -18,10 +18,10 @@ plain `curl` and no bypass token.
 | # | Blocker | Who | Why it matters |
 |---|---|---|---|
 | ~~B1~~ | ~~Canonical project ambiguous~~ — **RESOLVED 2026-10-28: `trustlensai-u2r6`.** Owner confirmed when asked a second time with the config evidence laid out. | — | Closed. |
-| B2 | **No AI credential anywhere.** Verified live: `/api/ai` on the existing preview returned HTTP 503. | Owner | Contextual layer cannot run. App still works and says so honestly. |
-| B3 | **Supabase is wired to the wrong project.** The two public vars went to `trustlensai`, but the canonical project is now `trustlensai-u2r6`, which has only a malformed `SUPABASE_URL` (a base64 blob, Production only). | Owner | No persistence on the canonical project. Needs the Supabase integration attached to **`trustlensai-u2r6`**, and the malformed `SUPABASE_URL` deleted first so it cannot shadow the correct value. |
+| **B2** | **AI Gateway is configured but refuses every request.** The key is valid and `/api/health` reports the capability present, but the provider returns: *"AI Gateway requires a valid credit card on file to service requests."* | **Owner** | Contextual interpretation cannot run. The product works fully without it and says so in the UI. **Fix: enable billing on the Vercel account, or add `ANTHROPIC_API_KEY` instead — the code accepts either with no change.** |
+| ~~B3~~ | ~~Supabase not wired~~ — **RESOLVED.** `trustlensai-u2r6` now has the full set and persistence works end to end: save → retrieve → render → delete all verified against the live database. | — | Closed. |
 | ~~B4~~ | ~~Vercel Authentication blocks judges~~ — **RESOLVED 2026-10-28** with the owner's explicit authorisation. `trustlensai-u2r6` is now `ssoProtection: {deploymentType: 'preview'}`: Production is public, Previews stay protected. The other three projects are unchanged. | — | Closed. Rollback: set `deploymentType` back to `all_except_custom_domains`. |
-| B5 | **`scans` table does not exist yet.** Migration written, not applied. | Owner / browser agent | Writes fail until applied. The app degrades honestly rather than erroring. |
+| ~~B5~~ | ~~`scans` table missing~~ — **RESOLVED.** The table exists and accepts writes; a full save/retrieve/delete cycle was verified. | — | Closed. |
 
 ### Exact owner steps
 
@@ -55,6 +55,68 @@ one index, drops nothing, and alters no existing policy.
 
 > **Secrets rule:** paste values only into the Vercel or Supabase dashboard, or
 > into a `vercel env add` prompt. Never into chat, a commit, or a screenshot.
+
+---
+
+## 2026-10-29 — product transformation
+
+Built on top of PR #6's landing page rather than replacing it.
+
+### Input contexts — the central change
+
+The tool now asks what you are actually holding, and the analysis changes with
+it. Context travels **inside the report document**, not as a new `input_kind`,
+because the `scans` table constrains that column to three values — so this is
+richer behaviour with **no migration against live data**.
+
+| Context | Rules it unlocks | Lead action |
+|---|---|---|
+| Job offer | no interview, upfront fee, free-email recruiter, chat-app-only, pay out of proportion, premature bank details | Check the company on the public register yourself |
+| Invoice | changed bank details, payment urgency, verification discouraged | **Call the supplier on a number you already held** |
+| Proposal | guaranteed returns, pressure to commit, upfront fee, unevidenced credentials | Search the company register before signing |
+| Website | (structural URL rules) | Type the address yourself |
+| Message | (general rule set) | Verify through a channel you chose |
+
+### New in the report
+
+- **Interactive checklist with progress**, kept in the browser — which safety
+  steps someone has personally taken is theirs, not the report's.
+- **Questions to ask**, chosen from the context and the signals that fired.
+- **Completeness meter** from real fields, with not-applicable steps removed
+  from the denominator so it cannot flatter a thin report.
+- **Observations that did not raise concern**, labelled as weak evidence.
+- **Copy summary / download report** — both render from the report object and
+  carry the limitations with them.
+- Evidence and findings moved into collapsible sections so the decision leads.
+
+### Also
+
+Floating action menu (context-aware, Escape-closes, focus restored); history
+search + risk filter + sort; landing use-case and data-handling sections;
+first-run tip; AI failures classified so "billing not enabled" reads as the
+five-minute fix it is rather than a phantom bug.
+
+### Detection gaps found by testing, not assumed
+
+Writing the tests first caught three near-misses that would have failed live:
+`guaranteed 18% return` (a figure between adjective and noun), `signed
+agreement` (`\bsign\b` does not match it), and `only 4 allocation slots` (a
+qualifier between count and noun). All fixed and covered.
+
+### Verified on 2026-10-29
+
+| Check | Result |
+|---|---|
+| typecheck / lint / build | PASS |
+| tests | **93 passed** |
+| `npm audit` | 0 vulnerabilities |
+| 3 new scenarios | each `high_risk` with the correct lead action |
+| Supabase round trip | save → retrieve → render → delete → honest 404 |
+| Checklist interaction | progress bar moves, persists, ARIA correct |
+| Floating menu | menu/menuitem roles, Escape closes, focus restored |
+| History search / filter / sort | all change what is displayed |
+| Mobile 375px | no horizontal overflow, all controls present |
+| Console | no errors |
 
 ---
 

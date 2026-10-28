@@ -1,4 +1,4 @@
-import type { ChecklistStep, InputKind, Signal, SignalCategory } from './types';
+import type { ChecklistStep, InputContext, InputKind, Signal, SignalCategory } from './types';
 
 /**
  * Builds the "verify before you act" checklist.
@@ -108,6 +108,67 @@ const BY_CATEGORY: Partial<Record<SignalCategory, ChecklistStep[]>> = {
   ],
 };
 
+/**
+ * Context-specific steps, prepended when the user told us what they are
+ * looking at. These are the actions that actually resolve each situation, so
+ * they lead the checklist rather than sitting under the generic advice.
+ */
+const BY_CONTEXT: Partial<Record<InputContext, ChecklistStep[]>> = {
+  job_offer: [
+    {
+      id: 'chk.job.verify_entity',
+      action: 'Look up the company yourself on the public companies register, and check the role exists on the careers page you reached by typing the company name into a search engine.',
+      why: 'It establishes independently whether the employer exists and is actually hiring, without using any link or detail from the message.',
+    },
+    {
+      id: 'chk.job.never_pay',
+      action: 'Do not pay for training, equipment, registration or visa processing, and do not accept a cheque you are asked to forward on.',
+      why: 'Employers pay employees. Every variant of recruitment fraud eventually requires money to move away from you.',
+    },
+  ],
+  invoice: [
+    {
+      id: 'chk.inv.call_known_number',
+      action: 'Before paying, call the supplier on a number you already held for them — from a previous invoice, your contract, or your own contact records — and read the account details back to them.',
+      why: 'This is the control that defeats invoice redirection. The number must come from your records, never from the invoice or email in question.',
+    },
+    {
+      id: 'chk.inv.hold_payment',
+      action: 'Put the payment on hold until that call is completed, even if the invoice is marked urgent or overdue.',
+      why: 'A genuine supplier will accept a short delay for verification. Pressure to skip it is itself the warning sign.',
+    },
+    {
+      id: 'chk.inv.check_name',
+      action: 'Confirm the beneficiary account name exactly matches the supplier’s registered company name.',
+      why: 'A mismatch between trading name and account name is one of the few objective, checkable tells available to you.',
+    },
+  ],
+  proposal: [
+    {
+      id: 'chk.prop.register',
+      action: 'Search the public company register for the entity, its registration number, directors and filing history before any money or signature.',
+      why: 'Registration, age and filings are objective facts that either corroborate the proposal or contradict it.',
+    },
+    {
+      id: 'chk.prop.regulator',
+      action: 'If an investment or financial return is offered, check the relevant regulator’s own register for the firm and its permissions.',
+      why: 'Offering regulated services without authorisation is both a serious warning sign and independently checkable.',
+    },
+    {
+      id: 'chk.prop.no_rush',
+      action: 'Decline to sign or pay within any deadline the proposal sets, and take independent legal or financial advice first.',
+      why: 'Deadlines exist to prevent exactly the checks that would resolve the question.',
+    },
+  ],
+  website: [
+    {
+      id: 'chk.web.type_it',
+      action: 'Reach the organisation by typing its address yourself or using its official app, then look for the same page.',
+      why: 'If the content only exists via the supplied link, the link is the problem.',
+    },
+  ],
+};
+
 const BASELINE: Record<InputKind, ChecklistStep> = {
   message: {
     id: 'chk.baseline_message',
@@ -132,10 +193,22 @@ const CATEGORY_PRIORITY: SignalCategory[] = [
 ];
 
 /** Highest-value steps first, capped so the list stays actionable. */
-export function buildChecklist(signals: Signal[], kind: InputKind, limit = 6): ChecklistStep[] {
+export function buildChecklist(
+  signals: Signal[],
+  kind: InputKind,
+  context: InputContext = 'generic',
+  limit = 7,
+): ChecklistStep[] {
   const present = new Set(signals.map((s) => s.category));
   const steps: ChecklistStep[] = [];
   const seen = new Set<string>();
+
+  // Context steps lead: they are the actions that actually resolve the case.
+  for (const step of BY_CONTEXT[context] ?? []) {
+    if (seen.has(step.id)) continue;
+    seen.add(step.id);
+    steps.push(step);
+  }
 
   for (const category of CATEGORY_PRIORITY) {
     if (!present.has(category)) continue;
