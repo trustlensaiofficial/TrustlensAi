@@ -1,21 +1,24 @@
 'use client';
 
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState, useSyncExternalStore } from 'react';
 import { DEMO_CASES, type DemoCase } from '@/lib/demo/cases';
 import { MAX_INPUT_LENGTH } from '@/lib/analysis/normalize';
 import { CONTEXT_LABEL } from '@/lib/analysis/context-rules';
 import type { InputContext, InputKind, Report } from '@/lib/analysis/types';
 import { addToHistory } from '@/lib/history';
+import { dismiss, getDismissed, getServerDismissed, subscribeDismissed } from '@/lib/dismissible';
 import {
   AlertIcon,
   ArrowIcon,
   BriefcaseIcon,
+  CloseIcon,
   DocumentIcon,
   GlobeIcon,
   InfoIcon,
   LensIcon,
   MessageIcon,
   ReceiptIcon,
+  SparkIcon,
 } from './icons';
 import { FloatingActions } from './FloatingActions';
 import { ReportView } from './ReportView';
@@ -72,6 +75,8 @@ export function AnalyzeWorkspace() {
   const [report, setReport] = useState<Report | null>(null);
   const [storageNote, setStorageNote] = useState<string | undefined>();
   const [scenario, setScenario] = useState<string | null>(null);
+  const dismissed = useSyncExternalStore(subscribeDismissed, getDismissed, getServerDismissed);
+  const showHint = !dismissed.has('workspace-intro');
   const resultRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const textareaId = useId();
@@ -150,6 +155,28 @@ export function AnalyzeWorkspace() {
 
   return (
     <div>
+      {showHint && (
+        <div className="hint">
+          <SparkIcon />
+          <div className="hint-body">
+            <strong>New here? Start with an example.</strong>
+            <p>
+              Pick a case from the right-hand panel to see a full report in a few seconds — the
+              invoice and job-offer cases show the product at its most useful. Or choose what
+              you are looking at below and paste your own.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="hint-dismiss"
+            aria-label="Dismiss this tip"
+            onClick={() => dismiss('workspace-intro')}
+          >
+            <CloseIcon />
+          </button>
+        </div>
+      )}
+
       <div className="workspace">
         {/* --------------------------------------------------------- input -- */}
         <div className="card card-pad">

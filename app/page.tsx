@@ -1,6 +1,18 @@
 import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
-import { AlertIcon, ArrowIcon, ChecklistIcon, EvidenceIcon, ScalesIcon, ShieldIcon } from '@/components/icons';
+import {
+  AlertIcon,
+  ArrowIcon,
+  BriefcaseIcon,
+  ChecklistIcon,
+  DocumentIcon,
+  EvidenceIcon,
+  GlobeIcon,
+  MessageIcon,
+  ReceiptIcon,
+  ScalesIcon,
+  ShieldIcon,
+} from '@/components/icons';
 
 export default function Home() {
   return (
@@ -102,6 +114,147 @@ export default function Home() {
               <h3>Choose a safer next step</h3>
               <p>Get a practical checklist: verify independently, use a channel you control, and pause before sharing money or credentials.</p>
             </article>
+          </div>
+        </section>
+
+
+        {/* ------------------------------------------------- use cases -- */}
+        <section className="section" aria-labelledby="uses-title">
+          <div className="section-head">
+            <h2 id="uses-title">What people bring to TrustLens</h2>
+          </div>
+          <p className="section-lead">
+            Pick what you are actually holding and the analysis changes with it. Each type has its
+            own rules, its own questions to ask, and its own first action — because the step that
+            resolves a suspicious invoice is not the step that resolves a suspicious job offer.
+          </p>
+          <div className="use-grid">
+            <article className="card use-card">
+              <span className="use-icon"><BriefcaseIcon /></span>
+              <h3>Job offers</h3>
+              <p>
+                Recruitment messages, offer letters and &ldquo;direct joining&rdquo; approaches for
+                roles you never applied for.
+              </p>
+              <p className="use-catch">
+                Catches: <b>hiring with no interview, upfront fees, free-email recruiters, bank
+                details requested before any contract.</b>
+              </p>
+            </article>
+            <article className="card use-card">
+              <span className="use-icon"><ReceiptIcon /></span>
+              <h3>Invoices and payment requests</h3>
+              <p>
+                Bills from suppliers you really work with, where something about the payment
+                instructions has changed.
+              </p>
+              <p className="use-catch">
+                Catches: <b>changed bank details, pressure to pay today, and any reason offered for
+                why you should not phone to confirm.</b>
+              </p>
+            </article>
+            <article className="card use-card">
+              <span className="use-icon"><DocumentIcon /></span>
+              <h3>Business proposals</h3>
+              <p>
+                Vendor pitches, partnership terms and investment opportunities that want a decision
+                before you can check anything.
+              </p>
+              <p className="use-catch">
+                Catches: <b>guaranteed returns, deadlines that block diligence, upfront fees,
+                credentials stated without evidence.</b>
+              </p>
+            </article>
+            <article className="card use-card">
+              <span className="use-icon"><GlobeIcon /></span>
+              <h3>Links and websites</h3>
+              <p>
+                Addresses you were sent and would rather not open — checked from the outside,
+                without you clicking.
+              </p>
+              <p className="use-catch">
+                Catches: <b>brand names hidden in subdomains, character-swap lookalikes, raw IP
+                hosts, shorteners and redirect chains.</b>
+              </p>
+            </article>
+            <article className="card use-card">
+              <span className="use-icon"><MessageIcon /></span>
+              <h3>Messages and claims</h3>
+              <p>
+                Emails, texts and forwarded posts — including coercive calls that demand secrecy,
+                and viral claims that cite a study nobody can find.
+              </p>
+              <p className="use-catch">
+                Catches: <b>one-time-code requests, irreversible payment rails, isolation demands,
+                threats and manufactured urgency.</b>
+              </p>
+            </article>
+          </div>
+        </section>
+
+        {/* ------------------------------------------ privacy & security -- */}
+        <section className="section" aria-labelledby="security-title">
+          <div className="section-head">
+            <h2 id="security-title">
+              <ShieldIcon className="inline-icon" /> How your data is handled
+            </h2>
+          </div>
+          <p className="section-lead">
+            Described from what the code actually does. Where a protection is partial, it says so
+            rather than implying more.
+          </p>
+          <div className="card card-pad">
+            <div className="sec-grid">
+              <div className="sec-item">
+                <ShieldIcon />
+                <div>
+                  <strong>No account, no tracking</strong>
+                  <p>
+                    There is no sign-up and no analytics. Your history lives in your own browser,
+                    and the server has no endpoint that lists reports — which is what makes it
+                    impossible to reach anyone else&apos;s analyses.
+                  </p>
+                </div>
+              </div>
+              <div className="sec-item">
+                <AlertIcon />
+                <div>
+                  <strong>Your text is data, never an instruction</strong>
+                  <p>
+                    Content you submit is fenced with a one-time marker before the model sees it.
+                    A message telling the model to call itself safe has no effect, and the
+                    rule-based layer cannot be influenced at all.
+                  </p>
+                </div>
+              </div>
+              <div className="sec-item">
+                <GlobeIcon />
+                <div>
+                  <strong>Links are inspected, never opened for you</strong>
+                  <p>
+                    Checks run server-side and refuse private, loopback and cloud-metadata
+                    addresses. Redirects are re-validated at each hop, and only page metadata is
+                    read — nothing is executed or downloaded.
+                  </p>
+                </div>
+              </div>
+              <div className="sec-item">
+                <ScalesIcon />
+                <div>
+                  <strong>Honest about its limits</strong>
+                  <p>
+                    Rules are English-only and pattern-based, there is no image or video analysis,
+                    and no external fact database is consulted. Every report states what it could
+                    not check rather than quietly omitting it.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <p style={{ marginTop: 18, color: 'var(--text-faint)', fontSize: 12.5, lineHeight: 1.6 }}>
+              Saved reports contain the text you submitted. Avoid pasting passwords or card numbers
+              — they are never needed to assess a message, and you can delete any report from your
+              history at any time.
+            </p>
           </div>
         </section>
 
