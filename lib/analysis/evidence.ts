@@ -110,7 +110,7 @@ async function guardHost(parsed: ParsedUrl): Promise<GuardResult> {
     resolved = await lookup(parsed.hostname, { all: true });
   } catch (err) {
     const code = (err as { code?: string }).code ?? 'unknown';
-    return { ok: false, reason: `DNS lookup failed (${code})` };
+    return { ok: false, reason: `the domain name could not be resolved — it may not exist, or DNS did not answer (${code})` };
   }
   if (resolved.length === 0) return { ok: false, reason: 'hostname resolved to no addresses' };
 
@@ -211,7 +211,7 @@ export async function collectUrlEvidence(rawUrl: string): Promise<EvidenceRecord
       method: 'Server-side DNS lookup with private-range filtering',
       detail: `No request was sent: ${guard.reason}.`,
       url: parsed.href,
-      status: guard.reason?.startsWith('DNS lookup failed') ? 'unresolved' : 'failed',
+      status: guard.reason?.includes('could not be resolved') ? 'unresolved' : 'failed',
       retrievedAt: now(),
     });
     records.push({

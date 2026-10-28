@@ -9,9 +9,9 @@ Live working state. Read with [`AGENTS.md`](./AGENTS.md).
 
 | # | Blocker | Who | Why it matters |
 |---|---|---|---|
-| B1 | **Canonical Vercel project is ambiguous.** Owner named `trustlensai` for the Supabase integration but `trustlensai-u2r6` for the judge-facing URL. | Owner | Deployment target cannot be chosen. Code is identical either way, so this blocks *only* deployment. |
+| B1 | **Canonical Vercel project is ambiguous.** Owner named `trustlensai` for the Supabase integration but `trustlensai-u2r6` for the judge-facing URL. Current config evidence favours `trustlensai` — see below. | Owner | Deployment target cannot be chosen. Code is identical either way, so this blocks *only* deployment. |
 | B2 | **No AI credential anywhere.** Verified live: `/api/ai` on the existing preview returned HTTP 503. | Owner | Contextual layer cannot run. App still works and says so honestly. |
-| B3 | **Supabase not attached to the intended project.** All 16 integration vars sit on `trustlensaivoid.`; `trustlensai` has zero. | Owner | No report persistence, so History cannot reload reports. |
+| B3 | **Supabase partially wired.** `trustlensai` now has `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` across all three environments (added by the owner on 2026-10-28, after the first inspection). **`SUPABASE_SERVICE_ROLE_KEY` is still missing.** | Owner | Writes need the service key: RLS denies the publishable key by design, so the publishable key alone cannot save a report. |
 | B4 | **Vercel Authentication is ON for all four projects** (`ssoProtection: all_except_custom_domains`). Unauthenticated request returned HTTP 302 to a login wall. | Owner | **Judges would hit a login screen.** Not changed — owner has not authorised a security change. |
 | B5 | **`scans` table does not exist yet.** Migration written, not applied. | Owner / browser agent | Writes fail until applied. The app degrades honestly rather than erroring. |
 
@@ -23,11 +23,14 @@ Live working state. Read with [`AGENTS.md`](./AGENTS.md).
   Development**. Confirm the gateway has credit — the team is on the Hobby plan.
 - Alternative: add `ANTHROPIC_API_KEY` instead.
 
-**B3 — Supabase.** Vercel → *canonical project* → Integrations → Supabase →
-connect the existing project → scope to Production + Preview + Development.
-This injects all 16 variables, including the two the code reads
-(`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`). Do **not** copy
-values by hand.
+**B3 — Supabase.** The two public variables are already set on `trustlensai`.
+Only the server key is outstanding. Either complete the integration (Vercel →
+`trustlensai` → Integrations → Supabase → connect the existing project, scoped
+to Production + Preview + Development, which injects the full set), or add just
+`SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API → `service_role`)
+to all three environments. `SUPABASE_SECRET_KEY` is accepted as an alternative
+name. Do **not** paste it anywhere except the Vercel dashboard or a
+`vercel env add` prompt.
 
 **B5 — migration.** Supabase dashboard → SQL Editor → paste and run
 `supabase/migrations/0001_scans.sql`. It is additive: it creates one table and
@@ -89,6 +92,43 @@ All commands below were actually run on 2026-10-28; results are as printed.
   supersedes it. Both remain in git history.
 - `vitest` and `zod` moved to current majors to clear 4 advisories, one of them
   memory exhaustion during oversized input validation — directly relevant here.
+
+---
+
+## Preview deployments — commit `af54d4f`
+
+Pushing the branch triggered a preview build on all four projects, because all
+four are connected to this repository.
+
+| Project | Preview build | Notes |
+|---|---|---|
+| `trustlensai` | **READY** | Tested end to end — see below |
+| `trustlensai-u2r6` | **READY** | |
+| `trustlensaivoid` | **READY** | |
+| `trustlensaivoid.` | ERROR | `BUILD_FAILED / "Resource provisioning failed"` ~600ms after start — the build never ran. Infrastructure, not code: the identical commit built fine on the other three. Likely the Hobby plan's concurrent-build limit with four builds at once. Retryable. |
+
+### Verified on the deployed `trustlensai` preview
+
+| Check | Result |
+|---|---|
+| `/api/health` | 200, capabilities reported accurately |
+| Landing page | 200, 23KB |
+| Phishing demo end to end | `high_risk`, score 36, 7 signals, correct brand mismatch |
+| **SSRF: `169.254.169.254` (cloud metadata)** | **refused before connecting, in the cloud environment** |
+| No AI key / no service key | degrades visibly, as designed |
+
+> Previews sit behind Vercel Authentication, so they were tested with
+> `vercel curl`, which issues a protection-bypass token. A judge opening the URL
+> directly would still hit the login wall until **B4** is resolved.
+
+### Current environment variables
+
+| Project | Variables |
+|---|---|
+| `trustlensai` | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — all 3 environments |
+| `trustlensai-u2r6` | `SUPABASE_URL` (Production only) — **value is a base64 blob, not a URL; looks like a mistaken paste.** Left untouched. |
+| `trustlensaivoid` | none |
+| `trustlensaivoid.` | full 16-variable Supabase integration set |
 
 ---
 
