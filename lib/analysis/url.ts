@@ -68,6 +68,12 @@ export interface ParsedUrl {
   hasEmbeddedCredentials: boolean;
   isIpLiteral: boolean;
   isPunycode: boolean;
+  /**
+   * False when the user pasted a bare host and we supplied http:// ourselves.
+   * Without this the "no TLS" rule fires on input that never claimed http,
+   * which is a finding the product invented rather than observed.
+   */
+  schemeWasExplicit: boolean;
 }
 
 /** Approximate eTLD+1. Documented as approximate wherever it is surfaced. */
@@ -83,7 +89,8 @@ const IPV4 = /^\d{1,3}(\.\d{1,3}){3}$/;
 
 export function parseUrl(raw: string): ParsedUrl | null {
   let candidate = raw.trim();
-  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(candidate)) candidate = `http://${candidate}`;
+  const schemeWasExplicit = /^[a-z][a-z0-9+.-]*:\/\//i.test(candidate);
+  if (!schemeWasExplicit) candidate = `http://${candidate}`;
   let u: URL;
   try {
     u = new URL(candidate);
@@ -111,6 +118,7 @@ export function parseUrl(raw: string): ParsedUrl | null {
     hasEmbeddedCredentials: Boolean(u.username || u.password),
     isIpLiteral,
     isPunycode: hostname.split('.').some((l) => l.startsWith('xn--')),
+    schemeWasExplicit,
   };
 }
 
@@ -273,7 +281,8 @@ export function analyzeUrlStructure(raw: string): { parsed: ParsedUrl | null; si
     });
   }
 
-  if (parsed.protocol === 'http') {
+  // Only when the user actually wrote http:// — see `schemeWasExplicit`.
+  if (parsed.protocol === 'http' && parsed.schemeWasExplicit) {
     signals.push({
       id: 'url.no_tls',
       title: 'Link uses http, not https',

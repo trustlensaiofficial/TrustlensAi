@@ -64,9 +64,19 @@ describe('url structure analysis', () => {
     expect(ids('https://claim-reward.top/now')).toContain('url.high_abuse_tld');
   });
 
-  it('flags plain http', () => {
+  it('flags plain http only when the user actually wrote it', () => {
     expect(ids('http://example.com/login')).toContain('url.no_tls');
     expect(ids('https://example.com/login')).not.toContain('url.no_tls');
+    // A bare host gets http:// supplied by the parser. Flagging that would be
+    // reporting a finding we invented rather than observed.
+    expect(ids('example.com')).not.toContain('url.no_tls');
+    expect(ids('example.com/login')).not.toContain('url.no_tls');
+  });
+
+  it('records whether the scheme was explicit', () => {
+    expect(parseUrl('https://example.com')?.schemeWasExplicit).toBe(true);
+    expect(parseUrl('http://example.com')?.schemeWasExplicit).toBe(true);
+    expect(parseUrl('example.com')?.schemeWasExplicit).toBe(false);
   });
 
   it('rejects non-web schemes', () => {

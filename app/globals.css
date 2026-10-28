@@ -546,7 +546,6 @@ p { margin: 0; }
   :root { --shell: calc(100% - 28px); }
   .pillars { grid-template-columns: 1fr; }
   .nav-link { padding: 7px 9px; font-size: 13px; }
-  .brand span.brand-full { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -977,3 +976,34 @@ h2 .inline-icon { color: var(--accent); }
 .sec-item strong { display: block; font-size: 13.5px; font-weight: 620; }
 .sec-item p { color: var(--text-muted); font-size: 12.5px; line-height: 1.58; margin-top: 3px; }
 .section-lead { color: var(--text-muted); font-size: 14.5px; line-height: 1.7; max-width: 68ch; margin-top: 10px; }
+
+/* ===========================================================================
+   Header fit + brandmark
+   Appended deliberately: PR #6's header rules sit later in this file than the
+   760px block, so narrow-width overrides must come after them to win the
+   cascade. Fixes a measured 5px nav overflow at a 320px viewport.
+   =========================================================================== */
+.brand-mark { background: transparent; border: 0; padding: 0; overflow: visible; }
+.brand-mark svg { display: block; }
+.site-header-inner { min-width: 0; }
+.brand { min-width: 0; }
+.brand-full { white-space: nowrap; }
+
+@media (max-width: 420px) {
+  .site-header-inner { gap: 8px; }
+  .brand { font-size: 14.5px; gap: 8px; }
+  .brand-mark svg { width: 27px; height: 27px; }
+  .nav { padding: 3px; }
+  .nav-link { padding: 6px 7px; font-size: 12px; }
+  .icon-button { width: 29px; height: 29px; }
+  .icon-button svg { width: 14px; height: 14px; }
+}
+
+/* Touch targets: pointer-coarse devices need a real hit area even where the
+   visual control is small. Expands the tap region without moving anything. */
+@media (pointer: coarse) {
+  .nav-link, .icon-button, .ck-box, .hint-dismiss { position: relative; }
+  .nav-link::after, .icon-button::after, .ck-box::after, .hint-dismiss::after {
+    content: ''; position: absolute; inset: -6px;
+  }
+}

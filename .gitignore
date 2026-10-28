@@ -10,3 +10,6 @@ next-env.d.ts
 !.env.example
 .vercel/
 .DS_Store
+
+# Supabase CLI scratch
+supabase/.temp/
