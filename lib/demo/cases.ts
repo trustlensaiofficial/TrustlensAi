@@ -1,4 +1,4 @@
-import type { InputKind } from '../analysis/types';
+import type { InputContext, InputKind } from '../analysis/types';
 
 /**
  * Example cases for reviewers.
@@ -17,6 +17,10 @@ export interface DemoCase {
   slug: string;
   label: string;
   kind: InputKind;
+  /** Unlocks the context-specific rule set for this scenario. */
+  context: InputContext;
+  /** One-line framing of the situation, shown above the sample. */
+  scenario: string;
   /** What a reviewer should watch for when they run it. */
   expectation: string;
   text: string;
@@ -25,6 +29,9 @@ export interface DemoCase {
 export const DEMO_CASES: DemoCase[] = [
   {
     slug: 'digital-arrest',
+    context: 'generic',
+    scenario:
+      'A caller claims to be from a cyber-crime unit and says a parcel in your name was seized.',
     label: 'Coercive "digital arrest" call script',
     kind: 'message',
     expectation:
@@ -37,6 +44,9 @@ To close the case today you must transfer the verification amount of 48,500 to t
   },
   {
     slug: 'bank-otp-phish',
+    context: 'generic',
+    scenario:
+      'An SMS says your bank account will be suspended unless you verify today.',
     label: 'Bank phishing SMS with a lookalike link',
     kind: 'message',
     expectation:
@@ -47,6 +57,9 @@ Share the OTP sent to your registered mobile number with our executive to comple
   },
   {
     slug: 'deepfake-payment',
+    context: 'invoice',
+    scenario:
+      'Your CFO messages after a video call asking you to wire the first tranche of a confidential deal.',
     label: 'Video-call payment instruction (deepfake pattern)',
     kind: 'message',
     expectation:
@@ -57,6 +70,9 @@ Wire transfer the first tranche today to the account in the attached instruction
   },
   {
     slug: 'lookalike-url',
+    context: 'website',
+    scenario:
+      'You were sent a payment link and want to know where it actually goes.',
     label: 'Lookalike domain on its own',
     kind: 'url',
     expectation:
@@ -65,6 +81,9 @@ Wire transfer the first tranche today to the account in the attached instruction
   },
   {
     slug: 'health-claim',
+    context: 'generic',
+    scenario:
+      'A post in a family group chat claims a spice cures diabetes.',
     label: 'Viral health claim',
     kind: 'claim',
     expectation:
@@ -73,7 +92,68 @@ Wire transfer the first tranche today to the account in the attached instruction
       'A new study proves that this common kitchen spice completely cures type 2 diabetes in three weeks. Doctors don\'t want you to know because it would end their income from medication.',
   },
   {
+    slug: 'job-offer-scam',
+    label: 'Recruitment offer with an upfront fee',
+    kind: 'message',
+    context: 'job_offer',
+    scenario:
+      'A recruiter messages about a remote role you never applied for, and the offer arrives without an interview.',
+    expectation:
+      'Should flag the missing interview, the upfront payment, the free-email recruiter and the premature request for bank details.',
+    text: `Congratulations! Your profile has been shortlisted for the Remote Data Operations Associate position. Direct joining — no interview is required.
+
+Salary: 45,000 per month for simple data entry tasks, 3 hours daily, work from home.
+
+To confirm your seat, a refundable security deposit of 2,500 is required for the onboarding kit and training portal access. This amount is returned with your first salary.
+
+Please share your bank account details, IFSC and a copy of your Aadhaar to process your salary account. Our HR team will complete the formalities on WhatsApp.
+
+Reply to hr.recruitment.team2024@gmail.com to proceed.`,
+  },
+  {
+    slug: 'invoice-bank-change',
+    label: 'Supplier invoice with changed bank details',
+    kind: 'message',
+    context: 'invoice',
+    scenario:
+      'A supplier you genuinely work with emails an overdue invoice — but the bank details are different from last time.',
+    expectation:
+      'Should flag the changed payment details as critical, the payment urgency, and the discouragement of a phone check. The top action should be to call a number you already held.',
+    text: `Dear Accounts Payable,
+
+Please find attached invoice INV-20418 for the September engagement, now overdue.
+
+Please note our bank details have changed following our recent banking migration. Do not use the old account. The new beneficiary account is detailed in the attachment.
+
+As this payment is already past due, we would appreciate same-day settlement to avoid suspension of service.
+
+There is no need to call to confirm — our accounts team is currently unavailable during the migration, so please reply by email only.
+
+Kind regards,
+Accounts Receivable`,
+  },
+  {
+    slug: 'business-proposal',
+    label: 'Investment proposal with guaranteed returns',
+    kind: 'claim',
+    context: 'proposal',
+    scenario:
+      'A vendor pitches an investment partnership and wants a decision and a deposit before you can do any checks.',
+    expectation:
+      'Should flag the guaranteed return as critical, the pressure to sign, the upfront payment, and the stated-but-unevidenced credentials.',
+    text: `Following our introduction, we would like to formalise the partnership.
+
+Our award-winning, industry-leading platform has partnered with several Fortune 500 clients and delivers a guaranteed 18% return per annum with no risk to capital.
+
+Only 4 allocation slots remain in this round and the window closes by end of day tomorrow. We would need the signed agreement and the initial payment of 250,000 to secure the allocation.
+
+Please sign the NDA before we disclose the detailed financials and client list.`,
+  },
+  {
     slug: 'benign-transactional',
+    context: 'generic',
+    scenario:
+      'An ordinary order-shipped notification, included as a control.',
     label: 'Ordinary transactional message (control)',
     kind: 'message',
     expectation:
@@ -82,6 +162,9 @@ Wire transfer the first tranche today to the account in the attached instruction
   },
   {
     slug: 'benign-internal',
+    context: 'generic',
+    scenario:
+      'An ordinary message from a colleague, included as a control.',
     label: 'Ordinary work message (control)',
     kind: 'message',
     expectation: 'Should match no rules — useful for checking the tool does not cry wolf.',

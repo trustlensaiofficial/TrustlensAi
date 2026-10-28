@@ -165,6 +165,33 @@ async function callAnthropic(system: string, user: string): Promise<string> {
     .join('');
 }
 
+/**
+ * Turns a provider error into something a user can act on.
+ *
+ * The distinction matters: "billing is not enabled" is a five-minute fix by the
+ * account owner, while "could not be reached" sends someone hunting for a bug
+ * that does not exist. The raw provider text can contain account identifiers
+ * and URLs, so it is logged server-side and never returned to the client.
+ */
+function describeFailure(raw: string): string {
+  const text = raw.toLowerCase();
+  const tail = ' The deterministic warning signs and evidence below are unaffected and were produced without the model.';
+
+  if (text.includes('credit card') || text.includes('billing') || text.includes('payment method')) {
+    return 'The AI provider is reachable but will not serve requests until billing is enabled on the account.' + tail;
+  }
+  if (text.includes('401') || text.includes('403') || text.includes('unauthor') || text.includes('invalid api key') || text.includes('authentication')) {
+    return 'The AI credential was rejected by the provider.' + tail;
+  }
+  if (text.includes('429') || text.includes('rate limit') || text.includes('quota') || text.includes('credit')) {
+    return 'The AI provider declined the request because a rate limit or usage quota has been reached.' + tail;
+  }
+  if (text.includes('timeout') || text.includes('abort')) {
+    return `The contextual layer did not respond within ${MODEL_TIMEOUT_MS / 1000} seconds.` + tail;
+  }
+  return 'The contextual layer could not be reached.' + tail;
+}
+
 export interface ContextualResult {
   status: ModelStatus;
   output: ModelOutput | null;
@@ -221,18 +248,15 @@ export async function runContextualAnalysis(
     return { status: { used: true, provider, model, degraded: false }, output };
   } catch (err) {
     // Log server-side without echoing credentials or the specimen text.
-    const name = err instanceof Error ? err.message.slice(0, 120) : 'unknown';
-    console.error('[trustlens] contextual analysis failed:', name);
-    const timedOut = name.includes('Timeout') || name.includes('abort');
+    const raw = err instanceof Error ? err.message : 'unknown';
+    console.error('[trustlens] contextual analysis failed:', raw.slice(0, 200));
     return {
       status: {
         used: false,
         provider,
         model,
         degraded: true,
-        reason: timedOut
-          ? `The contextual layer did not respond within ${MODEL_TIMEOUT_MS / 1000} seconds. Deterministic results below are unaffected.`
-          : 'The contextual layer could not be reached. Deterministic results below are unaffected.',
+        reason: describeFailure(raw),
       },
       output: null,
     };
