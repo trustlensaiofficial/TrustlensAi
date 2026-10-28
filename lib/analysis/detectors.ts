@@ -60,8 +60,11 @@ const RULES: Rule[] = [
     explanation:
       'Isolating you from people who would notice the fraud is a hallmark of coercive scams, including "digital arrest" schemes. No legitimate authority forbids you from consulting family or your bank.',
     patterns: [
-      /\b(do\s+not|don'?t|never)\s+(tell|inform|discuss|share\s+this\s+with|disclose\s+to)\s+(anyone|anybody|your\s+(family|wife|husband|parents|friends|colleagues))\b/gi,
+      // Allows a short gap, so "do not discuss it with anyone" and
+      // "do not tell anyone, including your family" both match.
+      /\b(do\s+not|don'?t|never)\s+(tell|inform|discuss|mention|share|disclose)\b[^.!?]{0,40}?\b(anyone|anybody|your\s+(family|wife|husband|parents|friends|colleagues)|the\s+(finance|accounts?|legal)\s+team|the\s+(wider\s+)?office)\b/gi,
       /\b(keep|treat)\s+(this|it)\s+(strictly\s+)?(confidential|secret|between\s+us)\b/gi,
+      /\b(strictly\s+)?confidential\b[^.!?]{0,60}?\b(do\s+not|don'?t|never)\s+(tell|discuss|share|mention|disclose)\b/gi,
       /\b(stay|remain)\s+on\s+(the\s+)?(call|line)\b/gi,
       /\bdigital\s+arrest\b/gi,
       /\b(do\s+not|don'?t)\s+(hang\s+up|end\s+the\s+call|disconnect)\b/gi,
@@ -78,7 +81,8 @@ const RULES: Rule[] = [
       /\b(gift\s+cards?|google\s+play\s+card|itunes\s+card|steam\s+card|amazon\s+card)\b/gi,
       /\b(bitcoin|btc|ethereum|usdt|tether|crypto(currency)?\s+wallet)\b/gi,
       /\b(wire\s+transfer|western\s+union|moneygram)\b/gi,
-      /\b(send|transfer|deposit|pay)\s+(the\s+)?(money|amount|funds|fee)\s+to\s+(this|the\s+following)\b/gi,
+      /\b(send|transfer|deposit|remit|pay)\b[^.!?]{0,40}?\b(amount|sum|funds?|money|payment|tranche|fee)\b[^.!?]{0,40}?\b(to\s+(this|the\s+following|the\s+account)|account\s+(details|number|provided)|bank\s+account)/gi,
+      /\b(transfer|remit)\s+(the\s+)?(first\s+|second\s+)?(tranche|instalment|installment)\b/gi,
       /\b(upi|paytm|phonepe|gpay|zelle|cash\s*app|venmo)\s+(id|number|to)\b/gi,
     ],
   },
@@ -132,6 +136,8 @@ const RULES: Rule[] = [
     patterns: [
       /\b(microsoft|apple|google|amazon|paypal|netflix|meta|facebook|instagram|whatsapp)\s+(support|security|team|account|billing|service)\b/gi,
       /\b(income\s+tax|customs|cbi|ed\s+department|enforcement\s+directorate|trai|police\s+department|cyber\s+cell)\b/gi,
+      /\b(cyber\s+crime|crime\s+branch|narcotics\s+(bureau|control|department))\b/gi,
+      /\binvestigation\s+(cell|bureau|department|team)\b/gi,
       /\b(irs|hmrc|social\s+security\s+administration|medicare)\b/gi,
       /\b(fedex|dhl|ups|royal\s+mail|india\s+post|courier)\s+(delivery|parcel|package|shipment|customs)\b/gi,
       /\b(bank\s+(of|security)\s+\w+|your\s+bank'?s?\s+(security|fraud)\s+(team|department))\b/gi,
@@ -185,6 +191,32 @@ const RULES: Rule[] = [
       /\b[\w-]+\.(apk|exe|scr|msi|bat|cmd|vbs|jar)\b/gi,
       /\b(install|download)\s+(this\s+|the\s+)?(app|apk|application|software|tool)\s+(to|and)\b/gi,
       /\b(anydesk|teamviewer|quick\s*support|remote\s+desktop)\b/gi,
+    ],
+  },
+  {
+    id: 'channel.avoids_verification',
+    title: 'Pre-emptive excuse for why you cannot call back',
+    category: 'channel',
+    severity: 'medium',
+    explanation:
+      'An unprompted reason why you cannot phone to confirm — travelling, in meetings, a broken phone — removes the single step that would expose an impersonated sender. Genuine colleagues do not mind being called.',
+    patterns: [
+      /\bi\s*(?:'m|’m|\s+am)\s+(?:travelling|traveling|in\s+meetings?|unavailable|abroad|tied\s+up)\b[^.!?]{0,60}?\b(?:reply|email|message|text|contact|write)\b/gi,
+      /\b(?:reply|respond|email|message|write)\b[^.!?]{0,30}?\b(?:rather\s+than|instead\s+of)\s+(?:calling|phoning|ringing|a\s+call)/gi,
+      /\b(?:do\s+not|don'?t|cannot|can'?t|unable\s+to)\s+(?:call|phone|ring|take\s+calls)\b/gi,
+    ],
+  },
+  {
+    id: 'lure.seized_parcel',
+    title: 'Unexpected parcel, customs or seizure pretext',
+    category: 'lure',
+    severity: 'high',
+    explanation:
+      'A seized parcel or package stuck at customs that you never sent is a standard opening for a fee demand or an identity-verification pretext.',
+    patterns: [
+      /\b(?:parcel|package|consignment|shipment)\b[^.!?]{0,50}?\b(?:seized|detained|held|intercepted|confiscated)\b/gi,
+      /\b(?:seized|detained|intercepted|confiscated)\b[^.!?]{0,40}?\b(?:parcel|package|consignment|shipment)\b/gi,
+      /\b(?:customs|courier)\s+(?:clearance|duty|charges?)\s+(?:is\s+|are\s+)?(?:pending|required|due|unpaid)\b/gi,
     ],
   },
   {

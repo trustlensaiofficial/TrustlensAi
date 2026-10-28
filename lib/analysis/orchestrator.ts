@@ -115,7 +115,11 @@ function buildUncertainty(
   const notChecked: string[] = [];
 
   if (urlCount > 0) {
-    checked.push(`${urlCount} link${urlCount === 1 ? '' : 's'} had their structure parsed offline (domain, scheme, port, lookalike comparison).`);
+    checked.push(
+      urlCount === 1
+        ? '1 link had its structure parsed offline (domain, scheme, port, lookalike comparison).'
+        : `${urlCount} links had their structure parsed offline (domain, scheme, port, lookalike comparison).`,
+    );
   } else if (kind !== 'claim') {
     notChecked.push('No link was present in the input, so no domain or destination check applied.');
   }
