@@ -23,6 +23,8 @@ plain `curl` and no bypass token.
 | ~~B4~~ | ~~Vercel Authentication blocks judges~~ — **RESOLVED 2026-10-28** with the owner's explicit authorisation. `trustlensai-u2r6` is now `ssoProtection: {deploymentType: 'preview'}`: Production is public, Previews stay protected. The other three projects are unchanged. | — | Closed. Rollback: set `deploymentType` back to `all_except_custom_domains`. |
 | ~~B5~~ | ~~`scans` table missing~~ — **RESOLVED.** The table exists and accepts writes; a full save/retrieve/delete cycle was verified. | — | Closed. |
 
+| **B6** | **`public.analysis_history` is readable by the publishable browser key.** Probed 2026-10-29: `scans` → 401, `analysis_reports` → 401, **`analysis_history` → 200**. Writes are denied, so RLS is on but a permissive SELECT policy is granted to `anon`. The table has `user_id` and is **empty**, so nothing has leaked — but any future write becomes readable by every visitor. | **Owner** | Fix written and committed as `supabase/migrations/0002_lock_analysis_history.sql`. **Not applied** — the Supabase CLI here is unauthenticated. Apply via dashboard → SQL Editor → paste → Run, then re-probe and expect 401. |
+
 ### Exact owner steps
 
 **B2 — AI credential (pick one), on `trustlensai-u2r6`.** The code accepts either, no change needed:
@@ -49,6 +51,12 @@ the Vercel dashboard or a `vercel env add` prompt — never into chat or a commi
 **B5 — migration.** Supabase dashboard → SQL Editor → paste and run
 `supabase/migrations/0001_scans.sql`. It is additive: it creates one table and
 one index, drops nothing, and alters no existing policy.
+
+**B6 — lock `analysis_history`.** Supabase dashboard → SQL Editor → paste
+`supabase/migrations/0002_lock_analysis_history.sql` → Run. It is additive:
+drops no table, deletes no row, and does not touch `public.scans` (22 rows) or
+`public.analysis_reports`. Verify afterwards by requesting the table with the
+publishable key — it should return 401 like the other two.
 
 **B4 — judge access.** Done on 2026-10-28 with the owner's authorisation.
 `trustlensai-u2r6` Production is public; Previews remain protected.
