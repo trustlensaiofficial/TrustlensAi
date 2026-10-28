@@ -1,4 +1,4 @@
-import type { AssessmentLevel, InputKind } from './analysis/types';
+import type { AssessmentLevel, InputContext, InputKind } from './analysis/types';
 
 /**
  * Per-browser history index, exposed as an external store.
@@ -24,6 +24,8 @@ export interface HistoryEntry {
   isDemo: boolean;
   /** False when the server could not save it, so history cannot reload it. */
   persisted: boolean;
+  /** Optional: entries written before contexts existed will not have it. */
+  context?: InputContext;
 }
 
 /** Stable empty reference: getSnapshot must not return a fresh array each call. */
