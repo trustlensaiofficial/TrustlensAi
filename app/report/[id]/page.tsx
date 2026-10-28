@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { FloatingActions } from '@/components/FloatingActions';
 import { ReportView } from '@/components/ReportView';
 import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
 import { AlertIcon, ArrowIcon } from '@/components/icons';
@@ -53,16 +52,6 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
         <SiteFooter />
       </main>
-
-      <FloatingActions
-        actions={[
-          ...(report
-            ? [{ id: 'steps', label: 'Jump to next steps', icon: 'checklist' as const, href: '#next-title' }]
-            : []),
-          { id: 'new', label: 'New analysis', icon: 'new' as const, href: '/analyze' },
-          { id: 'history', label: 'Investigation history', icon: 'history' as const, href: '/history' },
-        ]}
-      />
     </>
   );
 }

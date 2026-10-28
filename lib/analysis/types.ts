@@ -10,42 +10,6 @@
 
 export type InputKind = 'message' | 'url' | 'claim';
 
-/**
- * What the user says they are looking at.
- *
- * This is deliberately separate from `InputKind`. The database stores
- * `input_kind` under a CHECK constraint limited to the three values above, so
- * context is carried inside the report document instead — richer product
- * behaviour with no migration against live data.
- */
-export type InputContext = 'generic' | 'job_offer' | 'invoice' | 'proposal' | 'website';
-
-/**
- * An observation that does NOT raise concern.
- *
- * Framed carefully: the absence of a warning sign is weak evidence, never
- * proof of legitimacy. The UI labels these as observations, not reassurance.
- */
-export interface PositiveIndicator {
-  id: string;
-  title: string;
-  detail: string;
-}
-
-/** A question the user can put to the sender before trusting them. */
-export interface QuestionToAsk {
-  id: string;
-  question: string;
-  why: string;
-}
-
-/** How complete the investigation actually was, from real fields only. */
-export interface Completeness {
-  score: number;
-  max: number;
-  items: Array<{ label: string; present: boolean; note: string }>;
-}
-
 export type SignalSeverity = 'critical' | 'high' | 'medium' | 'low';
 
 export type SignalCategory =
@@ -160,8 +124,6 @@ export interface ModelStatus {
 export interface Report {
   id: string;
   inputKind: InputKind;
-  /** What the user said they were looking at. Stored in the report document. */
-  inputContext: InputContext;
   /** Truncated, display-safe echo of what was analyzed. */
   inputPreview: string;
   createdAt: string;
@@ -171,12 +133,6 @@ export interface Report {
   findings: Finding[];
   uncertainty: Uncertainty;
   checklist: ChecklistStep[];
-  /** Observations that did not raise concern. Never framed as reassurance. */
-  positives: PositiveIndicator[];
-  /** Context-aware questions to put to the sender before trusting them. */
-  questions: QuestionToAsk[];
-  /** How much of the possible investigation actually ran. */
-  completeness: Completeness;
   model: ModelStatus;
   /** True for the built-in example cases shown to reviewers. */
   isDemo: boolean;

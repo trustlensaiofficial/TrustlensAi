@@ -14,7 +14,6 @@ export const dynamic = 'force-dynamic';
 const Body = z.object({
   text: z.string().max(MAX_INPUT_LENGTH + 1_000).optional(),
   kind: z.enum(['auto', 'message', 'url', 'claim']).default('auto'),
-  context: z.enum(['generic', 'job_offer', 'invoice', 'proposal', 'website']).default('generic'),
   liveChecks: z.boolean().default(true),
   demoSlug: z.string().max(64).optional(),
 });
@@ -47,7 +46,6 @@ export async function POST(request: Request) {
   }
 
   const { kind, liveChecks, demoSlug } = parsed.data;
-  let context = parsed.data.context;
 
   // A demo slug loads server-side canned text so the UI cannot pass off
   // arbitrary input as a curated example.
@@ -59,7 +57,6 @@ export async function POST(request: Request) {
     if (!demo) return fail('That example does not exist.', 404);
     text = demo.text;
     effectiveKind = demo.kind;
-    context = demo.context;
     isDemo = true;
   }
 
@@ -72,7 +69,6 @@ export async function POST(request: Request) {
     const report = await analyze({
       text: validated.value,
       kind: effectiveKind,
-      context,
       liveChecks,
       isDemo,
     });

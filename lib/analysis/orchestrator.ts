@@ -1,8 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { buildChecklist } from './checklist';
-import { CONTEXT_LABEL, contextRuleCount, detectContextSignals } from './context-rules';
 import { detectSignals, ruleCount } from './detectors';
-import { buildCompleteness, buildPositives, buildQuestions } from './insights';
 import { collectUrlEvidence, notCheckedEvidence } from './evidence';
 import { runContextualAnalysis } from './llm';
 import { buildPreview, classifyInput } from './normalize';
@@ -11,7 +9,6 @@ import {
   type Assessment,
   type EvidenceRecord,
   type Finding,
-  type InputContext,
   type InputKind,
   type Report,
   type Signal,
@@ -32,14 +29,12 @@ export interface AnalyzeOptions {
   text: string;
   /** 'auto' lets the classifier decide; the UI shows and can override it. */
   kind?: InputKind | 'auto';
-  /** What the user says they are looking at; unlocks context-specific rules. */
-  context?: InputContext;
   /** When false, no outbound request is made at all. */
   liveChecks?: boolean;
   isDemo?: boolean;
 }
 
-function buildAssessment(signals: Signal[], kind: InputKind, totalRules: number, context: InputContext): Assessment {
+function buildAssessment(signals: Signal[], kind: InputKind): Assessment {
   const signalScore = signals.reduce((sum, s) => sum + SEVERITY_WEIGHT[s.severity], 0);
   const critical = signals.filter((s) => s.severity === 'critical').length;
   const high = signals.filter((s) => s.severity === 'high').length;
@@ -60,21 +55,15 @@ function buildAssessment(signals: Signal[], kind: InputKind, totalRules: number,
     headline = 'No warning signs matched — this is not a guarantee that the content is genuine';
   }
 
-  const noun =
-    context === 'job_offer' ? 'job offer'
-    : context === 'invoice' ? 'invoice'
-    : context === 'proposal' ? 'proposal'
-    : kind === 'claim' ? 'claim'
-    : kind === 'url' ? 'link'
-    : 'message';
+  const noun = kind === 'claim' ? 'claim' : kind === 'url' ? 'link' : 'message';
   const parts: string[] = [];
   if (signals.length === 0) {
     parts.push(
-      `None of the ${totalRules} deterministic rules matched this ${noun}. That means the specific patterns we test for are absent — not that the ${noun} has been confirmed as legitimate.`,
+      `None of the ${ruleCount(kind)} deterministic rules matched this ${noun}. That means the specific patterns we test for are absent — not that the ${noun} has been confirmed as legitimate.`,
     );
   } else {
     parts.push(
-      `${signals.length} of ${totalRules} deterministic rules matched this ${noun}` +
+      `${signals.length} of ${ruleCount(kind)} deterministic rules matched this ${noun}` +
         (critical > 0 ? `, including ${critical} rated critical` : high > 0 ? `, including ${high} rated high` : '') +
         '.',
     );
@@ -115,21 +104,15 @@ function buildFindings(
 
 function buildUncertainty(
   kind: InputKind,
-  totalRules: number,
   evidence: EvidenceRecord[],
   modelDegraded: boolean,
   modelReason: string | undefined,
   liveChecks: boolean,
   urlCount: number,
   extraUnknowns: string[],
-  context: InputContext,
 ): Uncertainty {
-  const checked: string[] = [`${totalRules} deterministic warning-sign rules were applied to the text.`];
+  const checked: string[] = [`${ruleCount(kind)} deterministic warning-sign rules were applied to the text.`];
   const notChecked: string[] = [];
-
-  if (context !== 'generic') {
-    checked.push(`Context-specific rules for "${CONTEXT_LABEL[context]}" were applied in addition to the general rules.`);
-  }
 
   if (urlCount > 0) {
     checked.push(
@@ -188,17 +171,11 @@ function buildUncertainty(
 export async function analyze(options: AnalyzeOptions): Promise<Report> {
   const { text, isDemo = false } = options;
   const liveChecks = options.liveChecks !== false;
-  const context: InputContext = options.context ?? 'generic';
   const kind: InputKind =
     !options.kind || options.kind === 'auto' ? classifyInput(text) : options.kind;
-  const totalRules = ruleCount(kind) + contextRuleCount(context);
 
-  // 1. Deterministic text rules — generic first, then any that apply only to
-  //    the context the user selected.
+  // 1. Deterministic text rules.
   const signals: Signal[] = detectSignals(text, kind);
-  for (const contextSignal of detectContextSignals(text, context)) {
-    if (!signals.some((s) => s.id === contextSignal.id)) signals.push(contextSignal);
-  }
 
   // 2. Offline link structure. For a bare URL the input itself is the link.
   const urls = kind === 'url' ? [text.trim()] : extractUrls(text);
@@ -233,7 +210,7 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
   // 5. Contextual layer, given only what we established above.
   const contextual = await runContextualAnalysis(text, kind, signals, evidence);
 
-  const assessment = buildAssessment(signals, kind, totalRules, context);
+  const assessment = buildAssessment(signals, kind);
   if (contextual.output?.summary) {
     assessment.summary = `${assessment.summary}\n\n${contextual.output.summary}`;
   }
@@ -242,17 +219,15 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
 
   const uncertainty = buildUncertainty(
     kind,
-    totalRules,
     evidence,
     contextual.status.degraded,
     contextual.status.reason,
     liveChecks,
     urls.length,
     contextual.output?.unknowns ?? [],
-    context,
   );
 
-  const checklist = buildChecklist(signals, kind, context);
+  const checklist = buildChecklist(signals, kind);
   for (const extra of contextual.output?.suggestedChecks ?? []) {
     if (checklist.length >= 8) break;
     checklist.push({
@@ -262,14 +237,9 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
     });
   }
 
-  const positives = buildPositives(signals, evidence, text);
-  const questions = buildQuestions(signals, context);
-  const completeness = buildCompleteness(signals, evidence, contextual.status, urls.length > 0);
-
   return {
     id: randomUUID(),
     inputKind: kind,
-    inputContext: context,
     inputPreview: buildPreview(text),
     createdAt: new Date().toISOString(),
     assessment,
@@ -278,9 +248,6 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
     findings,
     uncertainty,
     checklist,
-    positives,
-    questions,
-    completeness,
     model: contextual.status,
     isDemo,
     persisted: false,

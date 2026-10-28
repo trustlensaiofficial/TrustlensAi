@@ -1,11 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
-import { FloatingActions } from '@/components/FloatingActions';
-import { ArrowIcon, ClockIcon, InfoIcon, SearchIcon, TrashIcon } from '@/components/icons';
-import { CONTEXT_LABEL } from '@/lib/analysis/context-rules';
+import { ArrowIcon, ClockIcon, InfoIcon, TrashIcon } from '@/components/icons';
 import type { AssessmentLevel } from '@/lib/analysis/types';
 import {
   clearHistory,
@@ -31,17 +29,12 @@ const LEVEL_SEVERITY: Record<AssessmentLevel, string> = {
   no_signals_detected: 'low',
 };
 
-type SortKey = 'newest' | 'oldest' | 'risk';
-
-/** Highest risk first when sorting by risk. */
-const RISK_ORDER: Record<AssessmentLevel, number> = {
-  high_risk: 0,
-  elevated_risk: 1,
-  some_signals: 2,
-  no_signals_detected: 3,
-};
+const KIND_LABEL = { message: 'Message', url: 'Link', claim: 'Claim' } as const;
 
 export default function HistoryPage() {
+  // localStorage is external state, so it is read through useSyncExternalStore
+  // rather than an effect. The store re-emits on every mutation and on a
+  // storage event from another tab, so this list stays current by itself.
   const entries = useSyncExternalStore(
     subscribeHistory,
     getHistorySnapshot,
@@ -49,33 +42,9 @@ export default function HistoryPage() {
   );
   const hydrated = useHydrated();
 
-  const [query, setQuery] = useState('');
-  const [level, setLevel] = useState<'all' | AssessmentLevel>('all');
-  const [sort, setSort] = useState<SortKey>('newest');
-
-  const visible = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const filtered = entries.filter((e) => {
-      if (level !== 'all' && e.level !== level) return false;
-      if (!q) return true;
-      const haystack = `${e.preview} ${e.context ? CONTEXT_LABEL[e.context] : ''} ${LEVEL_LABEL[e.level]}`;
-      return haystack.toLowerCase().includes(q);
-    });
-    const sorted = [...filtered];
-    sorted.sort((a, b) => {
-      if (sort === 'risk') {
-        const diff = RISK_ORDER[a.level] - RISK_ORDER[b.level];
-        if (diff !== 0) return diff;
-      }
-      const at = new Date(a.createdAt).getTime();
-      const bt = new Date(b.createdAt).getTime();
-      return sort === 'oldest' ? at - bt : bt - at;
-    });
-    return sorted;
-  }, [entries, query, level, sort]);
-
   async function remove(entry: HistoryEntry) {
     removeFromHistory(entry.id);
+    // Also delete the stored copy, so "remove" is not merely cosmetic.
     if (entry.persisted) {
       try {
         await fetch(`/api/report/${entry.id}`, { method: 'DELETE' });
@@ -85,8 +54,6 @@ export default function HistoryPage() {
     }
   }
 
-  const filtersActive = query.trim().length > 0 || level !== 'all';
-
   return (
     <>
       <SiteHeader current="history" />
@@ -94,7 +61,7 @@ export default function HistoryPage() {
         <section style={{ padding: 'clamp(28px, 4vw, 48px) 0 clamp(16px, 2.4vw, 24px)' }}>
           <p className="eyebrow">
             <span className="dot" />
-            Investigation history
+            Scan history
           </p>
           <h1 style={{ fontSize: 'clamp(28px, 3.6vw, 42px)', marginTop: 14 }}>Your past analyses</h1>
           <p className="lede" style={{ marginTop: 14, maxWidth: '64ch' }}>
@@ -124,45 +91,6 @@ export default function HistoryPage() {
           </section>
         ) : (
           <>
-            <div className="hist-controls">
-              <div className="search-field">
-                <SearchIcon />
-                <input
-                  className="search-input"
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search your analyses…"
-                  aria-label="Search your analyses"
-                />
-              </div>
-              <select
-                className="select-field"
-                value={level}
-                onChange={(e) => setLevel(e.target.value as 'all' | AssessmentLevel)}
-                aria-label="Filter by risk level"
-              >
-                <option value="all">All risk levels</option>
-                <option value="high_risk">Strong warning signs</option>
-                <option value="elevated_risk">Serious warning signs</option>
-                <option value="some_signals">Some warning signs</option>
-                <option value="no_signals_detected">No rules matched</option>
-              </select>
-              <select
-                className="select-field"
-                value={sort}
-                onChange={(e) => setSort(e.target.value as SortKey)}
-                aria-label="Sort analyses"
-              >
-                <option value="newest">Newest first</option>
-                <option value="oldest">Oldest first</option>
-                <option value="risk">Highest risk first</option>
-              </select>
-              <span className="hist-count" aria-live="polite">
-                {visible.length} of {entries.length}
-              </span>
-            </div>
-
             {entries.some((e) => !e.persisted) && (
               <div className="banner banner-warn" style={{ marginBottom: 14 }}>
                 <InfoIcon />
@@ -176,83 +104,42 @@ export default function HistoryPage() {
               </div>
             )}
 
-            {visible.length === 0 ? (
-              <section className="card empty">
-                <div className="empty-icon"><SearchIcon /></div>
-                <h2>No analyses match those filters</h2>
-                <p>Try a different search term, or clear the filters to see everything again.</p>
-                <div className="hero-actions" style={{ justifyContent: 'center', marginTop: 24 }}>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      setQuery('');
-                      setLevel('all');
-                    }}
-                  >
-                    Clear filters
-                  </button>
+            {entries.map((entry) => (
+              <article className="hist-item" key={entry.id}>
+                <div className="hist-main">
+                  <strong>{entry.preview}</strong>
+                  <p className="hist-meta">
+                    {new Date(entry.createdAt).toLocaleString()} · {KIND_LABEL[entry.kind]}
+                    {entry.isDemo && ' · demo case'}
+                    {!entry.persisted && ' · not saved'}
+                  </p>
                 </div>
-              </section>
-            ) : (
-              visible.map((entry) => (
-                <article className="hist-item" key={entry.id}>
-                  <div className="hist-main">
-                    <strong>{entry.preview}</strong>
-                    <p className="hist-meta">
-                      {new Date(entry.createdAt).toLocaleString()}
-                      {entry.context && ` · ${CONTEXT_LABEL[entry.context]}`}
-                      {entry.isDemo && ' · demo case'}
-                      {!entry.persisted && ' · not saved'}
-                    </p>
-                  </div>
-                  <span className={`sev-badge sev-${LEVEL_SEVERITY[entry.level]}`}>
-                    {LEVEL_LABEL[entry.level]}
-                  </span>
-                  {entry.persisted ? (
-                    <Link className="btn btn-secondary" href={`/report/${entry.id}`}>
-                      Open
-                    </Link>
-                  ) : (
-                    <span className="chip">Unavailable</span>
-                  )}
-                  <button
-                    type="button"
-                    className="icon-button"
-                    onClick={() => void remove(entry)}
-                    aria-label={`Delete the analysis from ${new Date(entry.createdAt).toLocaleString()}`}
-                  >
-                    <TrashIcon />
-                  </button>
-                </article>
-              ))
-            )}
-
-            <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              {filtersActive && (
+                <span className={`sev-badge sev-${LEVEL_SEVERITY[entry.level]}`}>
+                  {LEVEL_LABEL[entry.level]}
+                </span>
+                {entry.persisted ? (
+                  <Link className="btn btn-secondary" href={`/report/${entry.id}`}>
+                    Open
+                  </Link>
+                ) : (
+                  <span className="chip">Unavailable</span>
+                )}
                 <button
                   type="button"
-                  className="btn btn-ghost"
-                  onClick={() => {
-                    setQuery('');
-                    setLevel('all');
-                  }}
+                  className="icon-button"
+                  onClick={() => void remove(entry)}
+                  aria-label={`Remove this report from history`}
                 >
-                  Clear filters
+                  <TrashIcon />
                 </button>
-              )}
+              </article>
+            ))}
+
+            <div style={{ marginTop: 18 }}>
               <button
                 type="button"
                 className="btn btn-ghost"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `Remove all ${entries.length} entries from this browser's list? Saved reports stay on the server unless you delete them individually.`,
-                    )
-                  ) {
-                    clearHistory();
-                  }
-                }}
+                onClick={() => clearHistory()}
               >
                 Clear this browser&apos;s list
               </button>
@@ -262,13 +149,6 @@ export default function HistoryPage() {
 
         <SiteFooter />
       </main>
-
-      <FloatingActions
-        actions={[
-          { id: 'new', label: 'New analysis', icon: 'new', href: '/analyze' },
-          { id: 'examples', label: 'Example cases', icon: 'analyze', href: '/analyze' },
-        ]}
-      />
     </>
   );
 }
