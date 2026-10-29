@@ -401,3 +401,117 @@
   }
   .sc-wordmark { animation: none; background-position: 50% 0; }
 }
+
+/* ===========================================================================
+   Film scene furniture (per-feature scenes)
+   =========================================================================== */
+.sc-scene-head { text-align: center; margin-bottom: clamp(16px, 2.6vw, 26px); }
+.sc-scene-kicker {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--sc-ice); font-size: 10.5px; font-weight: 750;
+  letter-spacing: .2em; text-transform: uppercase;
+  animation: sc-fade .5s var(--sc-ease) both;
+}
+.sc-scene-kicker i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.sc-scene-title {
+  margin-top: 10px; font-size: clamp(20px, 3.4vw, 33px);
+  letter-spacing: -.035em; line-height: 1.1;
+  animation: sc-rise .6s .08s var(--sc-ease) both;
+}
+
+/* staged reveal helper */
+.sc-in { animation: sc-fade .52s var(--sc-ease) both; }
+.sc-in-up { animation: sc-rise .6s var(--sc-ease) both; }
+
+/* context chips (feature 02 scene) */
+.sc-chips { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+.sc-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 15px; border-radius: var(--sc-r-pill);
+  border: 1px solid var(--sc-line); background: rgba(255,255,255,.04);
+  font-size: 13px; color: var(--sc-muted);
+  animation: sc-rise .5s var(--sc-ease) both;
+}
+.sc-chip[data-on='true'] { border-color: var(--sc-ice); background: var(--sc-ice-soft); color: var(--sc-ice-bright); }
+.sc-chip svg { width: 15px; height: 15px; color: var(--sc-ice); }
+
+/* split compare (feature 05 scene) */
+.sc-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.sc-split-col { border-radius: 14px; border: 1px solid var(--sc-line); background: rgba(255,255,255,.03); padding: 15px; animation: sc-rise .55s var(--sc-ease) both; }
+.sc-split-col h4 { margin: 0 0 10px; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; }
+.sc-split-col li { color: var(--sc-muted); font-size: 12.5px; line-height: 1.55; margin-bottom: 6px; }
+.sc-split-ok h4 { color: var(--sc-ok); }
+.sc-split-unknown h4 { color: var(--sc-warn); }
+
+/* report card (feature 07 scene) */
+.sc-reportcard {
+  max-width: 460px; margin: 0 auto; text-align: left;
+  border-radius: var(--sc-r); border: 1px solid var(--sc-line);
+  background: var(--sc-raise); padding: 18px 20px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.55);
+  animation: sc-rise .6s var(--sc-ease) both;
+}
+.sc-reportcard-top { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+.sc-badge {
+  padding: 4px 10px; border-radius: var(--sc-r-pill);
+  border: 1px solid rgba(255,138,128,.4); background: rgba(255,138,128,.12);
+  color: var(--sc-crit); font-size: 10px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase;
+}
+.sc-reportcard h4 { margin: 0 0 10px; font-size: 15px; line-height: 1.35; }
+.sc-reportcard-row { display: flex; gap: 9px; align-items: center; padding: 8px 0; border-top: 1px solid var(--sc-line); color: var(--sc-muted); font-size: 12.5px; }
+
+/* history rows (feature 08 scene) */
+.sc-histrow {
+  display: flex; align-items: center; gap: 11px; max-width: 460px; margin: 0 auto 8px;
+  padding: 11px 14px; border-radius: 12px;
+  border: 1px solid var(--sc-line); background: rgba(255,255,255,.03);
+  font-size: 12.5px; color: var(--sc-muted);
+  animation: sc-rise .5s var(--sc-ease) both;
+}
+.sc-histrow b { color: var(--sc-text); font-weight: 600; }
+.sc-lock { margin-left: auto; color: var(--sc-ok); display: inline-flex; align-items: center; gap: 6px; font-size: 11px; }
+.sc-lock svg { width: 13px; height: 13px; }
+
+/* closing scene */
+.sc-closing { display: grid; place-items: center; gap: 18px; text-align: center; }
+.sc-closing-ring {
+  display: grid; place-items: center; width: 108px; aspect-ratio: 1;
+  border-radius: 50%; border: 1px solid var(--sc-line);
+  background: radial-gradient(circle at 50% 38%, rgba(127,211,255,.15), transparent 66%);
+  animation: sc-ring .8s var(--sc-ease) both;
+}
+
+/* voice picker */
+.sc-voice { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; justify-content: center; margin-top: 12px; }
+.sc-voice label { color: var(--sc-faint); font-size: 12px; }
+.sc-select {
+  padding: 9px 12px; border-radius: 11px; max-width: 260px;
+  border: 1px solid var(--sc-line-strong); background: rgba(12,17,26,.9);
+  color: var(--sc-text); font-size: 12.5px; cursor: pointer;
+}
+.sc-select:focus-visible { outline: 2px solid var(--sc-ice); outline-offset: 2px; }
+
+/* Intro: a single slow orbit arc. One moving element, not a particle field. */
+.sc-lockup-ring::before {
+  content: '';
+  position: absolute; inset: -11px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-top-color: var(--sc-ice);
+  border-right-color: rgba(127, 211, 255, .3);
+  animation: sc-orbit 9s linear infinite;
+}
+@keyframes sc-orbit { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sc-lockup-ring::before { animation: none; opacity: .4; } }
+
+/* Eleven rail labels do not fit a phone — each would get ~26px. Keep the
+   segments (they are still the jump targets) and name only the current scene. */
+@media (max-width: 720px) {
+  .sc-rail-labels { display: none; }
+  .sc-rail-current {
+    display: block; margin-top: 9px; text-align: center;
+    color: var(--sc-ice); font-size: 10.5px; font-weight: 750;
+    letter-spacing: .16em; text-transform: uppercase;
+  }
+}
+.sc-rail-current { display: none; }
