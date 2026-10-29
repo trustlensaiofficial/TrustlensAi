@@ -49,6 +49,7 @@
   --lq-dock-shadow:
     0 1px 0 rgba(255, 255, 255, .9) inset,
     0 18px 44px rgba(16, 44, 92, .18);
+  --lq-grad-start: #0b1b33;
 
   /* One spring for lifts, one glide for travel. Two curves, one system. */
   --lq-spring: cubic-bezier(.34, 1.4, .54, 1);
@@ -83,6 +84,7 @@
   --lq-dock-shadow:
     0 1px 0 rgba(255, 255, 255, .2) inset,
     0 20px 50px rgba(2, 6, 20, .66);
+  --lq-grad-start: #ffffff;
 }
 
 /* The cinematic grade. Applied only by the flow pages, which stay dark in
@@ -482,7 +484,9 @@
 }
 
 .lq-gradient-text {
-  background: linear-gradient(104deg, #ffffff 8%, var(--lq-cyan) 48%, var(--lq-violet) 96%);
+  /* Starts from the body ink, not hard white: on the light theme a white
+     stop is simply invisible, which swallowed the first word of the name. */
+  background: linear-gradient(104deg, var(--lq-grad-start) 8%, var(--lq-cyan) 48%, var(--lq-violet) 96%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
