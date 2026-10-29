@@ -1,0 +1,454 @@
+/* ==========================================================================
+   Liquid glass + 3D surface system
+   --------------------------------------------------------------------------
+   Used by the cinematic flow (/, /login, /story, /features). These pages are
+   deliberately dark in both themes: the sequence is a film, and a film does
+   not change its grade because the room light changed.
+
+   Everything here animates transform / opacity / filter only, so the whole
+   sequence stays on the compositor. There is no motion library — the
+   choreography is time-based CSS, which cannot drift or leak a timer.
+   ========================================================================== */
+
+.lq {
+  --lq-ink: #eaf2ff;
+  --lq-ink-dim: #9fb2cc;
+  --lq-ink-faint: #6b7d98;
+  --lq-cyan: #5CC8FF;
+  --lq-blue: #2E7BE8;
+  --lq-violet: #8B6CF0;
+  --lq-edge: rgba(255, 255, 255, .14);
+  --lq-edge-bright: rgba(255, 255, 255, .34);
+  --lq-fill: rgba(140, 180, 240, .07);
+  --lq-fill-strong: rgba(150, 190, 245, .12);
+
+  /* One spring for lifts, one glide for travel. Two curves, one system. */
+  --lq-spring: cubic-bezier(.34, 1.4, .54, 1);
+  --lq-glide: cubic-bezier(.22, .61, .36, 1);
+
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  background: #04060f;
+  color: var(--lq-ink);
+  overflow-x: clip;
+}
+
+/* --------------------------------------------------------------------------
+   Stage: depth is built from four separated layers, not one gradient.
+   -------------------------------------------------------------------------- */
+.lq-stage {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #0d1a3a 0%, #070c1c 42%, #04060f 100%);
+}
+
+.lq-aurora {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .5;
+  will-change: transform;
+}
+
+.lq-aurora.a1 {
+  width: 56vmax; height: 56vmax;
+  left: -14vmax; top: -18vmax;
+  background: radial-gradient(circle, rgba(46, 123, 232, .55), transparent 68%);
+  animation: lq-drift-a 26s var(--lq-glide) infinite alternate;
+}
+
+.lq-aurora.a2 {
+  width: 48vmax; height: 48vmax;
+  right: -12vmax; top: 4vmax;
+  background: radial-gradient(circle, rgba(92, 200, 255, .38), transparent 68%);
+  animation: lq-drift-b 32s var(--lq-glide) infinite alternate;
+}
+
+.lq-aurora.a3 {
+  width: 52vmax; height: 52vmax;
+  left: 24vmax; bottom: -26vmax;
+  background: radial-gradient(circle, rgba(139, 108, 240, .34), transparent 70%);
+  animation: lq-drift-c 38s var(--lq-glide) infinite alternate;
+}
+
+@keyframes lq-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(8vmax, 6vmax, 0) scale(1.14); }
+}
+@keyframes lq-drift-b {
+  from { transform: translate3d(0, 0, 0) scale(1.08); }
+  to   { transform: translate3d(-9vmax, 8vmax, 0) scale(.94); }
+}
+@keyframes lq-drift-c {
+  from { transform: translate3d(0, 0, 0) scale(.96); }
+  to   { transform: translate3d(6vmax, -7vmax, 0) scale(1.16); }
+}
+
+/* A fine grain over the blur stops the gradients from banding on wide gamut
+   displays, where smooth blue ramps show stepping very clearly. */
+.lq-grain {
+  position: absolute;
+  inset: -50%;
+  opacity: .16;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* A faint grid gives the aurora something to sit in front of, which reads as
+   depth far more cheaply than another blurred layer. */
+.lq-grid {
+  position: absolute;
+  inset: 0;
+  opacity: .22;
+  background-image:
+    linear-gradient(rgba(120, 170, 240, .10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 170, 240, .10) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(100% 70% at 50% 35%, #000 10%, transparent 72%);
+}
+
+/* --------------------------------------------------------------------------
+   Glass surfaces
+   -------------------------------------------------------------------------- */
+.lq-glass {
+  position: relative;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .03) 38%, rgba(255, 255, 255, .055));
+  backdrop-filter: blur(34px) saturate(170%);
+  -webkit-backdrop-filter: blur(34px) saturate(170%);
+  border: 1px solid var(--lq-edge);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .22) inset,
+    0 -1px 0 rgba(255, 255, 255, .05) inset,
+    0 24px 60px rgba(2, 6, 20, .6),
+    0 6px 18px rgba(2, 6, 20, .45);
+  overflow: hidden;
+}
+
+/* The specular bar is what separates "glass" from "a translucent box": real
+   glass catches a light source along its top curve. */
+.lq-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 52%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .16), transparent);
+  pointer-events: none;
+}
+
+.lq-glass > * { position: relative; }
+
+/* --------------------------------------------------------------------------
+   3D buttons
+   The face sits on its own plane above a coloured edge, so a press travels
+   in Z rather than just dimming. Pointer tilt is written to --mx/--my by
+   LiquidButton; with no pointer the defaults keep it flat.
+   -------------------------------------------------------------------------- */
+/* The icon set carries only a viewBox, so every context must state a size.
+   Without this an inline SVG collapses to nothing inside a flex row. */
+.lq svg { width: 18px; height: 18px; flex: none; }
+.lq-btn-lg .lq-btn-face svg { width: 20px; height: 20px; }
+.lq-btn-sm .lq-btn-face svg { width: 16px; height: 16px; }
+.lq-eyebrow svg { width: 15px; height: 15px; }
+
+.lq-btn {
+  --mx: 0; --my: 0; --lift: 0px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--lq-ink);
+  cursor: pointer;
+  perspective: 700px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lq-btn-face {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  padding: 16px 30px;
+  border-radius: 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  transform-style: preserve-3d;
+  transform:
+    translate3d(0, var(--lift), 0)
+    rotateX(calc(var(--my) * -7deg))
+    rotateY(calc(var(--mx) * 7deg));
+  transition:
+    transform .4s var(--lq-spring),
+    box-shadow .4s var(--lq-glide),
+    border-color .3s linear;
+  will-change: transform;
+}
+
+.lq-btn:disabled { cursor: not-allowed; }
+.lq-btn:disabled .lq-btn-face { opacity: .55; }
+
+/* Primary: lit glass over a saturated core. */
+.lq-btn-primary .lq-btn-face {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, .04) 44%, rgba(255, 255, 255, .10)),
+    linear-gradient(135deg, var(--lq-blue), var(--lq-cyan) 58%, var(--lq-violet));
+  border: 1px solid rgba(255, 255, 255, .34);
+  color: #04142c;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .28);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .5) inset,
+    0 -2px 0 rgba(4, 20, 44, .28) inset,
+    0 10px 0 -4px rgba(16, 58, 120, .62),
+    0 18px 40px rgba(46, 123, 232, .42),
+    0 30px 70px rgba(46, 123, 232, .22);
+}
+
+/* Secondary: clear glass, no fill of its own. */
+.lq-btn-ghost .lq-btn-face {
+  background: var(--lq-fill);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid var(--lq-edge);
+  color: var(--lq-ink);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .18) inset,
+    0 8px 0 -5px rgba(6, 14, 32, .5),
+    0 14px 34px rgba(2, 6, 20, .5);
+}
+
+.lq-btn-sm .lq-btn-face { padding: 11px 20px; font-size: .9rem; border-radius: 14px; }
+.lq-btn-lg .lq-btn-face { padding: 21px 48px; font-size: 1.16rem; border-radius: 24px; }
+
+@media (hover: hover) {
+  .lq-btn:hover:not(:disabled) { --lift: -4px; }
+  .lq-btn-primary:hover:not(:disabled) .lq-btn-face {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, .6) inset,
+      0 -2px 0 rgba(4, 20, 44, .3) inset,
+      0 14px 0 -4px rgba(16, 58, 120, .66),
+      0 26px 56px rgba(46, 123, 232, .52),
+      0 40px 90px rgba(46, 123, 232, .3);
+  }
+  .lq-btn-ghost:hover:not(:disabled) .lq-btn-face {
+    background: var(--lq-fill-strong);
+    border-color: var(--lq-edge-bright);
+  }
+}
+
+.lq-btn:active:not(:disabled) { --lift: 3px; }
+.lq-btn:active:not(:disabled) .lq-btn-face { transition-duration: .09s; }
+.lq-btn-primary:active:not(:disabled) .lq-btn-face {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .4) inset,
+    0 3px 0 -2px rgba(16, 58, 120, .6),
+    0 8px 20px rgba(46, 123, 232, .34);
+}
+
+.lq-btn:focus-visible { outline: none; }
+.lq-btn:focus-visible .lq-btn-face {
+  outline: 2px solid var(--lq-cyan);
+  outline-offset: 4px;
+}
+
+/* The sheen sweeps once on hover — a highlight crossing a curved surface. */
+.lq-btn-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.lq-btn-sheen::after {
+  content: '';
+  position: absolute;
+  top: -60%; bottom: -60%;
+  left: -40%;
+  width: 34%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .5), transparent);
+  transform: translateX(-220%) rotate(14deg);
+}
+@media (hover: hover) {
+  .lq-btn:hover:not(:disabled) .lq-btn-sheen::after {
+    transition: transform 1.05s var(--lq-glide);
+    transform: translateX(560%) rotate(14deg);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Floating dock (the menu)
+   -------------------------------------------------------------------------- */
+.lq-dock {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 24px;
+  background: rgba(10, 18, 38, .52);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid var(--lq-edge);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .2) inset,
+    0 20px 50px rgba(2, 6, 20, .66);
+  animation: lq-dock-in .7s var(--lq-spring) both;
+}
+
+@keyframes lq-dock-in {
+  from { opacity: 0; transform: translate(-50%, 28px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.lq-dock-item {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 14px;
+  min-width: 60px;
+  border: 0;
+  border-radius: 17px;
+  background: transparent;
+  color: var(--lq-ink-dim);
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .34s var(--lq-spring), color .2s linear, background .24s linear;
+  will-change: transform;
+}
+
+.lq-dock-item svg { width: 19px; height: 19px; }
+
+@media (hover: hover) {
+  .lq-dock-item:hover {
+    color: var(--lq-ink);
+    background: rgba(255, 255, 255, .09);
+    transform: translateY(-7px) scale(1.07);
+  }
+}
+
+.lq-dock-item[aria-current='page'] {
+  color: #04142c;
+  background: linear-gradient(135deg, var(--lq-cyan), var(--lq-blue));
+  box-shadow: 0 6px 18px rgba(46, 123, 232, .48), 0 1px 0 rgba(255, 255, 255, .4) inset;
+}
+
+.lq-dock-item:focus-visible {
+  outline: 2px solid var(--lq-cyan);
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .lq-dock { gap: 2px; padding: 6px; border-radius: 20px; }
+  .lq-dock-item { min-width: 52px; padding: 8px 9px; font-size: .62rem; }
+}
+
+/* --------------------------------------------------------------------------
+   Shared layout
+   -------------------------------------------------------------------------- */
+.lq-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(1060px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 72px 0 132px;
+  text-align: center;
+}
+
+.lq-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 15px;
+  border-radius: 999px;
+  background: var(--lq-fill);
+  border: 1px solid var(--lq-edge);
+  color: var(--lq-ink-dim);
+  font-size: .74rem;
+  font-weight: 650;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.lq-h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 7vw, 4.4rem);
+  font-weight: 700;
+  letter-spacing: -.035em;
+  line-height: 1.02;
+}
+
+.lq-h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  font-weight: 680;
+  letter-spacing: -.028em;
+  line-height: 1.1;
+}
+
+.lq-lede {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--lq-ink-dim);
+  font-size: clamp(1rem, 2vw, 1.16rem);
+  line-height: 1.62;
+}
+
+.lq-gradient-text {
+  background: linear-gradient(104deg, #ffffff 8%, var(--lq-cyan) 48%, var(--lq-violet) 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   Entrance choreography
+   Each step declares its own delay, so the sequence is readable as a
+   timeline in the markup and cannot desynchronise from a JS clock.
+   -------------------------------------------------------------------------- */
+.lq-step {
+  opacity: 0;
+  animation: lq-rise .95s var(--lq-spring) both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes lq-rise {
+  from { opacity: 0; transform: translate3d(0, 26px, 0) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lq-step,
+  .lq-dock,
+  .lq-aurora,
+  .lq-logo-in,
+  .lq-word span { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .lq-btn-face { transition: none !important; }
+}

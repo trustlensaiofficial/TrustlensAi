@@ -21,19 +21,25 @@ export interface FilmScene {
   durationMs: number;
   /**
    * Narration, authored separately per language — not translated at runtime.
-   * Playback order is always Tamil first, then Indian English.
    */
   ta: string;
   en: string;
 }
 
-/** Playback order is fixed and relied upon by the player and the tests. */
-export const NARRATION_ORDER = ['ta', 'en'] as const;
+/**
+ * The two languages offered, in the order they are presented.
+ *
+ * The viewer picks one and the story plays in that language only — the
+ * narration is authored per language, not translated at runtime, so the two
+ * passes are written to sound native rather than parallel.
+ */
+export const NARRATION_ORDER = ['en', 'ta'] as const;
 export type NarrationLang = (typeof NARRATION_ORDER)[number];
 
+/** Exactly how each language is named in the interface. */
 export const LANG_LABEL: Record<NarrationLang, string> = {
-  ta: 'தமிழ் · Tamil',
-  en: 'Indian English',
+  en: 'English',
+  ta: 'Tamil',
 };
 
 export const FILM_SCENES: FilmScene[] = [
@@ -146,5 +152,10 @@ export function sceneStartMs(index: number): number {
 
 /** Bilingual transcript, derived from the authored strings — never a copy. */
 export const FILM_TRANSCRIPT = FILM_SCENES
-  .map((s) => `${LANG_LABEL.ta}\n${s.ta}\n\n${LANG_LABEL.en}\n${s.en}`)
+  .map((s) => `${LANG_LABEL.en}\n${s.en}\n\n${LANG_LABEL.ta}\n${s.ta}`)
   .join('\n\n---\n\n');
+
+/** The script for one chosen language, used by the story player. */
+export function scriptFor(scene: FilmScene, lang: NarrationLang): string {
+  return lang === 'ta' ? scene.ta : scene.en;
+}

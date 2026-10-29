@@ -31,8 +31,13 @@ export const viewport: Viewport = {
  * Restores the saved theme before first paint, so there is no flash of the
  * wrong appearance. Kept as a tiny inline script because any React-based
  * approach necessarily runs after hydration.
+ *
+ * With nothing saved the app opens dark: the cinematic flow is dark by
+ * design, and following the OS instead would mean the product changed
+ * appearance halfway through its own introduction. The light theme is still
+ * one click away and is remembered once chosen.
  */
-const THEME_BOOTSTRAP = `try{var t=localStorage.getItem('trustlens.theme');if(t==='light'||t==='dark'){document.documentElement.dataset.theme=t}}catch(e){}`;
+const THEME_BOOTSTRAP = `try{var t=localStorage.getItem('trustlens.theme');document.documentElement.dataset.theme=(t==='light'||t==='dark')?t:'dark'}catch(e){document.documentElement.dataset.theme='dark'}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

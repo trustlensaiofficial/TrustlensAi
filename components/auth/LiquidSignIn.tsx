@@ -1,26 +1,32 @@
 'use client';
 
+import Link from 'next/link';
+import Image from 'next/image';
 import { useCallback, useState } from 'react';
 import { getBrowserSupabase } from '@/lib/supabase/browser';
 import { safeNextPath, siteOrigin } from '@/lib/auth/config';
-import { AlertIcon, CheckIcon, GoogleIcon, KeyIcon, ShieldIcon } from '../icons';
+import { LiquidButton } from '@/components/liquid/LiquidButton';
+import { AlertIcon, GoogleIcon, KeyIcon } from '../icons';
 
-type Busy = null | 'google' | 'passkey' | 'register';
+type Busy = null | 'google' | 'passkey';
 
 /**
  * Sign-in: Google and passkeys only.
  *
  * There is deliberately no email/password option. A product about credential
- * theft should not be creating another password for people to reuse, and both
+ * theft should not mint another password for people to reuse, and both
  * supported methods are phishing-resistant in a way a password is not.
+ *
+ * Signing in is also never required to continue — it only decides whether
+ * reports follow you between devices — so this screen always offers a way
+ * forward rather than becoming a gate.
  */
-export function SignInPanel({ next }: { next: string }) {
+export function LiquidSignIn({ next, initialError }: { next: string; initialError?: string }) {
   const [busy, setBusy] = useState<Busy>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError ?? null);
 
   const supabase = getBrowserSupabase();
-  const target = safeNextPath(next);
+  const target = safeNextPath(next, '/story');
 
   const withGoogle = useCallback(async () => {
     if (!supabase) {
@@ -40,7 +46,7 @@ export function SignInPanel({ next }: { next: string }) {
       setBusy(null);
       setError(
         /provider/i.test(err.message)
-          ? 'Google sign-in is not enabled for this project yet. Enable the Google provider in Supabase → Authentication → Providers.'
+          ? 'Google sign-in is not enabled for this project yet.'
           : 'Google sign-in could not be started. Please try again.',
       );
     }
@@ -58,7 +64,6 @@ export function SignInPanel({ next }: { next: string }) {
     }
     setBusy('passkey');
     setError(null);
-    setNotice(null);
     try {
       const { error: err } = await supabase.auth.signInWithPasskey();
       if (err) throw err;
@@ -69,9 +74,11 @@ export function SignInPanel({ next }: { next: string }) {
       if (/NotAllowedError|abort|cancel/i.test(message)) {
         setError('Passkey sign-in was cancelled.');
       } else if (/no credential|not found|no passkey/i.test(message)) {
-        setError('No passkey was found for this site on this device. Sign in with Google once, then add a passkey.');
+        setError(
+          'No passkey exists for this site on this device yet. A passkey is created after your first sign-in — use Google once, then add one from your account page.',
+        );
       } else if (/not enabled|unsupported|disabled/i.test(message)) {
-        setError('Passkeys are not enabled for this Supabase project yet. Enable them in Authentication → Sign In / Providers.');
+        setError('Passkeys are not enabled for this project yet.');
       } else {
         setError('Passkey sign-in did not complete. You can use Google sign-in instead.');
       }
@@ -79,53 +86,39 @@ export function SignInPanel({ next }: { next: string }) {
   }, [supabase, target]);
 
   return (
-    <div className="auth-panel">
-      <div className="auth-head">
-        <span className="auth-mark" aria-hidden="true"><ShieldIcon /></span>
-        <h1>Sign in to TrustLens AI</h1>
-        <p>
-          Saves your reports to your account so you can reopen them on any device. You can keep
-          using the analyser without an account — nothing is locked behind this.
-        </p>
-      </div>
+    <div className="lq-glass auth-card">
+      <Image src="/logo-mark.png" alt="" width={141} height={118} className="auth-card-mark" />
+      <h1 className="lq-h2">Sign in to TrustLens AI</h1>
+      <p className="lq-lede auth-card-lede">
+        Signing in saves your reports to your account so you can reopen them on any device.
+        Nothing is locked behind it — you can go straight on without an account.
+      </p>
 
       {error && (
-        <div className="banner banner-error" role="alert">
+        <div className="auth-alert" role="alert">
           <AlertIcon />
           <p>{error}</p>
         </div>
       )}
-      {notice && (
-        <div className="banner" role="status">
-          <CheckIcon />
-          <p>{notice}</p>
-        </div>
-      )}
 
-      <div className="auth-actions">
-        <button
-          type="button"
-          className="btn btn-primary btn-premium auth-btn"
-          onClick={() => void withGoogle()}
-          disabled={busy !== null}
-        >
+      <div className="auth-card-actions">
+        <LiquidButton onClick={() => void withGoogle()} disabled={busy !== null}>
           <GoogleIcon />
           {busy === 'google' ? 'Opening Google…' : 'Continue with Google'}
-        </button>
+        </LiquidButton>
 
-        <button
-          type="button"
-          className="btn btn-secondary auth-btn"
-          onClick={() => void withPasskey()}
-          disabled={busy !== null}
-        >
+        <LiquidButton variant="ghost" onClick={() => void withPasskey()} disabled={busy !== null}>
           <KeyIcon />
-          {busy === 'passkey' ? 'Waiting for your passkey…' : 'Sign in with a passkey'}
-        </button>
+          {busy === 'passkey' ? 'Waiting for your passkey…' : 'Continue with a passkey'}
+        </LiquidButton>
       </div>
 
-      <p className="auth-note">
-        No password is ever created or stored. Both methods are resistant to the kind of
+      <Link href={target} className="auth-skip">
+        Continue without an account →
+      </Link>
+
+      <p className="auth-card-note">
+        No password is ever created or stored. Both methods resist exactly the kind of
         credential phishing this product exists to detect.
       </p>
     </div>

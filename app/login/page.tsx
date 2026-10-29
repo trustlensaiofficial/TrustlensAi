@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
-import { SignInPanel } from '@/components/auth/SignInPanel';
-import { AlertIcon } from '@/components/icons';
+import { LiquidStage } from '@/components/liquid/LiquidStage';
+import { LiquidSignIn } from '@/components/auth/LiquidSignIn';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
 import { safeNextPath } from '@/lib/auth/config';
+import '../liquid.css';
+import './login.css';
 
 export const metadata: Metadata = {
   title: 'Sign in',
@@ -20,24 +21,17 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const params = await searchParams;
-  const next = safeNextPath(params.next);
+  const next = safeNextPath(params.next, '/story');
   const user = await getCurrentUser();
-  // Already signed in: skip the form rather than showing a dead end.
+  // Already signed in: continue rather than showing a dead end.
   if (user) redirect(next);
 
   return (
-    <>
-      <SiteHeader />
-      <main className="shell auth-shell">
-        {params.error && (
-          <div className="banner banner-error" style={{ marginBottom: 18 }} role="alert">
-            <AlertIcon />
-            <p>{params.error}</p>
-          </div>
-        )}
-        <SignInPanel next={next} />
+    <div className="lq">
+      <LiquidStage />
+      <main className="lq-main">
+        <LiquidSignIn next={next} initialError={params.error?.slice(0, 180)} />
       </main>
-      <SiteFooter />
-    </>
+    </div>
   );
 }
