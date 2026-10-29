@@ -1,5 +1,6 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { BrandMark } from './BrandMark';
+import { AccountLink } from './auth/AccountLink';
 import { NavRail } from './NavRail';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -13,12 +14,16 @@ import { ThemeToggle } from './ThemeToggle';
 export function Brand() {
   return (
     <Link href="/" className="brand" aria-label="TrustLens AI — home">
-      <span className="brand-mark" aria-hidden="true">
-        <BrandMark size={30} idSuffix="hdr" />
-      </span>
-      <span className="brand-full">
-        TrustLens <span className="brand-accent">AI</span>
-      </span>
+      {/* The supplied logo is a full lockup (mark + wordmark), so it stands
+          alone here rather than sitting next to a duplicate text wordmark. */}
+      <Image
+        src="/logo-official.png"
+        alt="TrustLens AI"
+        width={132}
+        height={97}
+        priority
+        className="brand-logo"
+      />
     </Link>
   );
 }
@@ -33,6 +38,7 @@ export function SiteHeader({ current }: { current?: 'analyze' | 'history' | 'sho
         <Brand />
         <div className="header-actions">
           <NavRail />
+          <AccountLink />
           <ThemeToggle />
         </div>
       </div>
