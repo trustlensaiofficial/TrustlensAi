@@ -240,7 +240,7 @@ export function stop(): void {
 /**
  * Speaks several lines strictly in order, one after the other.
  *
- * Used for the bilingual film: the Tanglish pass must finish completely
+ * Used for the bilingual film: the Tamil pass must finish completely
  * before the English pass begins — never interleaved, never simultaneous.
  * The returned function cancels the whole chain, which the caller must call
  * on pause, jump, replay, skip and unmount so a stale chain cannot resume
