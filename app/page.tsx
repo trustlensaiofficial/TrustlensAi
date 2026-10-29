@@ -29,7 +29,7 @@ const T = {
  */
 export default function OpeningPage() {
   return (
-    <FlowShell className="op" withHeader={false}>
+    <FlowShell className="op" withHeader={false} withDock={false}>
       <div className="op-mark lq-step" style={{ '--d': `${T.mark}ms` } as React.CSSProperties}>
         <span className="op-halo" aria-hidden="true" />
         <Image
