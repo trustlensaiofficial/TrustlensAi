@@ -5,6 +5,7 @@ import { MAX_INPUT_LENGTH, validateInput } from '@/lib/analysis/normalize';
 import { checkRateLimit, clientKeyFromHeaders } from '@/lib/ratelimit';
 import { saveReport, storeStatus } from '@/lib/store';
 import { findDemoCase } from '@/lib/demo/cases';
+import { getCurrentUser } from '@/lib/supabase/auth-server';
 
 export const runtime = 'nodejs';
 export const maxDuration = 45;
@@ -80,7 +81,13 @@ export async function POST(request: Request) {
     const store = storeStatus();
     let storageNote: string | undefined;
     if (store.enabled) {
-      const result = await saveReport(report);
+      /**
+       * Ownership comes from the session cookie, never from the request body.
+       * Accepting a client-supplied user id would let anyone write reports
+       * into someone else's account.
+       */
+      const user = await getCurrentUser();
+      const result = await saveReport(report, user?.id ?? null);
       report.persisted = result.saved;
       if (!result.saved) storageNote = result.reason;
     } else {

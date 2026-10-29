@@ -111,6 +111,109 @@ See [`AGENTS.md`](./AGENTS.md) for the full brief and
 
 ---
 
+---
+
+## Local setup (VS Code, macOS or Windows)
+
+Requires **Node.js 20 LTS or newer** and Git.
+
+```bash
+git clone https://github.com/trustlensaiofficial/TrustlensAi.git
+cd TrustlensAi
+code .                # open in VS Code
+npm ci                # install exactly what the lockfile pins
+cp .env.example .env.local
+# fill .env.local in privately — it is gitignored and must never be committed
+npm run dev           # http://localhost:3000
+```
+
+**What works without any credentials:** the full deterministic engine, every
+demo scenario, link structure analysis, the report, the checklist, the
+showcase and the tour. The app tells you plainly which layers are unavailable
+rather than pretending.
+
+**What each credential unlocks:**
+
+| Variable | Unlocks | Without it |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Saved reports, sign-in | Analysis still runs; reports are not saved |
+| `SUPABASE_SECRET_KEY` | Server-side report writes | Reports are not saved |
+| `AI_GATEWAY_API_KEY` *or* `ANTHROPIC_API_KEY` | Contextual interpretation | Deterministic rules only, clearly labelled |
+| `NEXT_PUBLIC_SITE_URL` | Correct OAuth redirect | Falls back to the deployment URL |
+
+Never commit `.env.local`. Never put a secret in a `NEXT_PUBLIC_` variable —
+anything with that prefix is compiled into the browser bundle.
+
+---
+
+## Enabling sign-in (dashboard steps)
+
+Code for Google and passkeys is complete. These are the console settings it
+depends on; until they are set, the buttons report the exact reason.
+
+### 1. Google Cloud Console
+1. **APIs & Services → Credentials → Create credentials → OAuth client ID**
+2. Application type **Web application**
+3. Authorised redirect URI — this is Supabase's callback, not the app's:
+   ```
+   https://pwieplvvzftxdxvoueed.supabase.co/auth/v1/callback
+   ```
+4. Copy the **Client ID** and **Client secret**
+
+### 2. Supabase → Authentication → Providers → Google
+Enable it and paste the client ID and secret from step 1.
+
+### 3. Supabase → Authentication → URL Configuration
+```
+Site URL:       https://trustlensai-u2r6.vercel.app
+Redirect URLs:  https://trustlensai-u2r6.vercel.app/auth/callback
+                http://localhost:3000/auth/callback
+```
+
+### 4. Passkeys
+Enable passkeys in Supabase Authentication settings. The **RP ID** must be the
+exact hostname users sign in on — `trustlensai-u2r6.vercel.app` for production,
+`localhost` for development. A passkey registered against one RP ID will not
+work on the other; this is a WebAuthn rule, not a bug.
+
+Passkeys can only be *added* by an already signed-in user, so the flow is:
+sign in with Google once, then add a passkey from **/account**.
+
+### 5. Vercel
+`NEXT_PUBLIC_SITE_URL` must be set to the canonical origin on every
+environment, otherwise OAuth redirects to the per-deployment URL and Supabase
+rejects it as unregistered.
+
+---
+
+## Database migrations
+
+Applied in order from `supabase/migrations/`, through the Supabase SQL editor.
+
+| File | Purpose |
+|---|---|
+| `0001_scans.sql` | The report table. RLS on, no browser-role policies. |
+| `0002_lock_analysis_history.sql` | Owner-scopes `analysis_history`. |
+| `0003_scans_owner.sql` | Adds a **nullable** `user_id` so signed-in users own their reports. |
+
+All are additive. `0003` is safe to apply at any time: the column is nullable,
+existing guest rows keep working untouched, and the application already handles
+the column being absent.
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause |
+|---|---|
+| `redirect_uri_mismatch` on Google | The Supabase callback in step 1 does not match, or `NEXT_PUBLIC_SITE_URL` is wrong |
+| Sign-in returns to `/login` with an error | Provider not enabled, or the app's callback is not in Supabase's redirect list |
+| Passkey says "no passkey found" | None registered for this RP ID — sign in with Google and add one from `/account` |
+| Passkey works locally but not in production | RP ID mismatch; they are separate hostnames and need separate registrations |
+| Reports not saving | `SUPABASE_SECRET_KEY` missing, or `SUPABASE_URL` holds a malformed value (the app names which) |
+| "Contextual analysis unavailable" | AI Gateway billing not enabled, or no key. Deterministic analysis is unaffected |
+| Reports save but have no owner | `0003_scans_owner.sql` not applied yet — see the server log |
+
 ## Limitations
 
 Stated plainly because the product's argument depends on it:

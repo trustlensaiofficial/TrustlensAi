@@ -125,20 +125,41 @@ interface ScanRow {
   report: unknown;
   is_demo: boolean;
   created_at: string;
+  /** Owner when a signed-in user ran it; absent for guests. */
+  user_id?: string | null;
+}
+
+/**
+ * Whether `public.scans` has the owner column yet.
+ *
+ * The ownership migration is additive and may not have been applied, so the
+ * first insert that mentions `user_id` tells us which world we are in. Caching
+ * the answer means we attempt it once rather than on every save, and the
+ * feature starts working the moment the migration lands — with no deploy and
+ * no breakage before it.
+ */
+let ownerColumn: 'unknown' | 'present' | 'absent' = 'unknown';
+
+/** PostgREST reports an unknown column as 42703. */
+function isMissingColumn(error: { code?: string; message?: string }): boolean {
+  return error.code === '42703' || /column .*user_id.* does not exist/i.test(error.message ?? '');
 }
 
 /**
  * Persists a report. Returns whether the write actually succeeded so the
  * caller can set `report.persisted` truthfully.
  */
-export async function saveReport(report: Report): Promise<{ saved: boolean; reason?: string }> {
+export async function saveReport(
+  report: Report,
+  ownerId?: string | null,
+): Promise<{ saved: boolean; reason?: string }> {
   const status = storeStatus();
   if (!status.enabled) return { saved: false, reason: status.reason };
 
   const client = getClient();
   if (!client) return { saved: false, reason: 'Supabase client could not be created.' };
 
-  const row: ScanRow = {
+  const base: ScanRow = {
     id: report.id,
     input_kind: report.inputKind,
     input_preview: report.inputPreview,
@@ -149,7 +170,21 @@ export async function saveReport(report: Report): Promise<{ saved: boolean; reas
     created_at: report.createdAt,
   };
 
-  const { error } = await client.from('scans').insert(row);
+  const wantsOwner = Boolean(ownerId) && ownerColumn !== 'absent';
+  const row: ScanRow = wantsOwner ? { ...base, user_id: ownerId } : base;
+
+  let { error } = await client.from('scans').insert(row);
+
+  // The owner column may not exist yet. Save the report rather than lose it,
+  // and remember so we stop trying.
+  if (error && wantsOwner && isMissingColumn(error)) {
+    ownerColumn = 'absent';
+    console.warn('[trustlens] scans.user_id missing — saving without an owner. Apply supabase/migrations/0003_scans_owner.sql to enable account-owned reports.');
+    ({ error } = await client.from('scans').insert(base));
+  } else if (!error && wantsOwner) {
+    ownerColumn = 'present';
+  }
+
   if (error) {
     // Never log the row itself; it contains the analysed content.
     console.error('[trustlens] report insert failed:', error.code ?? '', error.message.slice(0, 160));
@@ -165,7 +200,10 @@ export async function saveReport(report: Report): Promise<{ saved: boolean; reas
 }
 
 /** Fetches one report by its unguessable id. There is no list equivalent. */
-export async function getReport(id: string): Promise<{ report: Report | null; reason?: string }> {
+export async function getReport(
+  id: string,
+  viewerId?: string | null,
+): Promise<{ report: Report | null; reason?: string }> {
   const status = storeStatus();
   if (!status.enabled) return { report: null, reason: status.reason };
 
@@ -177,23 +215,67 @@ export async function getReport(id: string): Promise<{ report: Report | null; re
   const client = getClient();
   if (!client) return { report: null, reason: 'Supabase client could not be created.' };
 
-  const { data, error } = await client.from('scans').select('report').eq('id', id).maybeSingle();
+  /**
+   * Ask for the owner too, tolerating the column not existing yet. The select
+   * string is dynamic, which the typed query builder cannot narrow, so the
+   * row is validated structurally below instead.
+   */
+  type ScanRead = { report: Report; user_id?: string | null };
+  const read = async (columns: string) =>
+    (await client
+      .from('scans')
+      .select(columns)
+      .eq('id', id)
+      .maybeSingle()) as unknown as {
+      data: ScanRead | null;
+      error: { code?: string; message?: string } | null;
+    };
+
+  let { data, error } = await read(ownerColumn === 'absent' ? 'report' : 'report, user_id');
+
+  if (error && isMissingColumn(error)) {
+    ownerColumn = 'absent';
+    ({ data, error } = await read('report'));
+  }
+
   if (error) {
-    console.error('[trustlens] report fetch failed:', error.code ?? '', error.message.slice(0, 160));
+    console.error('[trustlens] report fetch failed:', error.code ?? '', (error.message ?? '').slice(0, 160));
     return { report: null, reason: 'The report could not be retrieved.' };
   }
   if (!data) return { report: null, reason: 'No report exists with that id.' };
 
-  const stored = (data as { report: Report }).report;
-  return { report: { ...stored, persisted: true } };
+  const row = data;
+
+  /**
+   * An owned report is readable only by its owner.
+   *
+   * The refusal is deliberately identical to "not found": telling a stranger
+   * that a report exists but belongs to someone else confirms the id is real,
+   * which is itself a leak. Guest reports (user_id null) keep the existing
+   * capability-URL behaviour.
+   */
+  if (row.user_id && row.user_id !== viewerId) {
+    return { report: null, reason: 'No report exists with that id.' };
+  }
+
+  return { report: { ...row.report, persisted: true } };
 }
 
 /** Deletes one report. Used by the history page's remove action. */
-export async function deleteReport(id: string): Promise<{ deleted: boolean; reason?: string }> {
+export async function deleteReport(
+  id: string,
+  viewerId?: string | null,
+): Promise<{ deleted: boolean; reason?: string }> {
   const status = storeStatus();
   if (!status.enabled) return { deleted: false, reason: status.reason };
   const client = getClient();
   if (!client) return { deleted: false, reason: 'Supabase client could not be created.' };
+
+  // Reuse the read path so deletion obeys exactly the same ownership rule;
+  // a second, separately written check is a second place to get it wrong.
+  const existing = await getReport(id, viewerId);
+  if (!existing.report) return { deleted: false, reason: 'No report exists with that id.' };
+
   const { error } = await client.from('scans').delete().eq('id', id);
   if (error) {
     console.error('[trustlens] report delete failed:', error.code ?? '', error.message.slice(0, 160));
