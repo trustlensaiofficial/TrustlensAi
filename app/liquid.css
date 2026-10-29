@@ -10,7 +10,52 @@
    choreography is time-based CSS, which cannot drift or leak a timer.
    ========================================================================== */
 
+/*
+ * The liquid palette, in both appearances.
+ *
+ * These pages used to be hardcoded dark on the argument that a film keeps its
+ * grade. That was wrong in one specific way: it covers four of the seven
+ * pages, so the theme toggle appeared to do nothing on most of the app. A
+ * control that does nothing is a bug, whatever the intent behind it.
+ *
+ * Light is not the dark palette inverted. Glass over a pale ground needs a
+ * darker edge and a brighter fill to read as glass at all, and the aurora has
+ * to drop a long way in opacity or it turns to mud.
+ */
 :root {
+  --lq-ink: #0b1b33;
+  --lq-ink-dim: #4a5f7d;
+  --lq-ink-faint: #7b8da8;
+  --lq-cyan: #0E86C8;
+  --lq-blue: #2E7BE8;
+  --lq-violet: #7A5AF0;
+  --lq-edge: rgba(12, 38, 82, .12);
+  --lq-edge-bright: rgba(12, 38, 82, .26);
+  --lq-fill: rgba(255, 255, 255, .58);
+  --lq-fill-strong: rgba(255, 255, 255, .82);
+
+  --lq-ground: linear-gradient(180deg, #eef4fd 0%, #e4edfa 46%, #dde8f7 100%);
+  --lq-aurora-opacity: .42;
+  --lq-grid-ink: rgba(30, 80, 160, .10);
+  --lq-grain-opacity: .07;
+
+  --lq-glass-bg: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.62) 40%, rgba(255,255,255,.74));
+  --lq-glass-top: rgba(255, 255, 255, .9);
+  --lq-glass-shadow:
+    0 1px 0 rgba(255, 255, 255, .9) inset,
+    0 18px 44px rgba(16, 44, 92, .14),
+    0 4px 12px rgba(16, 44, 92, .09);
+  --lq-dock-bg: rgba(255, 255, 255, .72);
+  --lq-dock-shadow:
+    0 1px 0 rgba(255, 255, 255, .9) inset,
+    0 18px 44px rgba(16, 44, 92, .18);
+
+  /* One spring for lifts, one glide for travel. Two curves, one system. */
+  --lq-spring: cubic-bezier(.34, 1.4, .54, 1);
+  --lq-glide: cubic-bezier(.22, .61, .36, 1);
+}
+
+:root[data-theme='dark'] {
   --lq-ink: #eaf2ff;
   --lq-ink-dim: #9fb2cc;
   --lq-ink-faint: #6b7d98;
@@ -22,9 +67,22 @@
   --lq-fill: rgba(140, 180, 240, .07);
   --lq-fill-strong: rgba(150, 190, 245, .12);
 
-  /* One spring for lifts, one glide for travel. Two curves, one system. */
-  --lq-spring: cubic-bezier(.34, 1.4, .54, 1);
-  --lq-glide: cubic-bezier(.22, .61, .36, 1);
+  --lq-ground: radial-gradient(120% 80% at 50% -10%, #0d1a3a 0%, #070c1c 42%, #04060f 100%);
+  --lq-aurora-opacity: .5;
+  --lq-grid-ink: rgba(120, 170, 240, .10);
+  --lq-grain-opacity: .16;
+
+  --lq-glass-bg: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03) 38%, rgba(255,255,255,.055));
+  --lq-glass-top: rgba(255, 255, 255, .16);
+  --lq-glass-shadow:
+    0 1px 0 rgba(255, 255, 255, .22) inset,
+    0 -1px 0 rgba(255, 255, 255, .05) inset,
+    0 24px 60px rgba(2, 6, 20, .6),
+    0 6px 18px rgba(2, 6, 20, .45);
+  --lq-dock-bg: rgba(10, 18, 38, .52);
+  --lq-dock-shadow:
+    0 1px 0 rgba(255, 255, 255, .2) inset,
+    0 20px 50px rgba(2, 6, 20, .66);
 }
 
 /* The cinematic grade. Applied only by the flow pages, which stay dark in
@@ -36,7 +94,7 @@
   display: flex;
   flex-direction: column;
   isolation: isolate;
-  background: #04060f;
+  background: transparent;
   color: var(--lq-ink);
   overflow-x: clip;
 }
@@ -50,15 +108,14 @@
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
-  background:
-    radial-gradient(120% 80% at 50% -10%, #0d1a3a 0%, #070c1c 42%, #04060f 100%);
+  background: var(--lq-ground);
 }
 
 .lq-aurora {
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: .5;
+  opacity: var(--lq-aurora-opacity);
   will-change: transform;
 }
 
@@ -101,7 +158,7 @@
 .lq-grain {
   position: absolute;
   inset: -50%;
-  opacity: .16;
+  opacity: var(--lq-grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
 }
@@ -113,8 +170,8 @@
   inset: 0;
   opacity: .22;
   background-image:
-    linear-gradient(rgba(120, 170, 240, .10) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(120, 170, 240, .10) 1px, transparent 1px);
+    linear-gradient(var(--lq-grid-ink) 1px, transparent 1px),
+    linear-gradient(90deg, var(--lq-grid-ink) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(100% 70% at 50% 35%, #000 10%, transparent 72%);
 }
@@ -125,16 +182,11 @@
 .lq-glass {
   position: relative;
   border-radius: 26px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .03) 38%, rgba(255, 255, 255, .055));
+  background: var(--lq-glass-bg);
   backdrop-filter: blur(34px) saturate(170%);
   -webkit-backdrop-filter: blur(34px) saturate(170%);
   border: 1px solid var(--lq-edge);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, .22) inset,
-    0 -1px 0 rgba(255, 255, 255, .05) inset,
-    0 24px 60px rgba(2, 6, 20, .6),
-    0 6px 18px rgba(2, 6, 20, .45);
+  box-shadow: var(--lq-glass-shadow);
   overflow: hidden;
 }
 
@@ -145,7 +197,7 @@
   position: absolute;
   inset: 0 0 auto;
   height: 52%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .16), transparent);
+  background: linear-gradient(180deg, var(--lq-glass-top), transparent);
   pointer-events: none;
 }
 
@@ -311,22 +363,12 @@
   border-radius: 24px;
   /* Theme-aware, because the dock is on every page and not only on the dark
      cinematic ones. Inside .lq the film grade overrides it below. */
-  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  background: var(--lq-dock-bg);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid color-mix(in srgb, var(--border-strong) 62%, transparent);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, .2) inset,
-    0 20px 50px rgba(2, 6, 20, .34);
+  border: 1px solid var(--lq-edge);
+  box-shadow: var(--lq-dock-shadow);
   animation: lq-dock-in .7s var(--lq-spring) both;
-}
-
-.lq .lq-dock {
-  background: rgba(10, 18, 38, .52);
-  border-color: var(--lq-edge);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, .2) inset,
-    0 20px 50px rgba(2, 6, 20, .66);
 }
 
 @keyframes lq-dock-in {
@@ -478,43 +520,6 @@
   }
 }
 
-/* --------------------------------------------------------------------------
-   Shared chrome inside the film grade
-   The header, nav and footer are the same components the product uses; these
-   rules restate them in the cinematic palette so the flow pages stay dark
-   whatever theme the viewer has chosen.
-   -------------------------------------------------------------------------- */
-.lq .site-header {
-  background: rgba(10, 18, 38, .46);
-  border-color: var(--lq-edge);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, .16) inset,
-    0 16px 40px rgba(2, 6, 20, .5);
-}
-
-.lq .brand,
-.lq .brand-word { color: var(--lq-ink); }
-.lq .brand-accent { color: var(--lq-cyan); }
-
-.lq .nav-link { color: var(--lq-ink-dim); }
-.lq .nav-link:hover { color: var(--lq-ink); }
-.lq .nav-link[aria-current='page'] { color: var(--lq-ink); }
-.lq .nav-indicator { background: rgba(255, 255, 255, .11); }
-
-.lq .icon-button,
-.lq .account-link {
-  color: var(--lq-ink-dim);
-  border-color: var(--lq-edge);
-  background: var(--lq-fill);
-}
-.lq .icon-button:hover,
-.lq .account-link:hover { color: var(--lq-ink); border-color: var(--lq-edge-bright); }
-
-.lq .footer {
-  color: var(--lq-ink-faint);
-  border-top-color: rgba(255, 255, 255, .08);
-}
-
-/* The flow pages centre their content; the header and footer must not be
-   stretched by the flex column that does it. */
+/* The flow pages share the product's header and footer; they only need the
+   width constraint here, since the flex column would otherwise stretch them. */
 .lq > .site-header, .lq > .footer { flex: none; width: min(1180px, calc(100% - 32px)); }

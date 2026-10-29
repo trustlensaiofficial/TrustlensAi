@@ -1391,3 +1391,43 @@ body::before {
   .footer { padding-bottom: calc(108px + env(safe-area-inset-bottom)); }
   .dock-gap { padding-bottom: 116px; }
 }
+
+/* =========================================================================
+   Page transitions
+   -------------------------------------------------------------------------
+   Routes cross-fade and lift rather than snapping. The browser's own View
+   Transitions API does the capture, so the outgoing frame is a real snapshot
+   of the previous page — no cloned DOM, no wrapper component, and nothing to
+   hydrate. Browsers without it simply navigate as before.
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: vt-out .26s cubic-bezier(.4, 0, 1, 1) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-in .42s cubic-bezier(.22, .61, .36, 1) both;
+  }
+}
+
+@keyframes vt-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(.985); }
+}
+@keyframes vt-in {
+  from { opacity: 0; transform: scale(1.012) translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The chrome stays put across a navigation instead of fading with the page —
+   that is what makes the dock and header feel like one persistent shell
+   rather than part of the document being replaced. */
+.site-header { view-transition-name: tl-header; }
+.lq-dock { view-transition-name: tl-dock; }
+
+::view-transition-old(tl-header),
+::view-transition-new(tl-header),
+::view-transition-old(tl-dock),
+::view-transition-new(tl-dock) {
+  animation: none;
+  mix-blend-mode: normal;
+}
