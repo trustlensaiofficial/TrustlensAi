@@ -1265,3 +1265,90 @@ h2 .inline-icon { color: var(--accent); }
 .qa-run { flex: none; }
 .btn-sm { padding: 8px 14px; min-height: 0; font-size: 13px; }
 @media (max-width: 560px) { .qa-tally { margin-left: 0; } .qa-run { width: 100%; justify-content: center; } }
+
+/* =========================================================================
+   Shell unification
+   -------------------------------------------------------------------------
+   The cinematic flow (/, /login, /story, /features) and the working product
+   (/analyze, /history, /report, /qa) used to look like two different
+   applications. These rules give the product the same ground, the same
+   floating glass chrome and the same brand lockup, without touching any of
+   the component markup underneath.
+   ========================================================================= */
+
+/* The same aurora ground as the flow pages, painted once behind everything.
+   Fixed, so it does not repaint on scroll. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(60vmax 50vmax at 12% -8%, rgba(46, 123, 232, .20), transparent 62%),
+    radial-gradient(52vmax 44vmax at 92% 4%, rgba(92, 200, 255, .13), transparent 64%),
+    radial-gradient(56vmax 48vmax at 58% 108%, rgba(139, 108, 240, .14), transparent 66%);
+}
+
+:root[data-theme='light'] body::before { opacity: .5; }
+
+/* --- brand lockup ------------------------------------------------------- */
+.brand-logo {
+  width: 34px;
+  height: auto;
+  flex: none;
+  filter: drop-shadow(0 4px 12px rgba(46, 123, 232, .42));
+}
+
+.brand-word {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.035em;
+  white-space: nowrap;
+}
+
+/* --- floating glass header ---------------------------------------------- */
+.site-header {
+  position: sticky;
+  top: 10px;
+  z-index: 50;
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  backdrop-filter: blur(26px) saturate(170%);
+  -webkit-backdrop-filter: blur(26px) saturate(170%);
+  border-color: color-mix(in srgb, var(--border-strong) 60%, transparent);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .14) inset,
+    0 14px 38px rgba(2, 6, 20, .34);
+}
+
+/* --- nav pills ----------------------------------------------------------- */
+.nav-link {
+  transition: color .22s var(--glide), transform .32s var(--spring);
+}
+.nav-link:hover { transform: translateY(-1px); }
+
+/* --- buttons: the same lit-edge material as the flow --------------------- */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #8B6CF0));
+  border-color: transparent;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .38) inset,
+    0 8px 0 -5px color-mix(in srgb, var(--accent) 55%, #000),
+    0 14px 32px color-mix(in srgb, var(--accent) 34%, transparent);
+}
+.btn-primary:hover {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .46) inset,
+    0 11px 0 -5px color-mix(in srgb, var(--accent) 55%, #000),
+    0 20px 44px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+
+/* --- cards: a lit top edge, matching .lq-glass ---------------------------- */
+.card, .panel {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .07) inset, var(--shadow);
+}
+
+@media (max-width: 420px) {
+  .brand-word { font-size: 15px; }
+  .brand-logo { width: 28px; }
+}

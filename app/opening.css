@@ -1,0 +1,158 @@
+/* ==========================================================================
+   The opening sequence
+   --------------------------------------------------------------------------
+   Timeline, in order, as the brief asks: the mark arrives, the name writes
+   itself under it, the line of explanation fades in, then the start button
+   floats up. Every step is a CSS delay — one timeline, no JS clock to drift.
+   ========================================================================== */
+
+.op {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+}
+
+/* --- 1. the mark ---------------------------------------------------------- */
+.op-mark {
+  position: relative;
+  width: clamp(124px, 20vw, 184px);
+  aspect-ratio: 141 / 118;
+  display: grid;
+  place-items: center;
+}
+
+.op-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: lq-logo-in 1.5s cubic-bezier(.19, 1, .22, 1) both;
+  filter: drop-shadow(0 18px 44px rgba(46, 123, 232, .55));
+}
+
+@keyframes lq-logo-in {
+  0%   { opacity: 0; transform: scale(.62) translateY(22px); filter: blur(14px) drop-shadow(0 0 0 transparent); }
+  55%  { opacity: 1; }
+  100% { opacity: 1; transform: none; filter: blur(0) drop-shadow(0 18px 44px rgba(46, 123, 232, .55)); }
+}
+
+/* A halo that blooms once as the mark lands, then settles to a slow pulse. */
+.op-halo {
+  position: absolute;
+  inset: -36%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(92, 200, 255, .36), transparent 62%);
+  filter: blur(26px);
+  z-index: -1;
+  animation: op-halo 1.5s cubic-bezier(.19, 1, .22, 1) both, op-halo-idle 5.5s ease-in-out 1.5s infinite;
+}
+
+@keyframes op-halo {
+  from { opacity: 0; transform: scale(.4); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes op-halo-idle {
+  0%, 100% { opacity: .78; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.1); }
+}
+
+/* A ring sweeps outward once, like a lens focusing. */
+.op-ring {
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  border: 1px solid rgba(92, 200, 255, .5);
+  opacity: 0;
+  animation: op-ring 2.1s cubic-bezier(.19, 1, .22, 1) .5s both;
+}
+@keyframes op-ring {
+  0%   { opacity: 0;   transform: scale(.55); }
+  35%  { opacity: .85; }
+  100% { opacity: 0;   transform: scale(1.5); }
+}
+
+/* --- 2. the name ---------------------------------------------------------- */
+.op-word {
+  margin: 0;
+  font-size: clamp(2.6rem, 9vw, 5.6rem);
+  font-weight: 700;
+  letter-spacing: -.045em;
+  line-height: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 .26em;
+}
+
+.op-word span {
+  display: inline-block;
+  opacity: 0;
+  animation: op-word-in .9s cubic-bezier(.19, 1, .22, 1) both;
+  animation-delay: var(--d);
+}
+
+@keyframes op-word-in {
+  from { opacity: 0; transform: translateY(30px) rotateX(-55deg); filter: blur(8px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* --- shared ---------------------------------------------------------------- */
+.op-tagline {
+  margin: 0;
+  max-width: 44ch;
+  color: var(--lq-ink-dim);
+  font-size: clamp(1rem, 2.3vw, 1.2rem);
+  line-height: 1.6;
+}
+
+.op-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* The start button keeps breathing after it arrives, so the page never looks
+   frozen while it waits for a click. */
+.op-start { animation: op-float 4.4s ease-in-out 4.3s infinite; }
+@keyframes op-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+
+.op-hint {
+  margin: 0;
+  color: var(--lq-ink-faint);
+  font-size: .82rem;
+}
+
+.op-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.op-meta li {
+  padding: 6px 13px;
+  border-radius: 999px;
+  background: var(--lq-fill);
+  border: 1px solid var(--lq-edge);
+  color: var(--lq-ink-dim);
+  font-size: .76rem;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .op-mark img, .op-halo, .op-ring, .op-word span, .op-start {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .op-ring { display: none; }
+}

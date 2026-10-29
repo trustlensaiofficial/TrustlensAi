@@ -5,30 +5,32 @@ import { NavRail } from './NavRail';
 import { ThemeToggle } from './ThemeToggle';
 
 /**
- * Brand lockup: the TrustLens mark plus the wordmark.
+ * Brand lockup: the official mark plus a live-text wordmark.
  *
- * The mark lives in public/logo-mark.svg. To swap in a different official
- * file, replace that asset (or change the `src` below) — no other component
- * reads it, and the wordmark is plain text so it stays crisp and themeable.
+ * The supplied artwork is a full lockup whose wordmark is white, which
+ * disappears against the light theme. public/logo-mark.png is that same file
+ * with the wordmark cropped away, so the mark can sit on either background
+ * and the name is rendered as text — crisp at any size, and themeable.
  */
 export function Brand() {
   return (
     <Link href="/" className="brand" aria-label="TrustLens AI — home">
-      {/* The supplied logo is a full lockup (mark + wordmark), so it stands
-          alone here rather than sitting next to a duplicate text wordmark. */}
       <Image
-        src="/logo-official.png"
-        alt="TrustLens AI"
-        width={132}
-        height={97}
+        src="/logo-mark.png"
+        alt=""
+        width={141}
+        height={118}
         priority
         className="brand-logo"
       />
+      <span className="brand-word">
+        TrustLens <span className="brand-accent">AI</span>
+      </span>
     </Link>
   );
 }
 
-export function SiteHeader({ current }: { current?: 'analyze' | 'history' | 'showcase' }) {
+export function SiteHeader({ current }: { current?: 'analyze' | 'history' | 'story' }) {
   // `current` is kept for call-site compatibility; NavRail derives the active
   // item from the pathname so the indicator can never disagree with the route.
   void current;

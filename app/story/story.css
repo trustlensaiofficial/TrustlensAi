@@ -1,0 +1,157 @@
+/* The story: language chooser, then the scene player. */
+
+.story-choose {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.story-choose-mark {
+  width: 76px;
+  height: auto;
+  filter: drop-shadow(0 12px 32px rgba(46, 123, 232, .5));
+}
+
+.story-langs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(236px, 1fr));
+  gap: 16px;
+  width: min(640px, 100%);
+  margin-top: 10px;
+}
+
+.story-lang {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 24px 22px 22px;
+  border-radius: 22px;
+  text-align: left;
+  font: inherit;
+  color: var(--lq-ink);
+  cursor: pointer;
+  transition: transform .4s var(--lq-spring), border-color .25s linear;
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .story-lang:hover {
+    transform: translateY(-7px) scale(1.02);
+    border-color: var(--lq-edge-bright);
+  }
+  .story-lang:hover .story-lang-go { transform: translateX(5px); opacity: 1; }
+}
+
+.story-lang:focus-visible { outline: 2px solid var(--lq-cyan); outline-offset: 4px; }
+.story-lang:active { transform: translateY(-2px) scale(.995); }
+
+.story-lang-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.story-lang-blurb {
+  color: var(--lq-ink-dim);
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.story-lang-go {
+  margin-top: 6px;
+  opacity: .6;
+  transition: transform .3s var(--lq-glide), opacity .3s linear;
+}
+.story-lang-go svg { width: 20px; height: 20px; }
+
+.story-skip {
+  margin-top: 6px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--lq-ink-faint);
+  font: inherit;
+  font-size: .87rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color .2s linear, background .2s linear;
+}
+.story-skip:hover { color: var(--lq-ink); background: rgba(255, 255, 255, .07); }
+.story-skip:focus-visible { outline: 2px solid var(--lq-cyan); outline-offset: 2px; }
+
+/* ------------------------------------------------------------- player -- */
+
+.story-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+}
+
+.story-rail {
+  display: flex;
+  gap: 5px;
+  width: min(520px, 100%);
+}
+
+.story-tick {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .14);
+  transition: background .4s linear, box-shadow .4s linear;
+}
+
+.story-tick.done { background: rgba(92, 200, 255, .55); }
+.story-tick.now {
+  background: linear-gradient(90deg, var(--lq-cyan), var(--lq-violet));
+  box-shadow: 0 0 12px rgba(92, 200, 255, .7);
+}
+
+.story-count {
+  margin: 0;
+  color: var(--lq-ink-faint);
+  font-size: .78rem;
+  font-weight: 650;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.story-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: lq-rise .75s var(--lq-spring) both;
+}
+
+.story-title { max-width: 18ch; }
+
+.story-caption {
+  margin: 0;
+  max-width: 54ch;
+  color: var(--lq-ink-dim);
+  font-size: clamp(1.02rem, 2.3vw, 1.24rem);
+  line-height: 1.68;
+}
+
+.story-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.story-note {
+  margin: 0;
+  max-width: 50ch;
+  color: var(--lq-ink-faint);
+  font-size: .79rem;
+  line-height: 1.55;
+}

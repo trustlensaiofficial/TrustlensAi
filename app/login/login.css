@@ -1,0 +1,72 @@
+/* The sign-in card. */
+
+.auth-card {
+  width: min(460px, 100%);
+  padding: 38px 32px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  animation: lq-rise .9s var(--lq-spring) both;
+}
+
+.auth-card-mark {
+  width: 64px;
+  height: auto;
+  filter: drop-shadow(0 10px 26px rgba(46, 123, 232, .5));
+}
+
+.auth-card-lede { font-size: .95rem; }
+
+.auth-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.auth-card-actions .lq-btn { width: 100%; }
+.auth-card-actions .lq-btn-face { width: 100%; }
+
+.auth-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 138, 128, .11);
+  border: 1px solid rgba(255, 138, 128, .34);
+  color: #ffc9c3;
+  text-align: left;
+  font-size: .88rem;
+  line-height: 1.5;
+}
+
+.auth-alert svg { width: 17px; height: 17px; flex: none; margin-top: 2px; }
+.auth-alert p { margin: 0; }
+
+.auth-skip {
+  color: var(--lq-ink-dim);
+  font-size: .9rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 7px 14px;
+  border-radius: 999px;
+  transition: color .2s linear, background .2s linear;
+}
+
+.auth-skip:hover { color: var(--lq-ink); background: rgba(255, 255, 255, .07); }
+.auth-skip:focus-visible { outline: 2px solid var(--lq-cyan); outline-offset: 2px; }
+
+.auth-card-note {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, .09);
+  width: 100%;
+  color: var(--lq-ink-faint);
+  font-size: .78rem;
+  line-height: 1.55;
+}

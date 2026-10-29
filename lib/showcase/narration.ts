@@ -82,10 +82,19 @@ const EXCLUDED = /^(albert|bad news|bahh|bells|boing|bubbles|cellos|deranged|goo
  * Higher is more human. Ranked from what each engine actually sounds like,
  * not from the order the platform happens to return them in.
  */
-function scoreVoice(v: SpeechSynthesisVoice): number {
+/** Tamil script, as opposed to the romanised Tamil the scripts are written in. */
+const TAMIL_SCRIPT = /[\u0B80-\u0BFF]/;
+
+function scoreVoice(v: SpeechSynthesisVoice, wantTamilVoice = false): number {
   const n = v.name.toLowerCase();
+  const lang = v.lang.toLowerCase();
   if (EXCLUDED.test(v.name)) return -1;
-  if (!v.lang.toLowerCase().startsWith('en')) return -1;
+
+  // The Tamil scripts are authored in Latin script, which a ta-IN engine
+  // reads as nonsense while an Indian English voice pronounces it close to
+  // correctly. So a Tamil voice is only preferred for actual Tamil script.
+  if (wantTamilVoice && lang.startsWith('ta')) return 1000;
+  if (!lang.startsWith('en')) return -1;
 
   let score = 0;
   // Microsoft neural voices are the closest to human available in a browser.
@@ -108,11 +117,11 @@ function scoreVoice(v: SpeechSynthesisVoice): number {
 }
 
 /** Voices worth offering, best first. */
-export function listVoices(): SpeechSynthesisVoice[] {
+export function listVoices(wantTamilVoice = false): SpeechSynthesisVoice[] {
   const s = synth();
   if (!s) return [];
   return s.getVoices()
-    .map((v) => ({ v, score: scoreVoice(v) }))
+    .map((v) => ({ v, score: scoreVoice(v, wantTamilVoice) }))
     .filter((x) => x.score >= 0)
     .sort((a, b) => b.score - a.score)
     .map((x) => x.v);
@@ -134,9 +143,9 @@ function restoreChoice(): void {
   } catch { /* nothing to restore */ }
 }
 
-function pickVoice(): SpeechSynthesisVoice | null {
+function pickVoice(wantTamilVoice = false): SpeechSynthesisVoice | null {
   restoreChoice();
-  const all = listVoices();
+  const all = listVoices(wantTamilVoice);
   if (all.length === 0) return null;
   if (chosenVoiceName) {
     const exact = all.find((v) => v.name === chosenVoiceName);
@@ -186,7 +195,7 @@ function speakWithSynth(text: string, onEnd?: () => void): void {
   if (!s || !isSupported() || muted) { onEnd?.(); return; }
   s.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  const voice = pickVoice();
+  const voice = pickVoice(TAMIL_SCRIPT.test(text));
   if (voice) { u.voice = voice; u.lang = voice.lang; }
   // Normal conversational pace. Slower reads as laboured, faster as clipped.
   u.rate = 1.0;
