@@ -7,6 +7,7 @@ const ITEMS = [
   { href: '/showcase', label: 'Showcase' },
   { href: '/analyze', label: 'Analyze' },
   { href: '/history', label: 'History' },
+  { href: '/qa', label: 'Testing' },
 ];
 
 /**

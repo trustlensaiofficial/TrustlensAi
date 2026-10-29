@@ -21,7 +21,7 @@ export interface FilmScene {
   durationMs: number;
   /**
    * Narration, authored separately per language — not translated at runtime.
-   * Playback order is always Tanglish first, then Indian English.
+   * Playback order is always Tamil first, then Indian English.
    */
   ta: string;
   en: string;

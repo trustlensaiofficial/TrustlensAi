@@ -84,7 +84,7 @@ export function ExplainerFilm({ onFinish, onSkip }: { onFinish: () => void; onSk
   }, [playing, ended]);
 
   /**
-   * Bilingual narration for the scene: Tanglish in full, then Indian English.
+   * Bilingual narration: the Tamil pass in full, then Indian English.
    * speakSequence returns a canceller; keeping it in a ref lets every exit
    * path (pause, jump, replay, skip, unmount) kill the chain so a stale
    * second language can never start over the next scene.
