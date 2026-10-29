@@ -29,11 +29,11 @@ export default function Home() {
               signs, and choose a safer next step.
             </p>
             <div className="hero-actions">
-              <Link className="btn btn-primary btn-premium" href="/analyze">
-                Analyze a message <ArrowIcon />
+              <Link className="btn btn-primary btn-premium" href="/showcase">
+                Start the guided experience <ArrowIcon />
               </Link>
-              <Link className="btn btn-secondary btn-premium-secondary" href="/analyze#examples">
-                Explore live demos
+              <Link className="btn btn-secondary btn-premium-secondary" href="/analyze">
+                Analyze a message
               </Link>
             </div>
             <div className="hero-trust-row">

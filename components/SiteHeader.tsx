@@ -22,12 +22,15 @@ export function Brand() {
   );
 }
 
-export function SiteHeader({ current }: { current?: 'analyze' | 'history' }) {
+export function SiteHeader({ current }: { current?: 'analyze' | 'history' | 'showcase' }) {
   return (
     <header className="site-header">
       <div className="site-header-inner">
         <Brand />
         <nav className="nav" aria-label="Main">
+          <Link className="nav-link" href="/showcase" aria-current={current === 'showcase' ? 'page' : undefined}>
+            Showcase
+          </Link>
           <Link className="nav-link" href="/analyze" aria-current={current === 'analyze' ? 'page' : undefined}>
             Analyze
           </Link>
