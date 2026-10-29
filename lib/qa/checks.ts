@@ -100,12 +100,28 @@ export const CHECKS: Check[] = [
     title: 'Every page route responds',
     proves: 'No route 500s or 404s unexpectedly.',
     run: async () => {
-      const paths = ['/', '/analyze', '/history', '/showcase', '/login'];
+      const paths = ['/', '/login', '/story', '/features', '/analyze', '/history', '/qa'];
       const results = await Promise.all(paths.map(async (p) => [p, await status(p)] as const));
       const broken = results.filter(([, c]) => c !== 200);
       return broken.length === 0
         ? ok(`${paths.length}/${paths.length} returned 200`)
         : bad(`Not 200: ${broken.map(([p, c]) => `${p}=${c}`).join(', ')}`);
+    },
+  },
+  {
+    id: 'routes.legacy',
+    group: 'Routes',
+    title: 'The old showcase link still works',
+    proves: 'Links shared before the flow was split into pages do not dead-end.',
+    run: async () => {
+      // `status()` uses redirect:'manual', which reports a redirect as an
+      // opaque 0 and cannot show where it went. Following it is the point.
+      const res = await fetch('/showcase', { redirect: 'follow' });
+      if (!res.redirected) return bad(`/showcase did not redirect (${res.status})`);
+      const to = new URL(res.url).pathname;
+      return to === '/story'
+        ? ok('/showcase → /story')
+        : bad(`/showcase redirected to ${to}, expected /story`);
     },
   },
   {

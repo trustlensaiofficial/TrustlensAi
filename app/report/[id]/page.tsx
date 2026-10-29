@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { FloatingActions } from '@/components/FloatingActions';
 import { ReportView } from '@/components/ReportView';
-import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
+import { AppShell } from '@/components/AppShell';
 import { AlertIcon, ArrowIcon } from '@/components/icons';
 import { getReport, storeStatus } from '@/lib/store';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
@@ -23,9 +22,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const { report, reason } = await getReport(id, viewer?.id ?? null);
 
   return (
-    <>
-      <SiteHeader />
-      <main className="shell">
+    <AppShell>
         <section style={{ padding: 'clamp(26px, 4vw, 44px) 0 10px' }}>
           <Link className="btn btn-ghost" href="/analyze" style={{ paddingLeft: 0 }}>
             ← Back to the workspace
@@ -53,18 +50,6 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           </section>
         )}
 
-        <SiteFooter />
-      </main>
-
-      <FloatingActions
-        actions={[
-          ...(report
-            ? [{ id: 'steps', label: 'Jump to next steps', icon: 'checklist' as const, href: '#next-title' }]
-            : []),
-          { id: 'new', label: 'New analysis', icon: 'new' as const, href: '/analyze' },
-          { id: 'history', label: 'Investigation history', icon: 'history' as const, href: '/history' },
-        ]}
-      />
-    </>
+    </AppShell>
   );
 }

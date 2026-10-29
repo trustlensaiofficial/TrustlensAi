@@ -1,9 +1,8 @@
 import Image from 'next/image';
 import type { Metadata } from 'next';
-import { LiquidStage } from '@/components/liquid/LiquidStage';
+import { FlowShell } from '@/components/liquid/FlowShell';
 import { LiquidLink } from '@/components/liquid/LiquidButton';
 import { ArrowIcon } from '@/components/icons';
-import './liquid.css';
 import './opening.css';
 
 export const metadata: Metadata = {
@@ -31,10 +30,7 @@ const T = {
  */
 export default function OpeningPage() {
   return (
-    <div className="lq">
-      <LiquidStage />
-
-      <main className="lq-main op">
+    <FlowShell className="op" withHeader={false}>
         <div className="op-mark lq-step" style={{ '--d': `${T.mark}ms` } as React.CSSProperties}>
           <span className="op-halo" aria-hidden="true" />
           <span className="op-ring" aria-hidden="true" />
@@ -82,7 +78,6 @@ export default function OpeningPage() {
           <li>Says what it could not check</li>
           <li>English · Tamil</li>
         </ul>
-      </main>
-    </div>
+    </FlowShell>
   );
 }

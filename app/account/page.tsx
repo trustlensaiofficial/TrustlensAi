@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
+import { AppShell } from '@/components/AppShell';
 import { AddPasskeyButton } from '@/components/auth/AddPasskeyButton';
 import { ArrowIcon, LogOutIcon, ShieldIcon, UserIcon } from '@/components/icons';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
@@ -25,9 +25,7 @@ export default async function AccountPage() {
     'Signed in';
 
   return (
-    <>
-      <SiteHeader />
-      <main className="shell">
+    <AppShell>
         <section style={{ padding: 'clamp(28px, 4vw, 48px) 0 clamp(16px, 2.4vw, 24px)' }}>
           <p className="eyebrow"><span className="dot" /> Account</p>
           <h1 style={{ fontSize: 'clamp(28px, 3.6vw, 42px)', marginTop: 14 }}>{name}</h1>
@@ -69,8 +67,6 @@ export default async function AccountPage() {
           </form>
         </div>
 
-        <SiteFooter />
-      </main>
-    </>
+    </AppShell>
   );
 }

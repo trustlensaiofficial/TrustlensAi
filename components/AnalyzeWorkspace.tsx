@@ -21,7 +21,6 @@ import {
   ShieldIcon,
   SparkIcon,
 } from './icons';
-import { FloatingActions } from './FloatingActions';
 import { ReportView } from './ReportView';
 
 type KindChoice = 'auto' | InputKind;
@@ -397,28 +396,6 @@ export function AnalyzeWorkspace() {
         )}
       </div>
 
-      <FloatingActions
-        actions={[
-          ...(report
-            ? [{ id: 'steps', label: 'Jump to next steps', icon: 'checklist' as const, href: '#next-title' }]
-            : []),
-          {
-            id: 'new',
-            label: 'New analysis',
-            icon: 'new' as const,
-            onSelect: () => {
-              setText('');
-              setReport(null);
-              setError(null);
-              setScenario(null);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              inputRef.current?.focus();
-            },
-          },
-          { id: 'examples', label: 'Example cases', icon: 'analyze' as const, href: '#demo-heading' },
-          { id: 'history', label: 'Investigation history', icon: 'history' as const, href: '/history' },
-        ]}
-      />
     </div>
   );
 }

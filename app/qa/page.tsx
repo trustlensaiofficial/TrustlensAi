@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
+import { AppShell } from '@/components/AppShell';
 import { CHECKS, GROUPS, clearAnalysisCache, type CheckResult, type Status } from '@/lib/qa/checks';
 import { AlertIcon, CheckIcon, CloseIcon, InfoIcon, LensIcon, ShieldIcon } from '@/components/icons';
 
@@ -77,9 +77,7 @@ export default function QaPage() {
   }, [results]);
 
   return (
-    <>
-      <SiteHeader />
-      <main className="shell">
+    <AppShell>
         <section style={{ padding: 'clamp(28px, 4vw, 48px) 0 clamp(16px, 2.4vw, 24px)' }}>
           <p className="eyebrow"><span className="dot" /> Feature testing</p>
           <h1 style={{ fontSize: 'clamp(28px, 3.6vw, 42px)', marginTop: 14 }}>
@@ -164,8 +162,6 @@ export default function QaPage() {
           a passing one.
         </p>
 
-        <SiteFooter />
-      </main>
-    </>
+    </AppShell>
   );
 }

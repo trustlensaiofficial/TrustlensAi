@@ -1,12 +1,10 @@
 import Link from 'next/link';
-import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
+import { AppShell } from '@/components/AppShell';
 import { ArrowIcon, LensIcon } from '@/components/icons';
 
 export default function NotFound() {
   return (
-    <>
-      <SiteHeader />
-      <main className="shell">
+    <AppShell>
         <section className="card empty" style={{ marginTop: 'clamp(32px, 6vw, 64px)' }}>
           <div className="empty-icon"><LensIcon /></div>
           <h2>That page does not exist</h2>
@@ -17,8 +15,6 @@ export default function NotFound() {
             </Link>
           </div>
         </section>
-        <SiteFooter />
-      </main>
-    </>
+    </AppShell>
   );
 }

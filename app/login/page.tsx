@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { LiquidStage } from '@/components/liquid/LiquidStage';
+import { FlowShell } from '@/components/liquid/FlowShell';
 import { LiquidSignIn } from '@/components/auth/LiquidSignIn';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
 import { safeNextPath } from '@/lib/auth/config';
-import '../liquid.css';
 import './login.css';
 
 export const metadata: Metadata = {
@@ -27,11 +26,8 @@ export default async function LoginPage({
   if (user) redirect(next);
 
   return (
-    <div className="lq">
-      <LiquidStage />
-      <main className="lq-main">
-        <LiquidSignIn next={next} initialError={params.error?.slice(0, 180)} />
-      </main>
-    </div>
+    <FlowShell>
+      <LiquidSignIn next={next} initialError={params.error?.slice(0, 180)} />
+    </FlowShell>
   );
 }
