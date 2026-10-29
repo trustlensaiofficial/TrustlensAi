@@ -10,7 +10,7 @@
    choreography is time-based CSS, which cannot drift or leak a timer.
    ========================================================================== */
 
-.lq {
+:root {
   --lq-ink: #eaf2ff;
   --lq-ink-dim: #9fb2cc;
   --lq-ink-faint: #6b7d98;
@@ -25,7 +25,12 @@
   /* One spring for lifts, one glide for travel. Two curves, one system. */
   --lq-spring: cubic-bezier(.34, 1.4, .54, 1);
   --lq-glide: cubic-bezier(.22, .61, .36, 1);
+}
 
+/* The cinematic grade. Applied only by the flow pages, which stay dark in
+   both themes — a film does not change its grade because the room light
+   changed. Everything else on this sheet works on any page. */
+.lq {
   position: relative;
   min-height: 100dvh;
   display: flex;
@@ -154,7 +159,7 @@
    -------------------------------------------------------------------------- */
 /* The icon set carries only a viewBox, so every context must state a size.
    Without this an inline SVG collapses to nothing inside a flex row. */
-.lq svg { width: 18px; height: 18px; flex: none; }
+.lq svg, .lq-dock svg, .lq-btn svg { width: 18px; height: 18px; flex: none; }
 .lq-btn-lg .lq-btn-face svg { width: 20px; height: 20px; }
 .lq-btn-sm .lq-btn-face svg { width: 16px; height: 16px; }
 .lq-eyebrow svg { width: 15px; height: 15px; }
@@ -304,14 +309,24 @@
   gap: 6px;
   padding: 8px;
   border-radius: 24px;
-  background: rgba(10, 18, 38, .52);
+  /* Theme-aware, because the dock is on every page and not only on the dark
+     cinematic ones. Inside .lq the film grade overrides it below. */
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid var(--lq-edge);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 62%, transparent);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .2) inset,
+    0 20px 50px rgba(2, 6, 20, .34);
+  animation: lq-dock-in .7s var(--lq-spring) both;
+}
+
+.lq .lq-dock {
+  background: rgba(10, 18, 38, .52);
+  border-color: var(--lq-edge);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, .2) inset,
     0 20px 50px rgba(2, 6, 20, .66);
-  animation: lq-dock-in .7s var(--lq-spring) both;
 }
 
 @keyframes lq-dock-in {
@@ -330,7 +345,7 @@
   border: 0;
   border-radius: 17px;
   background: transparent;
-  color: var(--lq-ink-dim);
+  color: var(--text-muted);
   font: inherit;
   font-size: .68rem;
   font-weight: 600;
@@ -345,8 +360,8 @@
 
 @media (hover: hover) {
   .lq-dock-item:hover {
-    color: var(--lq-ink);
-    background: rgba(255, 255, 255, .09);
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
     transform: translateY(-7px) scale(1.07);
   }
 }
@@ -356,6 +371,9 @@
   background: linear-gradient(135deg, var(--lq-cyan), var(--lq-blue));
   box-shadow: 0 6px 18px rgba(46, 123, 232, .48), 0 1px 0 rgba(255, 255, 255, .4) inset;
 }
+
+/* The dock floats over the page, so content needs room to scroll past it. */
+.dock-gap { padding-bottom: 104px; }
 
 .lq-dock-item:focus-visible {
   outline: 2px solid var(--lq-cyan);
@@ -452,3 +470,44 @@
   .lq-word span { animation: none !important; opacity: 1 !important; transform: none !important; }
   .lq-btn-face { transition: none !important; }
 }
+
+/* --------------------------------------------------------------------------
+   Shared chrome inside the film grade
+   The header, nav and footer are the same components the product uses; these
+   rules restate them in the cinematic palette so the flow pages stay dark
+   whatever theme the viewer has chosen.
+   -------------------------------------------------------------------------- */
+.lq .site-header {
+  background: rgba(10, 18, 38, .46);
+  border-color: var(--lq-edge);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .16) inset,
+    0 16px 40px rgba(2, 6, 20, .5);
+}
+
+.lq .brand,
+.lq .brand-word { color: var(--lq-ink); }
+.lq .brand-accent { color: var(--lq-cyan); }
+
+.lq .nav-link { color: var(--lq-ink-dim); }
+.lq .nav-link:hover { color: var(--lq-ink); }
+.lq .nav-link[aria-current='page'] { color: var(--lq-ink); }
+.lq .nav-indicator { background: rgba(255, 255, 255, .11); }
+
+.lq .icon-button,
+.lq .account-link {
+  color: var(--lq-ink-dim);
+  border-color: var(--lq-edge);
+  background: var(--lq-fill);
+}
+.lq .icon-button:hover,
+.lq .account-link:hover { color: var(--lq-ink); border-color: var(--lq-edge-bright); }
+
+.lq .footer {
+  color: var(--lq-ink-faint);
+  border-top-color: rgba(255, 255, 255, .08);
+}
+
+/* The flow pages centre their content; the header and footer must not be
+   stretched by the flex column that does it. */
+.lq > .site-header, .lq > .footer { flex: none; width: min(1180px, calc(100% - 32px)); }

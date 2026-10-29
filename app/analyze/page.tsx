@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { AnalyzeWorkspace } from '@/components/AnalyzeWorkspace';
-import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
+import { AppShell } from '@/components/AppShell';
 
 export const metadata: Metadata = {
   title: 'Analyze',
@@ -10,9 +10,7 @@ export const metadata: Metadata = {
 
 export default function AnalyzePage() {
   return (
-    <>
-      <SiteHeader current="analyze" />
-      <main className="shell">
+    <AppShell>
         <section style={{ padding: 'clamp(28px, 4vw, 48px) 0 clamp(18px, 2.4vw, 26px)' }}>
           <p className="eyebrow">
             <span className="dot" />
@@ -28,8 +26,6 @@ export default function AnalyzePage() {
         </section>
         <div id="examples" />
         <AnalyzeWorkspace />
-        <SiteFooter />
-      </main>
-    </>
+    </AppShell>
   );
 }

@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
-import { LiquidStage } from '@/components/liquid/LiquidStage';
-import { LiquidDock } from '@/components/liquid/LiquidDock';
+import { FlowShell } from '@/components/liquid/FlowShell';
 import { StoryPlayer } from './StoryPlayer';
-import '../liquid.css';
 import './story.css';
 
 export const metadata: Metadata = {
@@ -13,12 +11,8 @@ export const metadata: Metadata = {
 
 export default function StoryPage() {
   return (
-    <div className="lq">
-      <LiquidStage />
-      <main className="lq-main">
-        <StoryPlayer />
-      </main>
-      <LiquidDock />
-    </div>
+    <FlowShell>
+      <StoryPlayer />
+    </FlowShell>
   );
 }

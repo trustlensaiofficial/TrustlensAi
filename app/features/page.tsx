@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { LiquidStage } from '@/components/liquid/LiquidStage';
-import { LiquidDock } from '@/components/liquid/LiquidDock';
+import { FlowShell } from '@/components/liquid/FlowShell';
 import { LiquidLink } from '@/components/liquid/LiquidButton';
 import { TOUR } from '@/lib/showcase/tour';
 import {
@@ -15,7 +14,6 @@ import {
   ShieldIcon,
   SparkIcon,
 } from '@/components/icons';
-import '../liquid.css';
 import './features.css';
 
 export const metadata: Metadata = {
@@ -50,10 +48,7 @@ const LINKS: Record<string, { href: string; label: string }> = {
 
 export default function FeaturesPage() {
   return (
-    <div className="lq">
-      <LiquidStage />
-
-      <main className="lq-main ft-main">
+    <FlowShell className="ft-main">
         <header className="ft-head">
           <span className="lq-eyebrow lq-step" style={{ '--d': '0ms' } as React.CSSProperties}>
             <ScalesIcon />
@@ -108,9 +103,6 @@ export default function FeaturesPage() {
             </LiquidLink>
           </div>
         </section>
-      </main>
-
-      <LiquidDock />
-    </div>
+    </FlowShell>
   );
 }

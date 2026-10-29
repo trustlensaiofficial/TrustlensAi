@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState, useSyncExternalStore } from 'react';
-import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
-import { FloatingActions } from '@/components/FloatingActions';
+import { AppShell } from '@/components/AppShell';
 import { AlertIcon, ArrowIcon, ClockIcon, InfoIcon, SearchIcon, TrashIcon } from '@/components/icons';
 import { CONTEXT_LABEL } from '@/lib/analysis/context-rules';
 import type { AssessmentLevel } from '@/lib/analysis/types';
@@ -113,9 +112,7 @@ export default function HistoryPage() {
   const filtersActive = query.trim().length > 0 || level !== 'all';
 
   return (
-    <>
-      <SiteHeader current="history" />
-      <main className="shell">
+    <AppShell>
         <section style={{ padding: 'clamp(28px, 4vw, 48px) 0 clamp(16px, 2.4vw, 24px)' }}>
           <p className="eyebrow">
             <span className="dot" />
@@ -295,15 +292,6 @@ export default function HistoryPage() {
           </>
         )}
 
-        <SiteFooter />
-      </main>
-
-      <FloatingActions
-        actions={[
-          { id: 'new', label: 'New analysis', icon: 'new', href: '/analyze' },
-          { id: 'examples', label: 'Example cases', icon: 'analyze', href: '/analyze' },
-        ]}
-      />
-    </>
+    </AppShell>
   );
 }
