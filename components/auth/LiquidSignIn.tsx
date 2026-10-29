@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getBrowserSupabase } from '@/lib/supabase/browser';
 import { safeNextPath, siteOrigin } from '@/lib/auth/config';
 import { LiquidButton } from '@/components/liquid/LiquidButton';
@@ -62,6 +62,9 @@ export function LiquidSignIn({ next, initialError }: { next: string; initialErro
       setError('This browser does not support passkeys. Use Google sign-in instead.');
       return;
     }
+    // Calling this directly from the click keeps the user gesture intact, so
+    // the platform raises Face ID / Touch ID straight away instead of showing
+    // an intermediate account picker.
     setBusy('passkey');
     setError(null);
     try {
@@ -83,6 +86,31 @@ export function LiquidSignIn({ next, initialError }: { next: string; initialErro
         setError('Passkey sign-in did not complete. You can use Google sign-in instead.');
       }
     }
+  }, [supabase, target]);
+
+  /*
+   * Conditional UI: if this device already holds a passkey for the site, the
+   * platform can offer it the moment the page opens — Face ID or Touch ID
+   * with nothing to click. Entirely best-effort; any failure leaves the
+   * normal buttons untouched.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    const tryAutofill = async () => {
+      if (!supabase || typeof window === 'undefined') return;
+      const available = await window.PublicKeyCredential
+        ?.isConditionalMediationAvailable?.()
+        .catch(() => false);
+      if (!available || cancelled) return;
+      try {
+        const { error: err } = await supabase.auth.signInWithPasskey({ mediation: 'conditional' });
+        if (!err && !cancelled) window.location.assign(target);
+      } catch {
+        /* No passkey offered, or the user dismissed it. The buttons still work. */
+      }
+    };
+    void tryAutofill();
+    return () => { cancelled = true; };
   }, [supabase, target]);
 
   return (
@@ -109,7 +137,7 @@ export function LiquidSignIn({ next, initialError }: { next: string; initialErro
 
         <LiquidButton variant="ghost" onClick={() => void withPasskey()} disabled={busy !== null}>
           <KeyIcon />
-          {busy === 'passkey' ? 'Waiting for your passkey…' : 'Continue with a passkey'}
+          {busy === 'passkey' ? 'Waiting for Face ID…' : 'Continue with a passkey'}
         </LiquidButton>
       </div>
 

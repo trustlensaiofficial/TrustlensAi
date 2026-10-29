@@ -6,7 +6,7 @@ import './story.css';
 export const metadata: Metadata = {
   title: 'The story',
   description:
-    'What TrustLens AI is, and every feature explained one at a time — narrated in English or Tamil.',
+    'What TrustLens AI is, and every feature explained one cinematic slide at a time.',
 };
 
 export default function StoryPage() {

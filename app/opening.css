@@ -56,20 +56,6 @@
   50%      { opacity: 1;   transform: scale(1.1); }
 }
 
-/* A ring sweeps outward once, like a lens focusing. */
-.op-ring {
-  position: absolute;
-  inset: -14%;
-  border-radius: 50%;
-  border: 1px solid rgba(92, 200, 255, .5);
-  opacity: 0;
-  animation: op-ring 2.1s cubic-bezier(.19, 1, .22, 1) .5s both;
-}
-@keyframes op-ring {
-  0%   { opacity: 0;   transform: scale(.55); }
-  35%  { opacity: .85; }
-  100% { opacity: 0;   transform: scale(1.5); }
-}
 
 /* --- 2. the name ---------------------------------------------------------- */
 .op-word {
@@ -121,38 +107,11 @@
   50%      { transform: translateY(-7px); }
 }
 
-.op-hint {
-  margin: 0;
-  color: var(--lq-ink-faint);
-  font-size: .82rem;
-}
-
-.op-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 10px;
-  justify-content: center;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.op-meta li {
-  padding: 6px 13px;
-  border-radius: 999px;
-  background: var(--lq-fill);
-  border: 1px solid var(--lq-edge);
-  color: var(--lq-ink-dim);
-  font-size: .76rem;
-  font-weight: 600;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .op-mark img, .op-halo, .op-ring, .op-word span, .op-start {
+  .op-mark img, .op-halo, .op-word span, .op-start {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
   }
-  .op-ring { display: none; }
 }

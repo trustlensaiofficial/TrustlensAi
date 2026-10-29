@@ -19,28 +19,10 @@ export interface FilmScene {
   /** On-screen headline for the scene. */
   title: string;
   durationMs: number;
-  /**
-   * Narration, authored separately per language — not translated at runtime.
-   */
-  ta: string;
+  /** The narration for this scene. Also shown as the caption, so voice
+   *  and text can never drift apart. */
   en: string;
 }
-
-/**
- * The two languages offered, in the order they are presented.
- *
- * The viewer picks one and the story plays in that language only — the
- * narration is authored per language, not translated at runtime, so the two
- * passes are written to sound native rather than parallel.
- */
-export const NARRATION_ORDER = ['en', 'ta'] as const;
-export type NarrationLang = (typeof NARRATION_ORDER)[number];
-
-/** Exactly how each language is named in the interface. */
-export const LANG_LABEL: Record<NarrationLang, string> = {
-  en: 'English',
-  ta: 'Tamil',
-};
 
 export const FILM_SCENES: FilmScene[] = [
   {
@@ -49,7 +31,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'What it is',
     title: 'Know what you are trusting',
     durationMs: 14800,
-    ta: 'TrustLens AI-nu solradhu, oru message-o link-o unga nambikkaikku laayakka-nu check panra tool.',
     en: 'TrustLens AI checks whether a message, a link or a request actually deserves your trust.',
   },
   {
@@ -58,7 +39,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'Why it matters',
     title: 'A warning is not an answer',
     durationMs: 15800,
-    ta: 'Normal tools ellam oru red warning kaattum, appuram onnume sollaadhu. Adhu panic-a thaan kodukkum.',
     en: 'Most tools only show a red warning. That creates worry, but it does not tell you what to do.',
   },
   {
@@ -67,7 +47,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'Feature one',
     title: 'Evidence you can inspect',
     durationMs: 15100,
-    ta: 'Edhu suspicious-nu sonna, antha exact vaarthaiya kaattum. Neenga-ve check panlaam.',
     en: 'Feature one. Every warning sign shows the exact words that triggered it, so you can judge it yourself.',
   },
   {
@@ -76,7 +55,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'Feature two',
     title: 'Rules that fit what you are holding',
     durationMs: 16100,
-    ta: 'Job offer-a, invoice-a, bank message-a — edhu-nu select panna, adhukku thaniya rules varum.',
     en: 'Feature two. Choose what you are holding, and the rules change to match it.',
   },
   {
@@ -85,7 +63,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'Feature three',
     title: 'A transparent investigation',
     durationMs: 15800,
-    ta: 'Mudhalla rules check pannum, appuram link-a pirichu paakkum, kadaisiya thaan AI interpret pannum.',
     en: 'Feature three. Rules run first, links are taken apart, and only then does the model interpret.',
   },
   {
@@ -94,7 +71,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'Feature four',
     title: 'Three kinds of claim, never blended',
     durationMs: 16400,
-    ta: 'Rule match vera, nijamaa check panna fact vera, AI oda opinion vera. Moonum kalakkaama thaniya kaattum.',
     en: 'Feature four. A rule match, a verified fact and a model opinion stay clearly separate.',
   },
   {
@@ -103,7 +79,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'Feature five',
     title: 'What it could not establish',
     durationMs: 15800,
-    ta: 'Edhu check panna mudiyala-nu-um clear-a sollum. Warning illa-nganaa safe-nu artham illa.',
     en: 'Feature five. It states what it could not check. No warning does not mean verified safe.',
   },
   {
@@ -112,7 +87,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'Feature six',
     title: 'The next safe move',
     durationMs: 17000,
-    ta: 'Idhu thaan mukkiyam — adutha safe-aana step enna-nu sollum. Card-la irukkira number-ku thaan call pannanum.',
     en: 'Feature six, the heart of it. Findings become safe next steps, like calling the number printed on your card.',
   },
   {
@@ -121,7 +95,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'Feature seven',
     title: 'One report you can keep',
     durationMs: 14500,
-    ta: 'Full report onnu kedaikkum. Copy pannalaam, download pannalaam.',
     en: 'Feature seven. One complete report, which you can copy or download.',
   },
   {
@@ -130,7 +103,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'Feature eight',
     title: 'Your own history, kept private',
     durationMs: 15100,
-    ta: 'Unga paartha check-ellam unga browser-la thaan irukkum. Vera yaarum paakka mudiyaadhu.',
     en: 'Feature eight. Your past checks stay in your own browser, where nobody else can list them.',
   },
   {
@@ -139,7 +111,6 @@ export const FILM_SCENES: FilmScene[] = [
     kicker: 'Now you try',
     title: 'Open the working prototype',
     durationMs: 13300,
-    ta: 'Idhu thaan TrustLens AI. Ippo neenga-ve prototype-a open panni try pannunga.',
     en: 'That is TrustLens AI. Now open the prototype and try it yourself.',
   },
 ];
@@ -150,12 +121,8 @@ export function sceneStartMs(index: number): number {
   return FILM_SCENES.slice(0, index).reduce((sum, s) => sum + s.durationMs, 0);
 }
 
-/** Bilingual transcript, derived from the authored strings — never a copy. */
+/** Transcript, derived from the authored strings — never a copy. */
 export const FILM_TRANSCRIPT = FILM_SCENES
-  .map((s) => `${LANG_LABEL.en}\n${s.en}\n\n${LANG_LABEL.ta}\n${s.ta}`)
+  .map((s) => `${s.title}\n${s.en}`)
   .join('\n\n---\n\n');
 
-/** The script for one chosen language, used by the story player. */
-export function scriptFor(scene: FilmScene, lang: NarrationLang): string {
-  return lang === 'ta' ? scene.ta : scene.en;
-}
