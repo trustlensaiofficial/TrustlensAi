@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BrandMark } from './BrandMark';
+import { NavRail } from './NavRail';
 import { ThemeToggle } from './ThemeToggle';
 
 /**
@@ -23,22 +24,17 @@ export function Brand() {
 }
 
 export function SiteHeader({ current }: { current?: 'analyze' | 'history' | 'showcase' }) {
+  // `current` is kept for call-site compatibility; NavRail derives the active
+  // item from the pathname so the indicator can never disagree with the route.
+  void current;
   return (
     <header className="site-header">
       <div className="site-header-inner">
         <Brand />
-        <nav className="nav" aria-label="Main">
-          <Link className="nav-link" href="/showcase" aria-current={current === 'showcase' ? 'page' : undefined}>
-            Showcase
-          </Link>
-          <Link className="nav-link" href="/analyze" aria-current={current === 'analyze' ? 'page' : undefined}>
-            Analyze
-          </Link>
-          <Link className="nav-link" href="/history" aria-current={current === 'history' ? 'page' : undefined}>
-            History
-          </Link>
+        <div className="header-actions">
+          <NavRail />
           <ThemeToggle />
-        </nav>
+        </div>
       </div>
     </header>
   );

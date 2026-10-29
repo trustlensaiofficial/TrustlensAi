@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
+import { Magnetic, Reveal, Tilt } from '@/components/Motion';
 import {
   AlertIcon,
   ArrowIcon,
@@ -29,9 +30,11 @@ export default function Home() {
               signs, and choose a safer next step.
             </p>
             <div className="hero-actions">
-              <Link className="btn btn-primary btn-premium" href="/showcase">
-                Start the guided experience <ArrowIcon />
-              </Link>
+              <Magnetic>
+                <Link className="btn btn-primary btn-premium" href="/showcase">
+                  Start the guided experience <ArrowIcon />
+                </Link>
+              </Magnetic>
               <Link className="btn btn-secondary btn-premium-secondary" href="/analyze">
                 Analyze a message
               </Link>
@@ -96,30 +99,30 @@ export default function Home() {
             <p>Trust is too important for a mysterious red badge. Each report separates what a rule found, what a link check actually observed, and what remains uncertain.</p>
           </div>
           <div className="principle-grid">
-            <article className="card principle-card">
+            <Tilt><article className="card principle-card">
               <div className="principle-icon icon-mint"><AlertIcon /></div>
               <span className="principle-number">01 / DETECT</span>
               <h3>See the exact signal</h3>
               <p>Urgency, impersonation, credential requests and risky link patterns are tied to the exact wording or structure that triggered them.</p>
-            </article>
-            <article className="card principle-card">
+            </article></Tilt>
+            <Tilt><article className="card principle-card">
               <div className="principle-icon icon-blue"><EvidenceIcon /></div>
               <span className="principle-number">02 / INSPECT</span>
               <h3>Know what was checked</h3>
               <p>Real observations are kept separate from failed checks and facts that could not be established. No pretend verification.</p>
-            </article>
-            <article className="card principle-card">
+            </article></Tilt>
+            <Tilt><article className="card principle-card">
               <div className="principle-icon icon-violet"><ScalesIcon /></div>
               <span className="principle-number">03 / ACT</span>
               <h3>Choose a safer next step</h3>
               <p>Get a practical checklist: verify independently, use a channel you control, and pause before sharing money or credentials.</p>
-            </article>
+            </article></Tilt>
           </div>
         </section>
 
 
         {/* ------------------------------------------------- use cases -- */}
-        <section className="section" aria-labelledby="uses-title">
+        <Reveal><section className="section" aria-labelledby="uses-title">
           <div className="section-head">
             <h2 id="uses-title">What people bring to TrustLens</h2>
           </div>
@@ -129,7 +132,7 @@ export default function Home() {
             resolves a suspicious invoice is not the step that resolves a suspicious job offer.
           </p>
           <div className="use-grid">
-            <article className="card use-card">
+            <Tilt><article className="card use-card">
               <span className="use-icon"><BriefcaseIcon /></span>
               <h3>Job offers</h3>
               <p>
@@ -140,8 +143,8 @@ export default function Home() {
                 Catches: <b>hiring with no interview, upfront fees, free-email recruiters, bank
                 details requested before any contract.</b>
               </p>
-            </article>
-            <article className="card use-card">
+            </article></Tilt>
+            <Tilt><article className="card use-card">
               <span className="use-icon"><ReceiptIcon /></span>
               <h3>Invoices and payment requests</h3>
               <p>
@@ -152,8 +155,8 @@ export default function Home() {
                 Catches: <b>changed bank details, pressure to pay today, and any reason offered for
                 why you should not phone to confirm.</b>
               </p>
-            </article>
-            <article className="card use-card">
+            </article></Tilt>
+            <Tilt><article className="card use-card">
               <span className="use-icon"><DocumentIcon /></span>
               <h3>Business proposals</h3>
               <p>
@@ -164,8 +167,8 @@ export default function Home() {
                 Catches: <b>guaranteed returns, deadlines that block diligence, upfront fees,
                 credentials stated without evidence.</b>
               </p>
-            </article>
-            <article className="card use-card">
+            </article></Tilt>
+            <Tilt><article className="card use-card">
               <span className="use-icon"><GlobeIcon /></span>
               <h3>Links and websites</h3>
               <p>
@@ -176,8 +179,8 @@ export default function Home() {
                 Catches: <b>brand names hidden in subdomains, character-swap lookalikes, raw IP
                 hosts, shorteners and redirect chains.</b>
               </p>
-            </article>
-            <article className="card use-card">
+            </article></Tilt>
+            <Tilt><article className="card use-card">
               <span className="use-icon"><MessageIcon /></span>
               <h3>Messages and claims</h3>
               <p>
@@ -188,12 +191,13 @@ export default function Home() {
                 Catches: <b>one-time-code requests, irreversible payment rails, isolation demands,
                 threats and manufactured urgency.</b>
               </p>
-            </article>
+            </article></Tilt>
           </div>
         </section>
 
         {/* ------------------------------------------ privacy & security -- */}
-        <section className="section" aria-labelledby="security-title">
+        </Reveal>
+        <Reveal delay={60}><section className="section" aria-labelledby="security-title">
           <div className="section-head">
             <h2 id="security-title">
               <ShieldIcon className="inline-icon" /> How your data is handled
@@ -258,6 +262,7 @@ export default function Home() {
           </div>
         </section>
 
+        </Reveal>
         <section className="home-cta-panel">
           <div className="cta-mark"><ShieldIcon /></div>
           <div className="cta-copy">
