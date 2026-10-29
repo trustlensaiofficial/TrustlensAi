@@ -28,10 +28,6 @@ export function GlobalControls() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [open]);
 
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
   return (
     <>
       <div className="global-controls" aria-label="Site controls">
@@ -54,9 +50,11 @@ export function GlobalControls() {
         </div>
       </div>
 
-      <div
+      <button
+        type="button"
         className={open ? 'global-nav-backdrop is-open' : 'global-nav-backdrop'}
-        aria-hidden="true"
+        aria-label="Close navigation menu"
+        tabIndex={open ? 0 : -1}
         onClick={() => setOpen(false)}
       />
       <aside
