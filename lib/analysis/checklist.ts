@@ -114,6 +114,28 @@ const BY_CATEGORY: Partial<Record<SignalCategory, ChecklistStep[]>> = {
  * they lead the checklist rather than sitting under the generic advice.
  */
 const BY_CONTEXT: Partial<Record<InputContext, ChecklistStep[]>> = {
+  bank_scam: [
+    {
+      id: 'chk.bank.hang_up',
+      action: 'End the call or stop replying, then phone your bank on the number printed on your card, your statement, or inside its official app.',
+      why: 'Every bank impersonation depends on keeping you on their channel. An independent callback breaks it immediately, and costs you nothing if the contact was genuine.',
+    },
+    {
+      id: 'chk.bank.never_share',
+      action: 'Do not share any OTP, UPI PIN, ATM PIN, CVV or password — and do not approve any UPI request you did not start.',
+      why: 'Approving a UPI request and entering your PIN sends money out; it never receives it. A code given away completes someone else’s payment.',
+    },
+    {
+      id: 'chk.bank.no_remote_app',
+      action: 'Do not install AnyDesk, TeamViewer, QuickSupport or any APK the caller sends, and uninstall it immediately if you already did.',
+      why: 'These hand the caller your screen and every code that arrives on it. No bank requires one.',
+    },
+    {
+      id: 'chk.bank.if_already',
+      action: 'If you already shared a code or approved a request, call your bank now and ask them to freeze the account and raise a fraud claim, then report it to your national cyber-crime helpline.',
+      why: 'Recovery depends almost entirely on how fast the account is frozen. Reporting within the first hours materially changes the outcome.',
+    },
+  ],
   job_offer: [
     {
       id: 'chk.job.verify_entity',

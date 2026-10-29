@@ -104,6 +104,28 @@ export function buildPositives(
 }
 
 const CONTEXT_QUESTIONS: Record<InputContext, QuestionToAsk[]> = {
+  bank_scam: [
+    {
+      id: 'q.bank.callback',
+      question: 'Can I hang up and call you back on the number printed on the back of my card?',
+      why: 'A real bank will say yes without hesitation. This single question ends almost every bank impersonation call, which is why the caller will resist it.',
+    },
+    {
+      id: 'q.bank.why_code',
+      question: 'Why do you need a code that your own system just sent to me?',
+      why: 'There is no legitimate answer. A one-time code authorises a payment or login for whoever holds it — the bank never needs it read back.',
+    },
+    {
+      id: 'q.bank.in_app',
+      question: 'Can I see this request inside the bank’s own app instead?',
+      why: 'A genuine block, KYC requirement or transaction appears in the app you already have. If it exists only in the message, the message is the problem.',
+    },
+    {
+      id: 'q.bank.safe_account',
+      question: 'Which regulation requires me to move my own money to another account?',
+      why: 'None does. Banks freeze suspect activity in place; they never ask a customer to transfer funds elsewhere for safety.',
+    },
+  ],
   job_offer: [
     {
       id: 'q.job.entity',

@@ -18,6 +18,7 @@ import {
   LensIcon,
   MessageIcon,
   ReceiptIcon,
+  ShieldIcon,
   SparkIcon,
 } from './icons';
 import { FloatingActions } from './FloatingActions';
@@ -32,6 +33,7 @@ type KindChoice = 'auto' | InputKind;
  */
 const CONTEXTS: Array<{ value: InputContext; icon: typeof MessageIcon; hint: string; kind: KindChoice }> = [
   { value: 'generic', icon: MessageIcon, hint: 'Email, SMS or chat', kind: 'auto' },
+  { value: 'bank_scam', icon: ShieldIcon, hint: 'Bank, UPI or OTP', kind: 'message' },
   { value: 'website', icon: GlobeIcon, hint: 'A link or domain', kind: 'url' },
   { value: 'job_offer', icon: BriefcaseIcon, hint: 'Recruitment message', kind: 'message' },
   { value: 'invoice', icon: ReceiptIcon, hint: 'Bill or payment request', kind: 'message' },
@@ -40,6 +42,8 @@ const CONTEXTS: Array<{ value: InputContext; icon: typeof MessageIcon; hint: str
 
 const PLACEHOLDERS: Record<InputContext, string> = {
   generic: 'Paste the full message — the wording is what gets examined…',
+  bank_scam:
+    'Paste the bank SMS, UPI request or call transcript. Never include a real OTP, PIN or card number — they are not needed to assess it…',
   website: 'Paste the link, for example https://example.com/account/verify',
   job_offer: 'Paste the recruiter message or offer, including any email address it came from…',
   invoice: 'Paste the invoice email, especially any note about payment or bank details…',
@@ -75,6 +79,12 @@ export function AnalyzeWorkspace() {
   const [report, setReport] = useState<Report | null>(null);
   const [storageNote, setStorageNote] = useState<string | undefined>();
   const [scenario, setScenario] = useState<string | null>(null);
+  /**
+   * The exact payload of the last submission. Retry replays this instead of
+   * rebuilding from the current UI, which previously turned a failed demo
+   * into an ordinary analysis and lost its demo labelling.
+   */
+  const lastRequest = useRef<{ text?: string; demoSlug?: string; kind?: KindChoice; context?: InputContext } | null>(null);
   const dismissed = useSyncExternalStore(subscribeDismissed, getDismissed, getServerDismissed);
   const showHint = !dismissed.has('workspace-intro');
   const resultRef = useRef<HTMLDivElement>(null);
@@ -86,6 +96,7 @@ export function AnalyzeWorkspace() {
 
   const run = useCallback(
     async (payload: { text?: string; demoSlug?: string; kind?: KindChoice; context?: InputContext }) => {
+      lastRequest.current = payload;
       setLoading(true);
       setError(null);
       setReport(null);
@@ -192,6 +203,7 @@ export function AnalyzeWorkspace() {
                   type="button"
                   className="context-card"
                   aria-pressed={context === option.value}
+                  disabled={loading}
                   onClick={() => pickContext(option.value)}
                 >
                   <Icon />
@@ -220,6 +232,8 @@ export function AnalyzeWorkspace() {
               }
             }}
             placeholder={PLACEHOLDERS[context]}
+            readOnly={loading}
+            aria-busy={loading || undefined}
             aria-invalid={over || undefined}
             aria-describedby={`${textareaId}-hint`}
             spellCheck={false}
@@ -254,6 +268,7 @@ export function AnalyzeWorkspace() {
               role="switch"
               aria-checked={liveChecks}
               aria-labelledby={`${textareaId}-live`}
+              disabled={loading}
               onClick={() => setLiveChecks((v) => !v)}
             />
             <div>
@@ -366,8 +381,8 @@ export function AnalyzeWorkspace() {
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => void run({ text, kind, context })}
-                disabled={!canSubmit}
+                onClick={() => void run(lastRequest.current ?? { text, kind, context })}
+                disabled={loading}
               >
                 Try again
               </button>

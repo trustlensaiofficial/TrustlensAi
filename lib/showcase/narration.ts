@@ -98,7 +98,10 @@ function scoreVoice(v: SpeechSynthesisVoice): number {
   if (n.includes('premium')) score += 60;
   if (n.includes('enhanced')) score += 45;
   if (/\b(ava|allison|samantha|serena|zoe|evan|nathan|noelle|tom|susan|karen|moira|tessa|daniel)\b/.test(n)) score += 25;
-  // Prefer the listener's own locale family, then US/GB.
+  // Indian English first: it handles Latin-script Tamil far more naturally
+  // than a US or UK voice, and it is the correct accent for the English pass.
+  if (v.lang === 'en-IN') score += 70;
+  if (/\b(rishi|veena|aditi|heera|kalpana|isha|neerja|prabhat)\b/.test(n)) score += 30;
   if (v.lang === 'en-US' || v.lang === 'en-GB') score += 10;
   if (v.localService) score += 4;
   return score;
@@ -232,4 +235,35 @@ export function stop(): void {
   currentUtterance = null;
   synth()?.cancel();
   if (state !== 'idle') { state = 'idle'; emit(); }
+}
+
+/**
+ * Speaks several lines strictly in order, one after the other.
+ *
+ * Used for the bilingual film: the Tanglish pass must finish completely
+ * before the English pass begins — never interleaved, never simultaneous.
+ * The returned function cancels the whole chain, which the caller must call
+ * on pause, jump, replay, skip and unmount so a stale chain cannot resume
+ * over the next scene.
+ */
+export function speakSequence(lines: Array<{ text: string; sceneId?: string }>): () => void {
+  let cancelled = false;
+  let index = 0;
+
+  const next = () => {
+    if (cancelled || index >= lines.length) return;
+    const item = lines[index];
+    index += 1;
+    if (!item) return;
+    speak(item.text, item.sceneId, () => {
+      // Guard again: the chain may have been cancelled while this line played.
+      if (!cancelled) next();
+    });
+  };
+
+  next();
+  return () => {
+    cancelled = true;
+    stop();
+  };
 }

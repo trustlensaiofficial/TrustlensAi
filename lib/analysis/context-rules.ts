@@ -203,9 +203,92 @@ const PROPOSAL_RULES: ContextRule[] = [
   },
 ];
 
+const BANK_SCAM_RULES: ContextRule[] = [
+  {
+    id: 'bank.secret_request',
+    title: 'Request for an OTP, PIN or password',
+    category: 'credentials',
+    severity: 'critical',
+    explanation:
+      'No bank, and no genuine bank employee, ever asks for your OTP, UPI PIN, ATM PIN, CVV or net-banking password. Anyone asking is trying to complete a payment or login as you. Never type or read these out — not even to someone who already knows your name and account details.',
+    patterns: [
+      /\b(otp|one[-\s]?time\s+(password|pin|code))\b[^.!?]{0,40}?\b(share|send|tell|give|provide|read|confirm|enter|forward)\b/gi,
+      /\b(share|send|tell|give|provide|read\s+out|forward|confirm)\b[^.!?]{0,30}?\b(otp|upi\s*pin|atm\s*pin|mpin|cvv|net\s*banking\s+password|card\s+pin)\b/gi,
+      /\b(upi\s*pin|mpin|atm\s*pin|card\s*pin|cvv)\b/gi,
+      /\b(enter|type)\s+(your\s+)?(pin|otp|password)\b/gi,
+    ],
+  },
+  {
+    id: 'bank.account_block_threat',
+    title: 'Threat that the account will be blocked',
+    category: 'threat',
+    severity: 'high',
+    explanation:
+      'A deadline attached to your account being frozen is there to stop you checking. Banks do not close accounts over an unanswered SMS, and any genuine KYC requirement can be completed inside the bank\u2019s own app on your own schedule.',
+    patterns: [
+      /\b(account|card|net\s*banking|upi)\b[^.!?]{0,40}?\b(will\s+be|has\s+been|is\s+being)\s+(blocked|suspended|frozen|deactivated|closed|locked)\b/gi,
+      /\b(kyc)\b[^.!?]{0,40}?\b(expired|pending|incomplete|update|suspend)/gi,
+      /\b(update|complete|verify)\s+(your\s+)?kyc\b/gi,
+      /\b(dear\s+customer)\b[^.!?]{0,60}?\b(blocked|suspended|kyc)\b/gi,
+    ],
+  },
+  {
+    id: 'bank.safe_account_transfer',
+    title: 'Instruction to move money to a “safe account”',
+    category: 'payment',
+    severity: 'critical',
+    explanation:
+      'There is no such thing as a safe account. A bank protects your money by freezing fraudulent activity, never by asking you to transfer it somewhere else. This instruction exists only to move funds beyond recovery.',
+    patterns: [
+      /\b(safe|secure|protected|new)\s+account\b[^.!?]{0,50}?\b(transfer|move|send|shift|deposit)\b/gi,
+      /\b(transfer|move|send|shift)\b[^.!?]{0,40}?\b(to\s+(a|the|this)\s+(safe|secure|protected|new)\s+account)\b/gi,
+      /\byour\s+(money|funds|balance)\s+(is|are)\s+(not\s+safe|at\s+risk)\b/gi,
+    ],
+  },
+  {
+    id: 'bank.remote_access',
+    title: 'Asked to install a screen-sharing or remote-access app',
+    category: 'link',
+    severity: 'critical',
+    explanation:
+      'AnyDesk, TeamViewer, QuickSupport and similar tools hand full control of your phone to the caller, including everything on screen and every code that arrives. A bank will never ask you to install one.',
+    patterns: [
+      /\b(anydesk|teamviewer|quick\s*support|rustdesk|airdroid|screen\s*share|remote\s+(access|desktop))\b/gi,
+      /\b(install|download)\b[^.!?]{0,40}?\b(apk|app)\b[^.!?]{0,40}?\b(assist|support|verify|kyc)\b/gi,
+      /\b(download|install)\s+(this\s+|the\s+)?apk\b/gi,
+    ],
+  },
+  {
+    id: 'bank.upi_collect',
+    title: 'UPI collect or “approve to receive” request',
+    category: 'payment',
+    severity: 'critical',
+    explanation:
+      'Approving a UPI request and entering your PIN always sends money out — it never receives it. A refund, cashback or prize that requires your PIN is a payment you are making, not one you are receiving.',
+    patterns: [
+      /\b(approve|accept|authorise|authorize)\b[^.!?]{0,40}?\b(request|collect)\b[^.!?]{0,40}?\b(receive|refund|cashback|credit)\b/gi,
+      /\b(enter\s+(your\s+)?(upi\s*)?pin)\b[^.!?]{0,40}?\b(receive|refund|credit|cashback)\b/gi,
+      /\b(collect\s+request|payment\s+request)\b[^.!?]{0,40}?\b(approve|accept)\b/gi,
+    ],
+  },
+  {
+    id: 'bank.fake_support_number',
+    title: 'Customer-care number supplied inside the message',
+    category: 'impersonation',
+    severity: 'high',
+    explanation:
+      'A helpline printed in a suspicious message leads back to the sender. The only number worth calling is the one on the back of your card, on your statement, or inside the bank\u2019s official app.',
+    patterns: [
+      /\b(customer\s*(care|service|support)|helpline|toll[-\s]?free)\b[^.!?]{0,40}?\b(\+?\d[\d\s-]{7,})/gi,
+      /\b(call|contact|dial|whatsapp)\b[^.!?]{0,30}?\b(\+?\d[\d\s-]{9,})/gi,
+    ],
+  },
+];
+
 const BY_CONTEXT: Record<InputContext, ContextRule[]> = {
   generic: [],
   website: [],
+  bank_scam: BANK_SCAM_RULES,
   job_offer: JOB_OFFER_RULES,
   invoice: INVOICE_RULES,
   proposal: PROPOSAL_RULES,
@@ -254,6 +337,7 @@ export function contextRuleCount(context: InputContext): number {
 
 export const CONTEXT_LABEL: Record<InputContext, string> = {
   generic: 'Message or text',
+  bank_scam: 'Bank scam',
   website: 'Website or link',
   job_offer: 'Job offer',
   invoice: 'Invoice or payment request',

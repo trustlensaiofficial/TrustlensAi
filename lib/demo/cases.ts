@@ -44,7 +44,7 @@ To close the case today you must transfer the verification amount of 48,500 to t
   },
   {
     slug: 'bank-otp-phish',
-    context: 'generic',
+    context: 'bank_scam',
     scenario:
       'An SMS says your bank account will be suspended unless you verify today.',
     label: 'Bank phishing SMS with a lookalike link',
@@ -148,6 +148,51 @@ Our award-winning, industry-leading platform has partnered with several Fortune 
 Only 4 allocation slots remain in this round and the window closes by end of day tomorrow. We would need the signed agreement and the initial payment of 250,000 to secure the allocation.
 
 Please sign the NDA before we disclose the detailed financials and client list.`,
+  },
+  {
+    slug: 'bank-safe-account',
+    label: 'Caller asking you to move money to a “safe account”',
+    kind: 'message',
+    context: 'bank_scam',
+    scenario:
+      'Someone calling themselves your bank’s fraud team says your account is compromised and wants you to act now.',
+    expectation:
+      'Should flag the safe-account transfer and the remote-access app as critical, plus the block threat and the number supplied in the message.',
+    text: `This is the fraud prevention department. We have detected an unauthorised transaction on your account and your account will be blocked within 30 minutes.
+
+Your money is not safe where it is. To protect it, please transfer your balance to the safe account our officer will provide.
+
+To help us verify, kindly install AnyDesk from the Play Store so our technical team can guide you through the steps.
+
+Do not disconnect the call. For any confirmation, contact our customer care on 1800-xxx-9021.`,
+  },
+  {
+    slug: 'upi-collect-refund',
+    label: 'UPI request disguised as a refund',
+    kind: 'message',
+    context: 'bank_scam',
+    scenario:
+      'A “refund” arrives as a UPI collect request that asks you to enter your PIN to receive the money.',
+    expectation:
+      'Should flag the UPI collect deception and the PIN request as critical, and explain that entering a PIN always sends money rather than receiving it.',
+    text: `Your refund of 4,750 has been initiated against your cancelled order.
+
+To receive the amount, please approve the payment request sent to your UPI app and enter your UPI PIN to confirm the credit.
+
+If the request expires, the refund will be cancelled and cannot be claimed again.`,
+  },
+  {
+    slug: 'benign-bank-notice',
+    label: 'Genuine bank notification (control)',
+    kind: 'message',
+    context: 'bank_scam',
+    scenario:
+      'An ordinary transaction alert of the kind banks really send — included to check the bank rules do not over-fire.',
+    expectation:
+      'Should match no bank rules. Mentioning a bank, a card and a balance is not a scam, and the tool must stay quiet.',
+    text: `Rs. 2,480.00 debited from your account ending 4417 on 12 Nov at Blue Fig Cafe. Available balance Rs. 18,902.35.
+
+If you did not make this transaction, please review it in your banking app or visit your nearest branch.`,
   },
   {
     slug: 'benign-transactional',

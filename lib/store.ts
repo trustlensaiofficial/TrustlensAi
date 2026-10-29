@@ -41,11 +41,32 @@ function envValue(...names: string[]): string | undefined {
   return undefined;
 }
 
+/**
+ * Returns the first candidate that is actually a usable https project URL.
+ *
+ * Preferring whichever name is merely *present* is what broke the canonical
+ * deployment: a malformed SUPABASE_URL shadowed a perfectly good
+ * NEXT_PUBLIC_SUPABASE_URL and persistence silently stopped working. Falling
+ * through on invalid values makes the misconfiguration survivable.
+ */
+const INVALID_URL_SENTINEL = '\u0000invalid';
+
+function firstValidUrl(...names: string[]): string | undefined {
+  let sawInvalid = false;
+  for (const name of names) {
+    const raw = envValue(name);
+    if (!raw) continue;
+    if (isValidProjectUrl(raw)) return raw;
+    sawInvalid = true;
+  }
+  return sawInvalid ? INVALID_URL_SENTINEL : undefined;
+}
+
 function readEnv(): { url?: string; key?: string } {
   // Accept either the names the Vercel/Supabase integration injects or the
   // plain ones, so the same code works however the project was wired.
   return {
-    url: envValue('SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL'),
+    url: firstValidUrl('SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL'),
     key: envValue('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY'),
   };
 }
@@ -70,7 +91,7 @@ export function storeStatus(): StoreStatus {
     return { enabled: false, reason: 'No Supabase URL or server key is configured on this deployment, so reports are not saved.' };
   }
   if (!url) return { enabled: false, reason: 'Supabase URL is missing, so reports are not saved.' };
-  if (!isValidProjectUrl(url)) {
+  if (url === INVALID_URL_SENTINEL || !isValidProjectUrl(url)) {
     return {
       enabled: false,
       reason:

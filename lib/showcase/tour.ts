@@ -125,8 +125,14 @@ export const TOUR_SCENARIOS: TourScenario[] = [
   {
     slug: 'bank-otp-phish',
     label: 'Bank impersonation message',
-    context: 'generic',
+    context: 'bank_scam',
     situation: 'An SMS threatening suspension unless you verify and share a code.',
+  },
+  {
+    slug: 'bank-safe-account',
+    label: 'The “safe account” call',
+    context: 'bank_scam',
+    situation: 'A caller claiming to be bank fraud wants your balance moved and a remote-access app installed.',
   },
 ];
 

@@ -3,6 +3,19 @@
 Live working state. Read with [`AGENTS.md`](./AGENTS.md).
 **Last updated:** 2026-10-29 · by the desktop coding agent (Claude Code).
 
+## Final prototype phase — branch `claude/final-prototype-phase`
+
+| Area | Result |
+|---|---|
+| Palette | Mint green removed everywhere; accent re-based on the brandmark's cyan/blue. No green token remains. |
+| **Bank scam context** | First-class `bank_scam` through types, rules, API schema, selector, demos, checklist, questions and tour. 6 rule groups; 3 scam demos + 1 benign control. |
+| Bilingual film | Every scene carries separately authored Tanglish and Indian English. Playback and transcript are always Tanglish → English. No third language. |
+| Bugs fixed | History delete now confirms server-side first; inputs lock during analysis; demo retry replays the original request; Supabase URL falls through invalid values. |
+| Tests | **117 passing** (was 94) |
+
+**Still owner-only:** AI Gateway billing, the official logo file, and Google/passkey
+auth (needs the provider enabled in the Supabase dashboard — not buildable from here).
+
 ## 🟢 LIVE
 
 **Production (judge-facing, no login required):**
