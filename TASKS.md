@@ -3,6 +3,33 @@
 Live working state. Read with [`AGENTS.md`](./AGENTS.md).
 **Last updated:** 2026-10-29 · by the desktop coding agent (Claude Code).
 
+## Operations verification — 2026-10-29
+
+Full connection audit, all verified live rather than assumed.
+
+| Link | State |
+|---|---|
+| GitHub → Vercel | `trustlensaiofficial/TrustlensAi` → `trustlensai-u2r6`, production branch `main` |
+| Production deploy | **READY** at `3a88457` (latest `main`) |
+| Deployment protection | `preview` only — production is public for judges |
+| Vercel → Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `AI_GATEWAY_API_KEY` across all three environments |
+| Supabase project | `pwieplvvzftxdxvoueed` |
+| RLS | `scans`, `analysis_reports`, `analysis_history` — **all deny the public browser key (401)** |
+| Data | `scans` 83 rows, intact |
+
+**All 13 demo scenarios verified on live production**, each with the correct
+context, level and persistence. Both benign controls stay at zero signals.
+The 13th request returned 429 — the rate limiter working, not a fault.
+
+### GitHub tidied
+
+- PR #11 (revert of the context engine) — **closed unmerged**; confirmed the
+  revert commit never reached `main` and all 81 files survive.
+- PR #3 — closed as superseded and CONFLICTING; its branch is kept.
+- Deleted 4 branches fully merged into `main`. Kept the 4 that are not, so
+  no history was discarded.
+- GitHub Actions `pages build and deployment`: passing.
+
 ## Final prototype phase — branch `claude/final-prototype-phase`
 
 | Area | Result |
@@ -36,7 +63,7 @@ plain `curl` and no bypass token.
 | ~~B4~~ | ~~Vercel Authentication blocks judges~~ — **RESOLVED 2026-10-28** with the owner's explicit authorisation. `trustlensai-u2r6` is now `ssoProtection: {deploymentType: 'preview'}`: Production is public, Previews stay protected. The other three projects are unchanged. | — | Closed. Rollback: set `deploymentType` back to `all_except_custom_domains`. |
 | ~~B5~~ | ~~`scans` table missing~~ — **RESOLVED.** The table exists and accepts writes; a full save/retrieve/delete cycle was verified. | — | Closed. |
 
-| **B6** | **`public.analysis_history` is readable by the publishable browser key.** Probed 2026-10-29: `scans` → 401, `analysis_reports` → 401, **`analysis_history` → 200**. Writes are denied, so RLS is on but a permissive SELECT policy is granted to `anon`. The table has `user_id` and is **empty**, so nothing has leaked — but any future write becomes readable by every visitor. | **Owner** | Fix written and committed as `supabase/migrations/0002_lock_analysis_history.sql`. **Not applied** — the Supabase CLI here is unauthenticated. Apply via dashboard → SQL Editor → paste → Run, then re-probe and expect 401. |
+| ~~B6~~ | ~~`analysis_history` readable by the public key~~ — **RESOLVED.** Re-probed 2026-10-29 with the publishable key: `scans` → 401, `analysis_reports` → 401, **`analysis_history` → 401**. All three now correctly deny browser-role access. | — | Closed. Data preserved: `scans` holds 83 rows. |
 
 ### Exact owner steps
 
