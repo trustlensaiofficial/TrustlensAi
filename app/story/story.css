@@ -1,89 +1,4 @@
-/* The story: language chooser, then the scene player. */
-
-.story-choose {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  width: 100%;
-}
-
-.story-choose-mark {
-  width: 76px;
-  height: auto;
-  filter: drop-shadow(0 12px 32px rgba(46, 123, 232, .5));
-}
-
-.story-langs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(236px, 1fr));
-  gap: 16px;
-  width: min(640px, 100%);
-  margin-top: 10px;
-}
-
-.story-lang {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 7px;
-  padding: 24px 22px 22px;
-  border-radius: 22px;
-  text-align: left;
-  font: inherit;
-  color: var(--lq-ink);
-  cursor: pointer;
-  transition: transform .4s var(--lq-spring), border-color .25s linear;
-  will-change: transform;
-}
-
-@media (hover: hover) {
-  .story-lang:hover {
-    transform: translateY(-7px) scale(1.02);
-    border-color: var(--lq-edge-bright);
-  }
-  .story-lang:hover .story-lang-go { transform: translateX(5px); opacity: 1; }
-}
-
-.story-lang:focus-visible { outline: 2px solid var(--lq-cyan); outline-offset: 4px; }
-.story-lang:active { transform: translateY(-2px) scale(.995); }
-
-.story-lang-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -.02em;
-}
-
-.story-lang-blurb {
-  color: var(--lq-ink-dim);
-  font-size: .9rem;
-  line-height: 1.5;
-}
-
-.story-lang-go {
-  margin-top: 6px;
-  opacity: .6;
-  transition: transform .3s var(--lq-glide), opacity .3s linear;
-}
-.story-lang-go svg { width: 20px; height: 20px; }
-
-.story-skip {
-  margin-top: 6px;
-  padding: 9px 16px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--lq-ink-faint);
-  font: inherit;
-  font-size: .87rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color .2s linear, background .2s linear;
-}
-.story-skip:hover { color: var(--lq-ink); background: rgba(255, 255, 255, .07); }
-.story-skip:focus-visible { outline: 2px solid var(--lq-cyan); outline-offset: 2px; }
-
-/* ------------------------------------------------------------- player -- */
+/* The story: a 3D slide stage with the narration text beneath it. */
 
 .story-play {
   display: flex;
@@ -93,20 +8,13 @@
   width: 100%;
 }
 
-.story-rail {
-  display: flex;
-  gap: 5px;
-  width: min(520px, 100%);
-}
+.story-rail { display: flex; gap: 5px; width: min(520px, 100%); }
 
 .story-tick {
-  flex: 1;
-  height: 3px;
-  border-radius: 2px;
+  flex: 1; height: 3px; border-radius: 2px;
   background: rgba(255, 255, 255, .14);
   transition: background .4s linear, box-shadow .4s linear;
 }
-
 .story-tick.done { background: rgba(92, 200, 255, .55); }
 .story-tick.now {
   background: linear-gradient(90deg, var(--lq-cyan), var(--lq-violet));
@@ -114,44 +22,146 @@
 }
 
 .story-count {
-  margin: 0;
-  color: var(--lq-ink-faint);
-  font-size: .78rem;
-  font-weight: 650;
-  letter-spacing: .07em;
-  text-transform: uppercase;
+  margin: 0; color: var(--lq-ink-faint);
+  font-size: .76rem; font-weight: 650; letter-spacing: .08em; text-transform: uppercase;
 }
 
 .story-scene {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  animation: lq-rise .75s var(--lq-spring) both;
+  display: flex; flex-direction: column; align-items: center; gap: 22px; width: 100%;
+  animation: lq-rise .8s var(--lq-spring) both;
 }
 
-.story-title { max-width: 18ch; }
+.story-text { display: flex; flex-direction: column; align-items: center; gap: 13px; }
+.story-title { max-width: 18ch; font-size: clamp(1.9rem, 5vw, 3.2rem); }
 
 .story-caption {
-  margin: 0;
-  max-width: 54ch;
-  color: var(--lq-ink-dim);
-  font-size: clamp(1.02rem, 2.3vw, 1.24rem);
-  line-height: 1.68;
+  margin: 0; max-width: 56ch; color: var(--lq-ink-dim);
+  font-size: clamp(1rem, 2.2vw, 1.2rem); line-height: 1.68;
 }
 
-.story-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 11px;
-  justify-content: center;
-  margin-top: 8px;
+.story-controls { display: flex; flex-wrap: wrap; gap: 11px; justify-content: center; margin-top: 4px; }
+
+/* ========================================================================
+   The 3D slide stage
+   One perspective container; every card inside sits at its own Z depth, so
+   the composition has real parallax rather than a drop shadow pretending to.
+   ======================================================================== */
+
+.slide {
+  width: min(560px, 100%);
+  aspect-ratio: 16 / 9;
+  perspective: 1100px;
+  perspective-origin: 50% 42%;
 }
 
-.story-note {
-  margin: 0;
-  max-width: 50ch;
-  color: var(--lq-ink-faint);
-  font-size: .79rem;
-  line-height: 1.55;
+.slide-deck {
+  position: relative;
+  width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  transform: rotateX(13deg) rotateZ(-2deg);
+  animation: slide-in 1s cubic-bezier(.19, 1, .22, 1) both, slide-sway 9s ease-in-out 1s infinite;
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: rotateX(30deg) rotateZ(-6deg) translateY(40px) scale(.9); }
+  to   { opacity: 1; transform: rotateX(13deg) rotateZ(-2deg); }
+}
+@keyframes slide-sway {
+  0%, 100% { transform: rotateX(13deg) rotateZ(-2deg) rotateY(-3deg); }
+  50%      { transform: rotateX(11deg) rotateZ(-1deg) rotateY(3deg); }
+}
+
+.slide-card {
+  position: absolute;
+  display: flex; flex-direction: column; justify-content: center; gap: 9px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: linear-gradient(165deg, rgba(255,255,255,.13), rgba(255,255,255,.04));
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.17);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.3) inset,
+    0 20px 46px rgba(2,6,20,.55);
+  transform: translateZ(var(--z, 0px));
+}
+
+/* Lit leading edge — the light the brief asks for along the card edges. */
+.slide-card::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(120deg, transparent 38%, rgba(92,200,255,.5) 50%, transparent 62%);
+  opacity: .5;
+}
+
+/* ---- layouts ---- */
+.s-wide   { left: 8%;  right: 8%;  top: 20%;  bottom: 20%; }
+.s-stack  { left: 14%; right: 14%; height: 24%; }
+.s-s1 { top: 44%; } .s-s2 { top: 28%; opacity: .8; } .s-s3 { top: 13%; opacity: .55; }
+.s-third  { width: 26%; top: 30%; height: 38%; align-items: center; }
+.s-p1 { left: 8%; } .s-p2 { left: 37%; } .s-p3 { left: 66%; }
+.s-half   { width: 38%; top: 22%; bottom: 22%; }
+.s-left { left: 7%; } .s-right { right: 7%; }
+.s-dashed { border-style: dashed; opacity: .72; }
+.s-doc    { left: 22%; right: 22%; top: 12%; bottom: 12%; }
+.s-back   { transform: translateZ(0) translate(14px, 12px) rotate(3deg); opacity: .5; }
+.s-hist   { left: 16%; right: 16%; height: 19%; }
+.s-h1 { top: 24%; } .s-h2 { top: 46%; opacity: .78; } .s-h3 { top: 68%; opacity: .55; }
+.s-float  { width: 30%; height: 20%; }
+.s-tl { left: 2%;  top: 14%; } .s-br { right: 2%; bottom: 14%; }
+
+.s-alert { bottom: 54%; border-color: rgba(255,138,128,.45); flex-direction: row; align-items: center; gap: 12px; }
+.s-empty { top: 52%; align-items: center; justify-content: center; border-style: dashed; opacity: .7; }
+
+/* ---- parts ---- */
+.slide-row { display: flex; align-items: center; gap: 9px; }
+.slide-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.t-bad  { background: #ff8a80; box-shadow: 0 0 10px rgba(255,138,128,.8); }
+.t-warn { background: #ffb27a; box-shadow: 0 0 10px rgba(255,178,122,.7); }
+.t-ok   { background: #5CC8FF; box-shadow: 0 0 10px rgba(92,200,255,.7); }
+.t-mute { background: rgba(255,255,255,.3); }
+
+.slide-line { height: 7px; border-radius: 4px; background: rgba(255,255,255,.26); }
+.slide-line.head { height: 10px; background: rgba(255,255,255,.5); }
+
+.slide-tag { width: 30px; height: 9px; border-radius: 4px; flex: none; margin-left: auto; }
+.slide-tag.big { width: 54%; height: 13px; margin: 0; }
+.g-det { background: #76c3f0; } .g-ret { background: #5CE1E6; } .g-inf { background: #bda6f0; }
+
+.slide-quote {
+  padding: 8px 10px; border-radius: 9px;
+  background: rgba(255,138,128,.17); border-left: 3px solid #ff8a80;
+}
+.slide-mark-text { display: block; height: 8px; border-radius: 4px; background: rgba(255,200,195,.75); }
+
+.slide-bang, .slide-qmark { font-size: 1.7rem; font-weight: 800; line-height: 1; flex: none; }
+.slide-bang  { color: #ff8a80; }
+.slide-qmark { color: rgba(255,255,255,.34); }
+
+.slide-stage, .slide-step { display: flex; align-items: center; gap: 10px; animation: pip-in .5s var(--lq-spring) both; animation-delay: calc(var(--i) * 260ms + 500ms); }
+.slide-pip  { width: 11px; height: 11px; border-radius: 50%; flex: none; background: linear-gradient(135deg, var(--lq-cyan), var(--lq-blue)); box-shadow: 0 0 12px rgba(92,200,255,.8); }
+.slide-tick { width: 15px; height: 15px; border-radius: 5px; flex: none; background: linear-gradient(135deg, var(--lq-cyan), var(--lq-blue)); box-shadow: 0 0 12px rgba(92,200,255,.7); }
+@keyframes pip-in { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+
+/* Sized from the viewport, not from the parent: the orb is an absolutely
+   positioned grid, and a percentage width inside it resolved to zero. */
+.slide-orb { position: absolute; inset: 0; width: 100%; height: 100%; display: grid; place-items: center; }
+.slide-mark {
+  width: clamp(104px, 22vw, 210px);
+  height: auto;
+  filter: drop-shadow(0 20px 48px rgba(46,123,232,.6));
+  transform: translateZ(100px);
+}
+
+@media (max-width: 560px) {
+  .slide { width: 100%; }
+  .slide-card { padding: 11px 12px; gap: 6px; border-radius: 13px; }
+  .slide-line { height: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-deck, .slide-stage, .slide-step, .story-scene {
+    animation: none !important;
+    transform: rotateX(0) !important;
+    opacity: 1 !important;
+  }
 }

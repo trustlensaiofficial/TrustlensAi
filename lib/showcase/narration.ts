@@ -82,18 +82,11 @@ const EXCLUDED = /^(albert|bad news|bahh|bells|boing|bubbles|cellos|deranged|goo
  * Higher is more human. Ranked from what each engine actually sounds like,
  * not from the order the platform happens to return them in.
  */
-/** Tamil script, as opposed to the romanised Tamil the scripts are written in. */
-const TAMIL_SCRIPT = /[\u0B80-\u0BFF]/;
-
-function scoreVoice(v: SpeechSynthesisVoice, wantTamilVoice = false): number {
+function scoreVoice(v: SpeechSynthesisVoice): number {
   const n = v.name.toLowerCase();
   const lang = v.lang.toLowerCase();
   if (EXCLUDED.test(v.name)) return -1;
 
-  // The Tamil scripts are authored in Latin script, which a ta-IN engine
-  // reads as nonsense while an Indian English voice pronounces it close to
-  // correctly. So a Tamil voice is only preferred for actual Tamil script.
-  if (wantTamilVoice && lang.startsWith('ta')) return 1000;
   if (!lang.startsWith('en')) return -1;
 
   let score = 0;
@@ -107,8 +100,7 @@ function scoreVoice(v: SpeechSynthesisVoice, wantTamilVoice = false): number {
   if (n.includes('premium')) score += 60;
   if (n.includes('enhanced')) score += 45;
   if (/\b(ava|allison|samantha|serena|zoe|evan|nathan|noelle|tom|susan|karen|moira|tessa|daniel)\b/.test(n)) score += 25;
-  // Indian English first: it handles Latin-script Tamil far more naturally
-  // than a US or UK voice, and it is the correct accent for the English pass.
+  // Indian English first: it is the right accent for this product's audience.
   if (v.lang === 'en-IN') score += 70;
   if (/\b(rishi|veena|aditi|heera|kalpana|isha|neerja|prabhat)\b/.test(n)) score += 30;
   if (v.lang === 'en-US' || v.lang === 'en-GB') score += 10;
@@ -117,11 +109,11 @@ function scoreVoice(v: SpeechSynthesisVoice, wantTamilVoice = false): number {
 }
 
 /** Voices worth offering, best first. */
-export function listVoices(wantTamilVoice = false): SpeechSynthesisVoice[] {
+export function listVoices(): SpeechSynthesisVoice[] {
   const s = synth();
   if (!s) return [];
   return s.getVoices()
-    .map((v) => ({ v, score: scoreVoice(v, wantTamilVoice) }))
+    .map((v) => ({ v, score: scoreVoice(v) }))
     .filter((x) => x.score >= 0)
     .sort((a, b) => b.score - a.score)
     .map((x) => x.v);
@@ -143,9 +135,9 @@ function restoreChoice(): void {
   } catch { /* nothing to restore */ }
 }
 
-function pickVoice(wantTamilVoice = false): SpeechSynthesisVoice | null {
+function pickVoice(): SpeechSynthesisVoice | null {
   restoreChoice();
-  const all = listVoices(wantTamilVoice);
+  const all = listVoices();
   if (all.length === 0) return null;
   if (chosenVoiceName) {
     const exact = all.find((v) => v.name === chosenVoiceName);
@@ -195,7 +187,7 @@ function speakWithSynth(text: string, onEnd?: () => void): void {
   if (!s || !isSupported() || muted) { onEnd?.(); return; }
   s.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  const voice = pickVoice(TAMIL_SCRIPT.test(text));
+  const voice = pickVoice();
   if (voice) { u.voice = voice; u.lang = voice.lang; }
   // Normal conversational pace. Slower reads as laboured, faster as clipped.
   u.rate = 1.0;
@@ -249,7 +241,7 @@ export function stop(): void {
 /**
  * Speaks several lines strictly in order, one after the other.
  *
- * Used for the bilingual film: the Tamil pass must finish completely
+ * Used by the story: each scene's narration must finish completely
  * before the English pass begins — never interleaved, never simultaneous.
  * The returned function cancels the whole chain, which the caller must call
  * on pause, jump, replay, skip and unmount so a stale chain cannot resume

@@ -2,36 +2,27 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import {
-  FILM_SCENES,
-  LANG_LABEL,
-  NARRATION_ORDER,
-  scriptFor,
-  type NarrationLang,
-} from '@/lib/showcase/film';
+import { FILM_SCENES } from '@/lib/showcase/film';
 import { isSupported, setMuted, speak, stop } from '@/lib/showcase/narration';
 import { LiquidButton } from '@/components/liquid/LiquidButton';
-import { ArrowIcon, CheckIcon, LensIcon } from '@/components/icons';
-
-/** What the story is about, per language, shown on the chooser. */
-const CHOOSER_BLURB: Record<NarrationLang, string> = {
-  en: 'The story and every feature, narrated in English.',
-  ta: 'கதையும் ஒவ்வொரு அம்சமும், தமிழில்.',
-};
+import { SlideVisual } from '@/components/liquid/SlideVisual';
+import { ArrowIcon, LensIcon } from '@/components/icons';
 
 /**
- * The explainer, one scene at a time.
+ * The explainer, one cinematic slide at a time.
  *
- * Scenes advance when their narration finishes, with a duration-based
- * backstop so a muted or unavailable voice still moves the story along —
- * otherwise a browser with no speech engine would sit on scene one forever.
- * When the last scene ends the viewer goes straight to the features page,
- * which is what the brief asks for.
+ * Narrated in English only. An earlier build offered a Tamil pass, but the
+ * script was romanised Tamil and every available speech engine read it as
+ * mangled English — so it is gone rather than shipped broken. There is no
+ * language step in front of the story either: picking one was a gate before
+ * the thing the viewer actually came for.
+ *
+ * Scenes advance when the narration finishes, with a duration backstop so a
+ * muted or unavailable voice still moves the story along. When the last
+ * scene ends the viewer goes straight to the features page.
  */
 export function StoryPlayer() {
   const router = useRouter();
-  const [lang, setLang] = useState<NarrationLang | null>(null);
   const [index, setIndex] = useState(0);
   const [silent, setSilent] = useState(false);
 
@@ -58,7 +49,6 @@ export function StoryPlayer() {
 
   /* Speak the current scene, and keep a backstop timer running. */
   useEffect(() => {
-    if (lang === null) return;
     const current = FILM_SCENES[index];
     if (!current) return;
 
@@ -69,9 +59,8 @@ export function StoryPlayer() {
       advance();
     };
 
-    const text = scriptFor(current, lang);
     if (!silent && isSupported()) {
-      speak(text, current.id, finishOnce);
+      speak(current.en, current.id, finishOnce);
     }
     // Runs whether or not speech started: if the engine is missing, muted or
     // silently fails, this is what keeps the story moving.
@@ -85,15 +74,10 @@ export function StoryPlayer() {
       window.clearTimeout(backstop);
       stop();
     };
-  }, [lang, index, silent, advance]);
+  }, [index, silent, advance]);
 
   /* Stop any speech if the viewer leaves mid-story. */
   useEffect(() => () => stop(), []);
-
-  const choose = useCallback((picked: NarrationLang) => {
-    setLang(picked);
-    setIndex(0);
-  }, []);
 
   const toggleSilent = useCallback(() => {
     setSilent((was) => {
@@ -104,50 +88,6 @@ export function StoryPlayer() {
     });
   }, []);
 
-  /* ----------------------------------------------------------- chooser -- */
-  if (lang === null) {
-    return (
-      <div className="story-choose">
-        <Image
-          src="/logo-mark.png"
-          alt=""
-          width={141}
-          height={118}
-          className="story-choose-mark lq-step"
-          style={{ '--d': '0ms' } as React.CSSProperties}
-        />
-        <h1 className="lq-h1 lq-step" style={{ '--d': '140ms' } as React.CSSProperties}>
-          Choose your <span className="lq-gradient-text">language</span>
-        </h1>
-        <p className="lq-lede lq-step" style={{ '--d': '260ms' } as React.CSSProperties}>
-          Next you will hear what TrustLens AI is, and then each of its features explained
-          one at a time. Pick the language you would like it told in.
-        </p>
-
-        <div className="story-langs">
-          {NARRATION_ORDER.map((code, i) => (
-            <button
-              key={code}
-              type="button"
-              className="lq-glass story-lang lq-step"
-              style={{ '--d': `${380 + i * 110}ms` } as React.CSSProperties}
-              onClick={() => choose(code)}
-            >
-              <span className="story-lang-name">{LANG_LABEL[code]}</span>
-              <span className="story-lang-blurb">{CHOOSER_BLURB[code]}</span>
-              <span className="story-lang-go" aria-hidden="true"><ArrowIcon /></span>
-            </button>
-          ))}
-        </div>
-
-        <button type="button" className="story-skip" onClick={goFeatures}>
-          Skip the story, go to the features →
-        </button>
-      </div>
-    );
-  }
-
-  /* ------------------------------------------------------------ player -- */
   if (!scene) return null;
 
   return (
@@ -162,39 +102,36 @@ export function StoryPlayer() {
       </div>
 
       <p className="story-count">
-        {index + 1} of {FILM_SCENES.length} · {scene.label} · {LANG_LABEL[lang]}
+        {index + 1} of {FILM_SCENES.length} · {scene.label}
       </p>
 
-      {/* The key restarts the entrance animation on every scene change. */}
+      {/* The key restarts the slide and caption animation on every scene. */}
       <div className="story-scene" key={scene.id}>
-        <span className="lq-eyebrow">
-          <LensIcon />
-          {scene.kicker}
-        </span>
-        <h1 className="lq-h1 story-title">{scene.title}</h1>
-        <p className="story-caption">{scriptFor(scene, lang)}</p>
+        <SlideVisual id={scene.id} />
+
+        <div className="story-text">
+          <span className="lq-eyebrow">
+            <LensIcon />
+            {scene.kicker}
+          </span>
+          <h1 className="lq-h1 story-title">{scene.title}</h1>
+          <p className="story-caption">{scene.en}</p>
+        </div>
       </div>
 
       <div className="story-controls">
         <LiquidButton variant="ghost" size="sm" onClick={advance}>
-          Next scene
+          {isLast ? 'Finish' : 'Next'}
           <ArrowIcon />
         </LiquidButton>
         <LiquidButton variant="ghost" size="sm" onClick={toggleSilent}>
           {silent ? 'Narration off' : 'Narration on'}
-          {silent ? null : <CheckIcon />}
         </LiquidButton>
         <LiquidButton size="sm" onClick={goFeatures}>
-          Go to features
+          Skip to features
           <ArrowIcon />
         </LiquidButton>
       </div>
-
-      <p className="story-note">
-        {isSupported() && !silent
-          ? 'Narrated by your device’s voice. The caption above is the same script, word for word.'
-          : 'Narration is off — the caption above carries the full script.'}
-      </p>
     </div>
   );
 }
