@@ -81,6 +81,10 @@
 .global-theme-control .icon-button:hover { background: var(--surface-2); }
 
 .global-nav-backdrop {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
   position: fixed;
   inset: 0;
   z-index: 99;
