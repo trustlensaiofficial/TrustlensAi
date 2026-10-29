@@ -26,7 +26,7 @@ export default async function LoginPage({
   if (user) redirect(next);
 
   return (
-    <FlowShell>
+    <FlowShell withDock={false}>
       <LiquidSignIn next={next} initialError={params.error?.slice(0, 180)} />
     </FlowShell>
   );
