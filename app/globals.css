@@ -24,11 +24,12 @@
   --text-muted: #5b6673;
   --text-faint: #8a939f;
 
-  /* Accent: trust / verification */
-  --accent: #0e7c66;
+  /* Accent: taken from the brandmark's cyan-to-blue, not a separate palette.
+     The previous mint green belonged to no part of the identity. */
+  --accent: #0B63CE;
   --accent-text: #ffffff;
-  --accent-soft: #e4f4ef;
-  --accent-border: #a9d9cc;
+  --accent-soft: #E9F2FE;
+  --accent-border: #A9CBF5;
 
   /* Severity */
   --critical: #b42318;
@@ -46,7 +47,7 @@
 
   /* Provenance */
   --prov-deterministic: #0e5c8a;
-  --prov-retrieved: #0e7c66;
+  --prov-retrieved: #0E7490;
   --prov-inference: #6b4ea8;
 
   --radius-sm: 8px;
@@ -82,10 +83,10 @@
     --text-muted: #9aa6b6;
     --text-faint: #6b7686;
 
-    --accent: #5fd9b8;
-    --accent-text: #04231c;
-    --accent-soft: #0f2a24;
-    --accent-border: #2b5e50;
+    --accent: #5CC8FF;
+    --accent-text: #052438;
+    --accent-soft: #0C2435;
+    --accent-border: #2B5B7E;
 
     --critical: #ff8a80;
     --critical-soft: #2a1414;
@@ -101,7 +102,7 @@
     --low-border: #2c3c50;
 
     --prov-deterministic: #76c3f0;
-    --prov-retrieved: #5fd9b8;
+    --prov-retrieved: #5CE1E6;
     --prov-inference: #bda6f0;
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, .5);
@@ -122,10 +123,10 @@
   --text: #f2f5fa;
   --text-muted: #9aa6b6;
   --text-faint: #6b7686;
-  --accent: #5fd9b8;
-  --accent-text: #04231c;
-  --accent-soft: #0f2a24;
-  --accent-border: #2b5e50;
+  --accent: #5CC8FF;
+  --accent-text: #052438;
+  --accent-soft: #0C2435;
+  --accent-border: #2B5B7E;
   --critical: #ff8a80;
   --critical-soft: #2a1414;
   --critical-border: #5e2a28;
@@ -139,7 +140,7 @@
   --low-soft: #141c26;
   --low-border: #2c3c50;
   --prov-deterministic: #76c3f0;
-  --prov-retrieved: #5fd9b8;
+  --prov-retrieved: #5CE1E6;
   --prov-inference: #bda6f0;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .5);
   --shadow: 0 6px 22px rgba(0, 0, 0, .45);
@@ -1007,3 +1008,9 @@ h2 .inline-icon { color: var(--accent); }
     content: ''; position: absolute; inset: -6px;
   }
 }
+
+/* Inputs are locked while an analysis is in flight, so the visible input can
+   never drift away from the report being produced. */
+.textarea[readonly] { opacity: .72; cursor: default; }
+.context-card[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
+.switch[disabled] { opacity: .45; cursor: not-allowed; }

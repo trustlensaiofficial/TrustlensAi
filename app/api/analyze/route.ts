@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 const Body = z.object({
   text: z.string().max(MAX_INPUT_LENGTH + 1_000).optional(),
   kind: z.enum(['auto', 'message', 'url', 'claim']).default('auto'),
-  context: z.enum(['generic', 'job_offer', 'invoice', 'proposal', 'website']).default('generic'),
+  context: z.enum(['generic', 'bank_scam', 'job_offer', 'invoice', 'proposal', 'website']).default('generic'),
   liveChecks: z.boolean().default(true),
   demoSlug: z.string().max(64).optional(),
 });

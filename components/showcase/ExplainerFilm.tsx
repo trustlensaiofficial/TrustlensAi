@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { FILM_SCENES, FILM_TOTAL_MS, FILM_TRANSCRIPT, sceneStartMs } from '@/lib/showcase/film';
+import { FILM_SCENES, FILM_TOTAL_MS, FILM_TRANSCRIPT, LANG_LABEL, sceneStartMs } from '@/lib/showcase/film';
 import {
   RECORDED_NARRATION,
   getChosenVoiceName,
@@ -13,7 +13,7 @@ import {
   resume as resumeVoice,
   setChosenVoiceName,
   setMuted,
-  speak,
+  speakSequence,
   stop as stopVoice,
   subscribeNarration,
 } from '@/lib/showcase/narration';
@@ -83,17 +83,32 @@ export function ExplainerFilm({ onFinish, onSkip }: { onFinish: () => void; onSk
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, ended]);
 
-  // One narration line per scene. speak() cancels anything in flight.
+  /**
+   * Bilingual narration for the scene: Tanglish in full, then Indian English.
+   * speakSequence returns a canceller; keeping it in a ref lets every exit
+   * path (pause, jump, replay, skip, unmount) kill the chain so a stale
+   * second language can never start over the next scene.
+   */
+  const cancelChain = useRef<null | (() => void)>(null);
   useEffect(() => {
     if (!playing || ended || muted) return;
     if (spokenFor.current === sceneIndex) return;
     spokenFor.current = sceneIndex;
-    speak(scene.line, scene.id);
-  }, [sceneIndex, playing, ended, muted, scene.line, scene.id]);
+    cancelChain.current?.();
+    cancelChain.current = speakSequence([
+      { text: scene.ta, sceneId: `${scene.id}-ta` },
+      { text: scene.en, sceneId: `${scene.id}-en` },
+    ]);
+  }, [sceneIndex, playing, ended, muted, scene.ta, scene.en, scene.id]);
 
-  useEffect(() => () => stopVoice(), []);
+  useEffect(() => () => {
+    cancelChain.current?.();
+    stopVoice();
+  }, []);
 
   const replay = useCallback(() => {
+    cancelChain.current?.();
+    cancelChain.current?.();
     stopVoice();
     spokenFor.current = -1;
     anchorRef.current = { at: performance.now(), base: 0 };
@@ -118,8 +133,8 @@ export function ExplainerFilm({ onFinish, onSkip }: { onFinish: () => void; onSk
     setPlaying(true);
   }, []);
 
-  const skip = useCallback(() => { stopVoice(); onSkip(); }, [onSkip]);
-  const finish = useCallback(() => { stopVoice(); onFinish(); }, [onFinish]);
+  const skip = useCallback(() => { cancelChain.current?.(); stopVoice(); onSkip(); }, [onSkip]);
+  const finish = useCallback(() => { cancelChain.current?.(); stopVoice(); onFinish(); }, [onFinish]);
 
   const pct = Math.min(100, Math.round((elapsed / FILM_TOTAL_MS) * 100));
 
@@ -178,7 +193,16 @@ export function ExplainerFilm({ onFinish, onSkip }: { onFinish: () => void; onSk
         </div>
       </div>
 
-      <p className="sc-caption" aria-live="polite">{scene.line}</p>
+      <div className="sc-caption sc-caption-bilingual" aria-live="polite">
+        <p className="sc-cap-line sc-cap-ta">
+          <span className="sc-cap-tag">{LANG_LABEL.ta}</span>
+          {scene.ta}
+        </p>
+        <p className="sc-cap-line sc-cap-en">
+          <span className="sc-cap-tag">{LANG_LABEL.en}</span>
+          {scene.en}
+        </p>
+      </div>
 
       <div className="sc-film-controls">
         <button type="button" className="sc-btn sc-btn-sm" onClick={togglePlay} disabled={ended}>
@@ -208,7 +232,7 @@ export function ExplainerFilm({ onFinish, onSkip }: { onFinish: () => void; onSk
             id="sc-voice-select"
             className="sc-select"
             value={chosenVoice ?? voiceOptions[0]?.name ?? ''}
-            onChange={(e) => { setChosenVoiceName(e.target.value); stopVoice(); spokenFor.current = -1; }}
+            onChange={(e) => { setChosenVoiceName(e.target.value); cancelChain.current?.(); stopVoice(); spokenFor.current = -1; }}
           >
             {voiceOptions.map((v) => (
               <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>
@@ -242,8 +266,17 @@ export function ExplainerFilm({ onFinish, onSkip }: { onFinish: () => void; onSk
       <details className="sc-transcript">
         <summary>Read the full transcript</summary>
         <div className="sc-transcript-body">
-          {FILM_TRANSCRIPT.split('\n\n').map((p, i) => (
-            <p key={i} style={{ marginBottom: 10 }}>{p}</p>
+          {FILM_TRANSCRIPT.split('\n\n---\n\n').map((block, i) => (
+            <div key={i} style={{ marginBottom: 16 }}>
+              {block.split('\n').map((l, j) => (
+                <p key={j} style={{ marginBottom: 4, color: j === 0 || l === LANG_LABEL.en ? 'var(--sc-ice)' : undefined,
+                                    fontSize: (l === LANG_LABEL.ta || l === LANG_LABEL.en) ? 11 : undefined,
+                                    letterSpacing: (l === LANG_LABEL.ta || l === LANG_LABEL.en) ? '.1em' : undefined,
+                                    textTransform: (l === LANG_LABEL.ta || l === LANG_LABEL.en) ? 'uppercase' : undefined }}>
+                  {l}
+                </p>
+              ))}
+            </div>
           ))}
           <p style={{ marginTop: 12, color: 'var(--sc-faint)', fontSize: 12 }}>
             <LensIcon style={{ width: 13, height: 13, verticalAlign: '-2px', marginRight: 6 }} />

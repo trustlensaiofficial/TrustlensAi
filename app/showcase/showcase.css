@@ -27,7 +27,7 @@
 
   --sc-crit: #FF8A80;
   --sc-warn: #FFC46B;
-  --sc-ok: #7CE0B6;
+  --sc-ok: #4FD1E8;  /* cyan, not green — the identity has no green */
 
   --sc-r: 16px;
   --sc-r-lg: 22px;
@@ -515,3 +515,10 @@
   }
 }
 .sc-rail-current { display: none; }
+
+/* Bilingual captions: Tanglish first, Indian English second — the same order
+   the voice uses, so the reader is never ahead of or behind the narration. */
+.sc-caption-bilingual { flex-direction: column; align-items: stretch; gap: 10px; text-align: left; min-height: 0; }
+.sc-cap-line { display: flex; flex-direction: column; gap: 4px; font-size: clamp(13px, 1.7vw, 15.5px); line-height: 1.6; }
+.sc-cap-tag { color: var(--sc-ice); font-size: 9.5px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+.sc-cap-en { color: var(--sc-muted); padding-top: 9px; border-top: 1px solid var(--sc-line); }

@@ -18,7 +18,13 @@ export type InputKind = 'message' | 'url' | 'claim';
  * context is carried inside the report document instead — richer product
  * behaviour with no migration against live data.
  */
-export type InputContext = 'generic' | 'job_offer' | 'invoice' | 'proposal' | 'website';
+export type InputContext =
+  | 'generic'
+  | 'bank_scam'
+  | 'job_offer'
+  | 'invoice'
+  | 'proposal'
+  | 'website';
 
 /**
  * An observation that does NOT raise concern.

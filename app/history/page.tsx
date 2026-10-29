@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
 import { FloatingActions } from '@/components/FloatingActions';
-import { ArrowIcon, ClockIcon, InfoIcon, SearchIcon, TrashIcon } from '@/components/icons';
+import { AlertIcon, ArrowIcon, ClockIcon, InfoIcon, SearchIcon, TrashIcon } from '@/components/icons';
 import { CONTEXT_LABEL } from '@/lib/analysis/context-rules';
 import type { AssessmentLevel } from '@/lib/analysis/types';
 import {
@@ -50,6 +50,8 @@ export default function HistoryPage() {
   const hydrated = useHydrated();
 
   const [query, setQuery] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [level, setLevel] = useState<'all' | AssessmentLevel>('all');
   const [sort, setSort] = useState<SortKey>('newest');
 
@@ -74,14 +76,37 @@ export default function HistoryPage() {
     return sorted;
   }, [entries, query, level, sort]);
 
+  /**
+   * Deletes server-side FIRST, and only drops the local entry once the server
+   * confirms. Removing it optimistically made a failed delete look like a
+   * success while the report was still in the database.
+   */
   async function remove(entry: HistoryEntry) {
-    removeFromHistory(entry.id);
-    if (entry.persisted) {
-      try {
-        await fetch(`/api/report/${entry.id}`, { method: 'DELETE' });
-      } catch {
-        /* the local index is already updated; the row may remain */
+    setDeleteError(null);
+    if (!entry.persisted) {
+      // Nothing was ever saved, so there is only the local index to clear.
+      removeFromHistory(entry.id);
+      return;
+    }
+    setDeletingId(entry.id);
+    try {
+      const response = await fetch(`/api/report/${entry.id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        const data: unknown = await response.json().catch(() => null);
+        const message =
+          data && typeof data === 'object' && 'error' in data && typeof data.error === 'string'
+            ? data.error
+            : `The server refused the deletion (HTTP ${response.status}).`;
+        setDeleteError(`${message} The report is still saved — you can try again.`);
+        return;
       }
+      removeFromHistory(entry.id);
+    } catch {
+      setDeleteError(
+        'The deletion could not be sent. The report is still saved — check your connection and try again.',
+      );
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -163,6 +188,15 @@ export default function HistoryPage() {
               </span>
             </div>
 
+            {deleteError && (
+              <div className="banner banner-error" style={{ marginBottom: 14 }} role="alert">
+                <AlertIcon />
+                <p>
+                  <strong>Could not delete.</strong> <span className="banner-body">{deleteError}</span>
+                </p>
+              </div>
+            )}
+
             {entries.some((e) => !e.persisted) && (
               <div className="banner banner-warn" style={{ marginBottom: 14 }}>
                 <InfoIcon />
@@ -220,6 +254,7 @@ export default function HistoryPage() {
                     type="button"
                     className="icon-button"
                     onClick={() => void remove(entry)}
+                    disabled={deletingId === entry.id}
                     aria-label={`Delete the analysis from ${new Date(entry.createdAt).toLocaleString()}`}
                   >
                     <TrashIcon />
