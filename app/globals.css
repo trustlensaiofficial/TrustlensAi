@@ -1140,7 +1140,11 @@ h2 .inline-icon { color: var(--accent); }
 
 /* ------------------------------------------------------ page transition -- */
 @keyframes page-in { from { opacity: 0; transform: translate3d(0, 10px, 0); } to { opacity: 1; transform: none; } }
-#app-root > * { animation: page-in .46s var(--glide) both; }
+/* The dock is excluded: it is centred by translateX(-50%), and page-in ends
+   on `transform: none`, which with fill mode `both` permanently cleared that
+   and parked the whole bar half a screen to the right. It has its own
+   entrance animation anyway. */
+#app-root > *:not(.lq-dock) { animation: page-in .46s var(--glide) both; }
 
 /* ------------------------------------------------- context card upgrade -- */
 .context-card { position: relative; overflow: hidden; box-shadow: var(--lift-1); }
@@ -1370,4 +1374,20 @@ body::before {
    so the header keeps only identity and account. */
 @media (max-width: 420px) {
   .site-header-inner { gap: 10px; }
+}
+
+/* -------------------------------------------------------------------------
+   Dock clearance
+   The dock is fixed over the page, so the last thing on every page — the
+   footer — needs room beneath it or the two overlap. `dock-gap` on <main>
+   is not enough, because the footer sits after main.
+   ------------------------------------------------------------------------- */
+.footer { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+
+/* Phones: the dock is the navigation, so give it a little more breathing
+   room and keep it clear of the home indicator. */
+@media (max-width: 560px) {
+  .lq-dock { bottom: max(12px, env(safe-area-inset-bottom)); }
+  .footer { padding-bottom: calc(108px + env(safe-area-inset-bottom)); }
+  .dock-gap { padding-bottom: 116px; }
 }

@@ -464,11 +464,18 @@
 
 @media (prefers-reduced-motion: reduce) {
   .lq-step,
-  .lq-dock,
   .lq-aurora,
   .lq-logo-in,
   .lq-word span { animation: none !important; opacity: 1 !important; transform: none !important; }
   .lq-btn-face { transition: none !important; }
+
+  /* The dock is centred BY a transform, so it cannot be cleared with the
+     rest of them — doing that shunted the whole bar half a screen right. */
+  .lq-dock {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translateX(-50%) !important;
+  }
 }
 
 /* --------------------------------------------------------------------------
