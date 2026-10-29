@@ -32,7 +32,7 @@ export const NARRATION_ORDER = ['ta', 'en'] as const;
 export type NarrationLang = (typeof NARRATION_ORDER)[number];
 
 export const LANG_LABEL: Record<NarrationLang, string> = {
-  ta: 'தமிழ் (Tanglish)',
+  ta: 'தமிழ் · Tamil',
   en: 'Indian English',
 };
 

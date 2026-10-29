@@ -1192,3 +1192,37 @@ h2 .inline-icon { color: var(--accent); }
    become a fourth column and skew the indicator's column maths. */
 .header-actions { display: flex; align-items: center; gap: 8px; min-width: 0; }
 @media (max-width: 420px) { .header-actions { gap: 6px; } }
+
+/* ===========================================================================
+   Official brand lockup + authentication
+   =========================================================================== */
+/* The supplied logo is a full lockup, so it replaces the mark+wordmark pair
+   rather than sitting beside it. Height-constrained so its own aspect ratio
+   drives the width. */
+.brand-logo { height: 34px; width: auto; display: block; }
+@media (max-width: 420px) { .brand-logo { height: 28px; } }
+
+.account-link { padding: 8px 13px; min-height: 0; font-size: 13px; }
+.account-link svg { width: 15px; height: 15px; }
+.account-label { max-width: 11ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 640px) { .account-label { display: none; } .account-link { padding: 8px; } }
+
+.auth-shell { min-height: 72vh; display: grid; place-items: center; padding: clamp(32px, 6vw, 72px) 0; }
+.auth-panel {
+  width: min(460px, 100%);
+  border: 1px solid var(--border); border-radius: var(--radius-xl);
+  background: var(--surface); padding: clamp(24px, 4vw, 38px);
+  box-shadow: var(--lift-3);
+}
+.auth-head { text-align: center; margin-bottom: 24px; }
+.auth-mark {
+  display: inline-grid; place-items: center; width: 46px; height: 46px;
+  border-radius: 14px; margin-bottom: 16px;
+  background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent);
+}
+.auth-mark svg { width: 22px; height: 22px; }
+.auth-head h1 { font-size: clamp(21px, 2.8vw, 27px); }
+.auth-head p { color: var(--text-muted); font-size: 13.5px; line-height: 1.65; margin-top: 11px; }
+.auth-actions { display: grid; gap: 10px; margin-top: 4px; }
+.auth-btn { width: 100%; justify-content: center; min-height: 50px; }
+.auth-note { color: var(--text-faint); font-size: 12px; line-height: 1.6; text-align: center; margin-top: 18px; }

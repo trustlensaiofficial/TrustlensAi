@@ -5,7 +5,7 @@ import { ArrowIcon } from '../icons';
 
 /**
  * ---------------------------------------------------------------------------
- * OFFICIAL LOGO SWAP POINT
+ * OFFICIAL LOGO — supplied by the owner and in use.
  *
  * Set this to a path under /public (e.g. '/logo-official.png') once the real
  * asset is on disk, and the intro will render that file instead of the drawn
@@ -18,7 +18,7 @@ import { ArrowIcon } from '../icons';
  * the product logo). The drawn mark below is a reproduction, not the original.
  * ---------------------------------------------------------------------------
  */
-const OFFICIAL_LOGO_SRC: string | null = null;
+const OFFICIAL_LOGO_SRC: string | null = '/logo-official.png';
 
 export function IntroScene({ onEnter, onSkip }: { onEnter: () => void; onSkip: () => void }) {
   return (
