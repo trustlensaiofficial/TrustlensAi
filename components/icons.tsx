@@ -1,5 +1,5 @@
 /** Inline icon set. One consistent 24-grid, 1.7 stroke, no icon dependency. */
-type P = { className?: string };
+type P = { className?: string; style?: React.CSSProperties; title?: string };
 const base = {
   viewBox: '0 0 24 24',
   fill: 'none',
