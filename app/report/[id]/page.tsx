@@ -5,6 +5,7 @@ import { ReportView } from '@/components/ReportView';
 import { SiteFooter, SiteHeader } from '@/components/SiteHeader';
 import { AlertIcon, ArrowIcon } from '@/components/icons';
 import { getReport, storeStatus } from '@/lib/store';
+import { getCurrentUser } from '@/lib/supabase/auth-server';
 
 export const metadata: Metadata = {
   title: 'Report',
@@ -18,7 +19,8 @@ export const dynamic = 'force-dynamic';
 export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const store = storeStatus();
-  const { report, reason } = await getReport(id);
+  const viewer = await getCurrentUser();
+  const { report, reason } = await getReport(id, viewer?.id ?? null);
 
   return (
     <>

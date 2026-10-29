@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, clientKeyFromHeaders } from '@/lib/ratelimit';
 import { deleteReport, getReport } from '@/lib/store';
+import { getCurrentUser } from '@/lib/supabase/auth-server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,7 +12,10 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
-  const { report, reason } = await getReport(id);
+  // An owned report is readable only by its owner; the refusal is identical
+  // to "not found" so a stranger cannot confirm that the id is real.
+  const viewer = await getCurrentUser();
+  const { report, reason } = await getReport(id, viewer?.id ?? null);
   if (!report) {
     return NextResponse.json({ error: reason ?? 'Report not found.' }, { status: 404 });
   }
@@ -27,7 +31,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     );
   }
   const { id } = await context.params;
-  const { deleted, reason } = await deleteReport(id);
+  const viewer = await getCurrentUser();
+  const { deleted, reason } = await deleteReport(id, viewer?.id ?? null);
   if (!deleted) {
     return NextResponse.json({ error: reason ?? 'The report could not be deleted.' }, { status: 400 });
   }
