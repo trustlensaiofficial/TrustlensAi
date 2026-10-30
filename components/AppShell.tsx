@@ -1,17 +1,11 @@
-import { LiquidDock } from './liquid/LiquidDock';
 import { SiteFooter, SiteHeader } from './SiteHeader';
 
 /**
  * The one page template.
  *
  * Every route renders through this: the same aurora ground (painted on the
- * body), the same floating glass header, the same floating dock and the same
- * footer. Pages used to come in two flavours — the cinematic flow had a dock
- * and the product had a header — which made them read as two different
- * applications.
- *
- * `main` carries `dock-gap` so content can always scroll clear of the
- * floating dock rather than ending underneath it.
+ * body), the same floating glass header and the same footer, so the
+ * cinematic flow and the product read as one application.
  */
 export function AppShell({
   children,
@@ -26,11 +20,10 @@ export function AppShell({
   return (
     <>
       <SiteHeader />
-      <main className={[wide ? '' : 'shell', 'dock-gap', className ?? ''].filter(Boolean).join(' ')}>
+      <main className={[wide ? '' : 'shell', className ?? ''].filter(Boolean).join(' ')}>
         {children}
       </main>
       <SiteFooter />
-      <LiquidDock />
     </>
   );
 }

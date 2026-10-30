@@ -3,13 +3,13 @@
 import { MoonIcon, SunIcon } from './icons';
 
 /**
- * Light/dark override on top of the OS preference.
+ * Light/dark switch.
  *
- * Deliberately holds no React state: the current theme lives on
- * document.documentElement as data-theme (set pre-paint by the inline script
- * in the root layout), and CSS decides which icon is visible. That avoids both
- * a hydration mismatch and a setState-in-effect cascade, and it means the
- * correct icon is present in the very first paint.
+ * Holds no React state: the current appearance lives on
+ * document.documentElement as data-theme, stamped before first paint by the
+ * inline script in the root layout, and CSS decides which icon shows. That
+ * avoids a hydration mismatch and means the correct icon is in the very
+ * first frame rather than appearing after hydration.
  */
 export function ThemeToggle() {
   return (
@@ -19,10 +19,7 @@ export function ThemeToggle() {
       aria-label="Switch between light and dark appearance"
       onClick={() => {
         const root = document.documentElement;
-        const current =
-          root.dataset.theme ??
-          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        const next = current === 'dark' ? 'light' : 'dark';
+        const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
         root.dataset.theme = next;
         try {
           localStorage.setItem('trustlens.theme', next);

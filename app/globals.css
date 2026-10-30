@@ -1296,7 +1296,6 @@ body::before {
     radial-gradient(56vmax 48vmax at 58% 108%, rgba(139, 108, 240, .14), transparent 66%);
 }
 
-:root[data-theme='light'] body::before { opacity: .5; }
 
 /* --- brand lockup ------------------------------------------------------- */
 .brand-logo {
@@ -1360,14 +1359,30 @@ body::before {
 }
 
 /* -------------------------------------------------------------------------
-   Narrow screens: the dock is the navigation
-   The header's nav rail needs about 300px of its own and was colliding with
-   the brand below ~900px. Rather than shrink it until it is unreadable, it
-   steps aside: the floating dock already carries every route, is sized for
-   touch, and is present on every page.
+   Narrow screens
+   The dock is gone, so the header nav is the only navigation and has to stay
+   visible. It scrolls horizontally rather than wrapping or colliding with the
+   brand, which is what it used to do below 900px.
    ------------------------------------------------------------------------- */
 @media (max-width: 900px) {
-  .site-header .nav { display: none; }
+  .site-header-inner { flex-wrap: wrap; row-gap: 8px; }
+  .header-actions { width: 100%; justify-content: space-between; }
+  .nav {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-link { white-space: nowrap; }
+  /* The sliding indicator assumes a fixed grid; it cannot track a scrolling
+     row, and aria-current already marks the active item. */
+  .nav-indicator { display: none; }
+  .nav-link[aria-current='page'] {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--text);
+  }
 }
 
 /* Below this the dock's own labels are what keeps the destinations legible,
@@ -1376,21 +1391,6 @@ body::before {
   .site-header-inner { gap: 10px; }
 }
 
-/* -------------------------------------------------------------------------
-   Dock clearance
-   The dock is fixed over the page, so the last thing on every page — the
-   footer — needs room beneath it or the two overlap. `dock-gap` on <main>
-   is not enough, because the footer sits after main.
-   ------------------------------------------------------------------------- */
-.footer { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-
-/* Phones: the dock is the navigation, so give it a little more breathing
-   room and keep it clear of the home indicator. */
-@media (max-width: 560px) {
-  .lq-dock { bottom: max(12px, env(safe-area-inset-bottom)); }
-  .footer { padding-bottom: calc(108px + env(safe-area-inset-bottom)); }
-  .dock-gap { padding-bottom: 116px; }
-}
 
 /* =========================================================================
    Page transitions
