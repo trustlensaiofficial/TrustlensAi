@@ -8,6 +8,7 @@ import type {
   SignalSeverity,
 } from '@/lib/analysis/types';
 import { ChecklistPanel } from './ChecklistPanel';
+import { helplinesFor } from '@/lib/analysis/helplines';
 import { ReportActions } from './ReportActions';
 import {
   AlertIcon,
@@ -163,6 +164,29 @@ export function ReportView({ report, storageNote }: { report: Report; storageNot
         <div className="card card-pad">
           <ChecklistPanel reportId={report.id} steps={report.checklist} />
         </div>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <h2>Where to get help</h2>
+          <p>Official channels only — never a number from the message itself</p>
+        </div>
+        <ul className="help-grid">
+          {helplinesFor(report).map((h) => (
+            <li key={h.id} className={`help-card${h.urgent ? ' help-urgent' : ''}`}>
+              {h.urgent && <span className="help-flag">Time-critical</span>}
+              <h3>{h.title}</h3>
+              <p className="help-contact">
+                {h.href ? (
+                  <a href={h.href} target="_blank" rel="noopener noreferrer">{h.contact}</a>
+                ) : (
+                  h.contact
+                )}
+              </p>
+              <p className="help-when">{h.when}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="section">

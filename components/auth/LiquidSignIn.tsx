@@ -62,9 +62,10 @@ export function LiquidSignIn({ next, initialError }: { next: string; initialErro
       setError('This browser does not support passkeys. Use Google sign-in instead.');
       return;
     }
-    // Calling this directly from the click keeps the user gesture intact, so
-    // the platform raises Face ID / Touch ID straight away instead of showing
-    // an intermediate account picker.
+    // Called straight from the click so the user gesture survives: the
+    // platform then raises its own sheet immediately. Default mediation is
+    // what makes that sheet the full one, including "use a phone or tablet"
+    // — scan the QR with a phone and the phone's Face ID completes it.
     setBusy('passkey');
     setError(null);
     try {
@@ -78,7 +79,7 @@ export function LiquidSignIn({ next, initialError }: { next: string; initialErro
         setError('Passkey sign-in was cancelled.');
       } else if (/no credential|not found|no passkey/i.test(message)) {
         setError(
-          'No passkey exists for this site on this device yet. A passkey is created after your first sign-in — use Google once, then add one from your account page.',
+          'No passkey found. On this device, sign in with Google once and add a passkey from your account page. To use a passkey already on your phone, choose “Use a phone or tablet” in the sheet and scan the QR code.',
         );
       } else if (/not enabled|unsupported|disabled/i.test(message)) {
         setError('Passkeys are not enabled for this project yet.');
@@ -90,9 +91,16 @@ export function LiquidSignIn({ next, initialError }: { next: string; initialErro
 
   /*
    * Conditional UI: if this device already holds a passkey for the site, the
-   * platform can offer it the moment the page opens — Face ID or Touch ID
-   * with nothing to click. Entirely best-effort; any failure leaves the
-   * normal buttons untouched.
+   * platform offers it the moment the page opens — Face ID or Touch ID with
+   * nothing to click.
+   *
+   * Deliberately NOT used for the button below. Conditional mediation only
+   * ever offers credentials already on this device, so it silently skips the
+   * platform's full picker — which is where "use a phone or tablet", and
+   * therefore the QR code, lives. The button uses default mediation so that
+   * cross-device sign-in is reachable.
+   *
+   * Entirely best-effort; any failure leaves the buttons untouched.
    */
   useEffect(() => {
     let cancelled = false;
@@ -139,6 +147,12 @@ export function LiquidSignIn({ next, initialError }: { next: string; initialErro
           <KeyIcon />
           {busy === 'passkey' ? 'Waiting for Face ID…' : 'Continue with a passkey'}
         </LiquidButton>
+
+        <p className="auth-hint">
+          Works with Face ID or Touch ID on this device — or choose
+          <strong> “Use a phone or tablet” </strong>
+          to scan a QR code and approve it on your phone.
+        </p>
       </div>
 
       <Link href={target} className="auth-skip">
