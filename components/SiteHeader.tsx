@@ -1,5 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { ThemeToggle } from './ThemeToggle';
+import { AccountLink } from './auth/AccountLink';
+import { NavRail } from './NavRail';
 
 /**
  * Brand lockup: the official mark plus a live-text wordmark.
@@ -28,6 +31,11 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="site-header-inner">
         <Brand />
+        <div className="header-actions">
+          <NavRail />
+          <AccountLink />
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
