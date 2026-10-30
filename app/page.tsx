@@ -16,8 +16,7 @@ const WORDS = ['TrustLens', 'AI'];
 const T = {
   mark: 0,
   word: 1250,
-  tagline: 2250,
-  start: 2850,
+  start: 2150,
 } as const;
 
 /**
@@ -38,7 +37,7 @@ export default function OpeningPage() {
           width={564}
           height={472}
           priority
-          sizes="(max-width: 640px) 160px, 240px"
+          sizes="(max-width: 640px) 104px, 140px"
         />
       </div>
 
@@ -54,9 +53,6 @@ export default function OpeningPage() {
         ))}
       </h1>
 
-      <p className="op-tagline lq-step" style={{ '--d': `${T.tagline}ms` } as React.CSSProperties}>
-        Know whether a message, a link or a request deserves your trust.
-      </p>
 
       <div className="op-actions lq-step" style={{ '--d': `${T.start}ms` } as React.CSSProperties}>
         <span className="op-start">

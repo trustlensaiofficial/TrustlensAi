@@ -1431,3 +1431,85 @@ body::before {
   animation: none;
   mix-blend-mode: normal;
 }
+
+/* =========================================================================
+   The menu as a liquid-glass card
+   -------------------------------------------------------------------------
+   The nav rail is a floating glass card in its own right, and each item
+   lights along its edges on press. The light is a pseudo-element gradient
+   rather than a box-shadow so it can trace the rounded corner exactly.
+   ========================================================================= */
+.nav {
+  position: relative;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--lq-glass-bg);
+  backdrop-filter: blur(20px) saturate(165%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
+  border: 1px solid var(--lq-edge);
+  box-shadow:
+    0 1px 0 var(--lq-glass-top) inset,
+    0 10px 26px rgba(2, 6, 20, .22);
+}
+
+.nav-link {
+  position: relative;
+  isolation: isolate;
+  border-radius: 999px;
+  overflow: hidden;
+  transition: color .22s var(--glide), transform .34s var(--spring);
+}
+
+/* The edge light. Sits under the label, traces the full rounded border, and
+   is revealed on press — so the glass appears to catch light where it is
+   touched rather than simply changing colour. */
+.nav-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--lq-cyan) 90%, transparent),
+    color-mix(in srgb, var(--lq-violet) 85%, transparent));
+  /* Mask to the border only: fill minus content leaves the 1px ring. */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .24s var(--glide);
+  z-index: -1;
+}
+
+.nav-link:hover::before { opacity: .55; }
+.nav-link:active::before,
+.nav-link[aria-current='page']::before { opacity: 1; }
+.nav-link:active { transform: scale(.96); }
+
+/* A glow that blooms outward from the pressed item. */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(60% 120% at 50% 50%,
+    color-mix(in srgb, var(--lq-cyan) 30%, transparent), transparent 70%);
+  opacity: 0;
+  transform: scale(.7);
+  transition: opacity .3s var(--glide), transform .4s var(--spring);
+  z-index: -1;
+}
+.nav-link:active::after { opacity: 1; transform: scale(1); }
+
+/* The indicator rides under the glass rather than over it. */
+.nav-indicator { border-radius: 999px; }
+
+/* Feature icons: every one is its own liquid-glass tile. */
+.ft-icon, .pillar-icon, .empty-icon, .brand-mark {
+  background: var(--lq-glass-bg) !important;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--lq-edge) !important;
+  box-shadow: 0 1px 0 var(--lq-glass-top) inset, 0 8px 20px rgba(2, 6, 20, .2);
+}

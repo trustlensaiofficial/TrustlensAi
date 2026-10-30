@@ -1,3 +1,4 @@
+import { GlassField } from './liquid/GlassField';
 import { SiteFooter, SiteHeader } from './SiteHeader';
 
 /**
@@ -16,6 +17,7 @@ export function AppShell({
 }) {
   return (
     <>
+      <GlassField />
       <SiteHeader />
       <main className={[wide ? '' : 'shell', className ?? ''].filter(Boolean).join(' ')}>
         {children}
