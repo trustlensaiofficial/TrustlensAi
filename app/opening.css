@@ -10,13 +10,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 26px;
+  gap: 22px;
 }
 
 /* --- 1. the mark ---------------------------------------------------------- */
 .op-mark {
   position: relative;
-  width: clamp(124px, 20vw, 184px);
+  width: clamp(96px, 13vw, 132px);
   aspect-ratio: 141 / 118;
   display: grid;
   place-items: center;
@@ -83,14 +83,6 @@
 }
 
 /* --- shared ---------------------------------------------------------------- */
-.op-tagline {
-  margin: 0;
-  max-width: 44ch;
-  color: var(--lq-ink-dim);
-  font-size: clamp(1rem, 2.3vw, 1.2rem);
-  line-height: 1.6;
-}
-
 .op-actions {
   display: flex;
   flex-wrap: wrap;

@@ -527,3 +527,90 @@
 /* The flow pages share the product's header and footer; they only need the
    width constraint here, since the flex column would otherwise stretch them. */
 .lq > .site-header, .lq > .footer { flex: none; width: min(1180px, calc(100% - 32px)); }
+
+/* ==========================================================================
+   The glass field — the living wallpaper
+   --------------------------------------------------------------------------
+   Liquid-glass shards drifting in 3D behind every page. One shared
+   perspective; each shard sits at its own Z so they pass at different
+   apparent speeds. That parallax is what reads as depth.
+
+   Scenery only: pointer-events are off on the container, so nothing here can
+   ever swallow a click meant for the page.
+   ========================================================================== */
+
+.gf {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  perspective: 900px;
+  perspective-origin: 50% 45%;
+  transform-style: preserve-3d;
+  /* Fades out behind the reading column so text never fights the motion. */
+  mask-image: radial-gradient(120% 90% at 50% 50%, transparent 8%, #000 58%);
+}
+
+.gf-shard {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  height: var(--size);
+  border: 1px solid var(--lq-edge);
+  background: var(--lq-glass-bg);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  box-shadow:
+    0 1px 0 var(--lq-glass-top) inset,
+    0 18px 44px rgba(2, 6, 20, .26);
+  opacity: .55;
+  will-change: transform;
+  animation: gf-drift var(--dur) ease-in-out infinite alternate;
+  animation-delay: var(--delay);
+  transform: translateZ(var(--depth));
+}
+
+/* Shapes. A card, a pill and a ring — enough variety to feel composed,
+   not so much that it reads as clip art. */
+.gf-card { border-radius: 22px; }
+.gf-pill { border-radius: 999px; height: calc(var(--size) * .42); }
+.gf-ring {
+  border-radius: 50%;
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-width: 2px;
+  box-shadow: none;
+  opacity: .34;
+}
+
+/* Tints, drawn from the brandmark's own gradient rather than a new palette. */
+.gf-t-cyan   { border-color: color-mix(in srgb, var(--lq-cyan) 42%, transparent); }
+.gf-t-violet { border-color: color-mix(in srgb, var(--lq-violet) 40%, transparent); }
+.gf-t-blue   { border-color: color-mix(in srgb, var(--lq-blue) 40%, transparent); }
+
+/* Each shard drifts and rolls. Nearer shards travel further, which is what
+   sells the parallax — `--depth` drives both Z and the distance. */
+@keyframes gf-drift {
+  from {
+    transform: translate3d(0, 0, var(--depth)) rotateX(8deg) rotateY(-10deg) rotate(-4deg);
+  }
+  to {
+    transform:
+      translate3d(calc(var(--depth) * .34), calc(var(--depth) * -.28), var(--depth))
+      rotateX(-6deg) rotateY(12deg) rotate(5deg);
+  }
+}
+
+/* On a phone the field competes with the content and costs real battery on
+   a backdrop-filter per shard, so only the far, cheap ones stay. */
+@media (max-width: 720px) {
+  .gf-shard { opacity: .36; }
+  .gf-shard:nth-child(n + 5) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gf-shard { animation: none; }
+}

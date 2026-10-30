@@ -1,4 +1,5 @@
 import { LiquidStage } from './LiquidStage';
+import { GlassField } from './GlassField';
 import { SiteFooter, SiteHeader } from '../SiteHeader';
 
 /**
@@ -20,6 +21,7 @@ export function FlowShell({
   return (
     <div className="lq">
       <LiquidStage />
+      <GlassField />
       {withHeader && <SiteHeader />}
       <main className={['lq-main', className ?? ''].filter(Boolean).join(' ')}>
         {children}
