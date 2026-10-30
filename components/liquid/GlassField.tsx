@@ -1,71 +1,81 @@
+import {
+  ChecklistIcon,
+  ClockIcon,
+  EvidenceIcon,
+  GlobeIcon,
+  HelpIcon,
+  LensIcon,
+  ScalesIcon,
+  ShieldIcon,
+} from '../icons';
+
 /**
  * The living wallpaper.
  *
- * A field of liquid-glass cards drifting in 3D behind every page. Each one
- * sits at its own Z depth inside a shared perspective, so they pass each
- * other at different apparent speeds — that parallax is what reads as depth;
- * a single blurred gradient never does.
+ * Liquid-glass cards drifting in 3D behind every page, each carrying one of
+ * the product's own capabilities — an icon and its label. Blank cards read
+ * as decoration; cards that name what the tool actually does reinforce the
+ * pitch while the viewer reads the page in front of them.
+ *
+ * Each card sits at its own Z depth inside one shared perspective, so they
+ * pass at different apparent speeds. That parallax is what reads as depth; a
+ * single blurred gradient never does.
  *
  * Server component, pure CSS: no JS, nothing to hydrate, and it starts on
  * the first paint rather than after the bundle lands. The whole field is
  * `aria-hidden` and `pointer-events: none` — it is scenery, never content,
- * and it must never intercept a click meant for the page.
- *
- * The shapes are deliberately generic (a card, a pill, a ring). They suggest
- * the product's own surfaces without pretending to be real data, which would
- * be a lie on a page that has none.
+ * and must never intercept a click meant for the page.
  */
 
-interface Shard {
+interface Card {
+  label: string;
+  icon: React.ReactNode;
   /** Percent from the left / top of the viewport. */
   x: number;
   y: number;
-  /** Rendered size in px at depth 0. */
-  size: number;
-  /** Z depth: larger is nearer, so it drifts further and blurs less. */
+  /** Z depth: nearer cards drift further and sit larger. */
   depth: number;
-  /** Seconds for one full drift cycle. Primes avoid visible synchrony. */
+  /** Seconds for one drift cycle. Spread apart to avoid visible synchrony. */
   duration: number;
   delay: number;
-  kind: 'card' | 'pill' | 'ring';
   tint: 'cyan' | 'violet' | 'blue';
 }
 
 /*
- * Hand-placed rather than random: a random field clumps, and a seeded
- * generator would still need tuning per breakpoint. These are spread so no
- * two near-depth shards overlap at any point in their cycles, and the
- * densest area sits away from where headings land.
+ * Hand-placed rather than random: a random field clumps, and the densest
+ * area needs to sit away from where headings and the reading column land.
  */
-const SHARDS: Shard[] = [
-  { x: 8,  y: 18, size: 150, depth: 90,  duration: 29, delay: 0,   kind: 'card', tint: 'cyan' },
-  { x: 82, y: 12, size: 110, depth: 50,  duration: 37, delay: -6,  kind: 'pill', tint: 'violet' },
-  { x: 68, y: 62, size: 180, depth: 120, duration: 31, delay: -14, kind: 'card', tint: 'blue' },
-  { x: 16, y: 72, size: 96,  depth: 40,  duration: 43, delay: -3,  kind: 'ring', tint: 'cyan' },
-  { x: 46, y: 30, size: 74,  depth: 20,  duration: 53, delay: -21, kind: 'pill', tint: 'blue' },
-  { x: 90, y: 78, size: 130, depth: 70,  duration: 35, delay: -9,  kind: 'card', tint: 'violet' },
-  { x: 32, y: 48, size: 62,  depth: 15,  duration: 47, delay: -17, kind: 'ring', tint: 'blue' },
-  { x: 58, y: 88, size: 88,  depth: 35,  duration: 41, delay: -27, kind: 'pill', tint: 'cyan' },
+const CARDS: Card[] = [
+  { label: 'Evidence shown',   icon: <EvidenceIcon />,  x: 4,  y: 16, depth: 80,  duration: 29, delay: 0,   tint: 'cyan' },
+  { label: 'Link inspected',   icon: <GlobeIcon />,     x: 79, y: 10, depth: 44,  duration: 37, delay: -6,  tint: 'violet' },
+  { label: 'Next safe step',   icon: <ChecklistIcon />, x: 71, y: 63, depth: 104, duration: 31, delay: -14, tint: 'blue' },
+  { label: 'What is unknown',  icon: <HelpIcon />,      x: 9,  y: 70, depth: 36,  duration: 43, delay: -3,  tint: 'cyan' },
+  { label: 'Rule matched',     icon: <ScalesIcon />,    x: 40, y: 26, depth: 18,  duration: 53, delay: -21, tint: 'blue' },
+  { label: 'Report kept',      icon: <ClockIcon />,     x: 86, y: 80, depth: 64,  duration: 35, delay: -9,  tint: 'violet' },
+  { label: 'Claim checked',    icon: <LensIcon />,      x: 27, y: 50, depth: 14,  duration: 47, delay: -17, tint: 'blue' },
+  { label: 'Verified safely',  icon: <ShieldIcon />,    x: 55, y: 88, depth: 30,  duration: 41, delay: -27, tint: 'cyan' },
 ];
 
 export function GlassField() {
   return (
     <div className="gf" aria-hidden="true">
-      {SHARDS.map((s, i) => (
+      {CARDS.map((c) => (
         <span
-          key={i}
-          className={`gf-shard gf-${s.kind} gf-t-${s.tint}`}
+          key={c.label}
+          className={`gf-card gf-t-${c.tint}`}
           style={
             {
-              '--x': `${s.x}%`,
-              '--y': `${s.y}%`,
-              '--size': `${s.size}px`,
-              '--depth': `${s.depth}px`,
-              '--dur': `${s.duration}s`,
-              '--delay': `${s.delay}s`,
+              '--x': `${c.x}%`,
+              '--y': `${c.y}%`,
+              '--depth': `${c.depth}px`,
+              '--dur': `${c.duration}s`,
+              '--delay': `${c.delay}s`,
             } as React.CSSProperties
           }
-        />
+        >
+          <span className="gf-icon">{c.icon}</span>
+          <span className="gf-label">{c.label}</span>
+        </span>
       ))}
     </div>
   );
