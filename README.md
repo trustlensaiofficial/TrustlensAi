@@ -53,7 +53,7 @@ contextual layer and report storage are unavailable.
 | `npm run build` | production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | Vitest (65 tests) |
+| `npm test` | Vitest test suite |
 
 ---
 
@@ -224,3 +224,20 @@ Stated plainly because the product's argument depends on it:
 - No external fact-checking; claims are assessed on wording, not truth.
 - Rate limiting is per-instance and needs a shared store to be real.
 - The absence of warning signs is weak evidence, never a verdict of safety.
+
+
+---
+
+## Project links
+
+See **[PROJECT_LINKS.md](./PROJECT_LINKS.md)** for the canonical production URL,
+health endpoint, GitHub source folders, tests, Vercel project, Supabase project,
+and GitHub Actions links.
+
+## Continuous integration
+
+Every push and pull request runs the checks in
+[`.github/workflows/ci.yml`](./.github/workflows/ci.yml): dependency install,
+ESLint, TypeScript type-checking, Vitest, and a production build. Check the
+[GitHub Actions page](https://github.com/trustlensaiofficial/TrustlensAi/actions)
+for the actual result of each run.
