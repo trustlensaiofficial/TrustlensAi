@@ -53,8 +53,8 @@ export default function HistoryPage() {
   const auth = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getServerAuthSnapshot);
   const hydrated = useHydrated();
 
-  const [accountEntries, setAccountEntries] = useState<HistoryEntry[] | null>(null);
-  const [accountError, setAccountError] = useState<string | null>(null);
+  const [accountSnapshot, setAccountSnapshot] = useState<{ email: string | null; reports: HistoryEntry[] } | null>(null);
+  const [accountFailure, setAccountFailure] = useState<{ email: string | null; message: string } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
@@ -62,15 +62,10 @@ export default function HistoryPage() {
   const [sort, setSort] = useState<SortKey>('newest');
 
   useEffect(() => {
-    if (auth.status !== 'signed-in') {
-      setAccountEntries(null);
-      setAccountError(null);
-      return;
-    }
+    if (auth.status !== 'signed-in') return;
 
     const controller = new AbortController();
-    setAccountEntries(null);
-    setAccountError(null);
+    const signedInEmail = auth.email;
 
     void fetch('/api/history', {
       method: 'GET',
@@ -83,26 +78,29 @@ export default function HistoryPage() {
         if (!response.ok) {
           throw new Error(data?.error ?? `Account history failed (HTTP ${response.status}).`);
         }
-        setAccountEntries(Array.isArray(data?.reports) ? data.reports : []);
+        setAccountSnapshot({ email: signedInEmail, reports: Array.isArray(data?.reports) ? data.reports : [] });
+        setAccountFailure(null);
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
-        setAccountError(error instanceof Error ? error.message : 'Account history could not be loaded.');
-        setAccountEntries([]);
+        setAccountFailure({ email: signedInEmail, message: error instanceof Error ? error.message : 'Account history could not be loaded.' });
       });
 
     return () => controller.abort();
-  }, [auth.status]);
+  }, [auth.status, auth.email]);
 
   // Signed-in users see their server history plus any guest-only reports that
   // were created locally on this device before they signed in.
   const entries = useMemo(() => {
-    if (auth.status !== 'signed-in' || accountEntries === null) return localEntries;
+    const accountEntries = auth.status === 'signed-in' && accountSnapshot?.email === auth.email
+      ? accountSnapshot.reports
+      : null;
+    if (!accountEntries) return localEntries;
     const merged = new Map<string, HistoryEntry>();
     for (const entry of localEntries) merged.set(entry.id, entry);
     for (const entry of accountEntries) merged.set(entry.id, entry);
     return [...merged.values()];
-  }, [auth.status, accountEntries, localEntries]);
+  }, [auth.status, auth.email, accountSnapshot, localEntries]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -142,7 +140,9 @@ export default function HistoryPage() {
         return;
       }
       removeFromHistory(entry.id);
-      setAccountEntries((current) => current?.filter((item) => item.id !== entry.id) ?? current);
+      setAccountSnapshot((current) => current && current.email === auth.email
+        ? { ...current, reports: current.reports.filter((item) => item.id !== entry.id) }
+        : current);
     } catch {
       setDeleteError('The deletion could not be sent. The report is still saved — check your connection and try again.');
     } finally {
@@ -151,6 +151,8 @@ export default function HistoryPage() {
   }
 
   const filtersActive = query.trim().length > 0 || level !== 'all';
+  const accountEntries = accountSnapshot?.email === auth.email ? accountSnapshot.reports : null;
+  const accountError = accountFailure?.email === auth.email ? accountFailure.message : null;
   const waitingForAccount = hydrated && auth.status === 'signed-in' && accountEntries === null;
 
   return (
@@ -247,7 +249,7 @@ export default function HistoryPage() {
           <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {filtersActive && <button type="button" className="btn btn-ghost" onClick={() => { setQuery(''); setLevel('all'); }}>Clear filters</button>}
             <button type="button" className="btn btn-ghost" onClick={() => {
-              if (window.confirm(`Remove all ${localEntries.length} entries from this browser's list? Account reports remain saved until deleted individually.`)) clearHistory();
+              if (window.confirm(`Remove all ${localEntries.length} entries from this browser&apos;s list? Account reports remain saved until deleted individually.`)) clearHistory();
             }}>Clear this browser's list</button>
           </div>
         </>
