@@ -22,7 +22,7 @@ describe('action-aware response plans', () => {
     expect(approved?.steps[0]?.action).toMatch(/bank/i);
     expect(sent?.steps[0]?.action).toMatch(/bank/i);
     expect(sent?.steps.some((step) => /1930/i.test(step.action))).toBe(true);
-    expect(sent?.steps.some((step) => /recovery/i.test(step.action))).toBe(true);
+    expect(sent?.steps.some((step) => /recover/i.test(step.action))).toBe(true);
   });
 
   it('does not claim that TrustLens can reverse or recover a payment', () => {
