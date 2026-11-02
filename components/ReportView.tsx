@@ -10,6 +10,7 @@ import type {
 import { ChecklistPanel } from './ChecklistPanel';
 import { helplinesFor } from '@/lib/analysis/helplines';
 import { ReportActions } from './ReportActions';
+import { ResponsePlanPanel } from './ResponsePlanPanel';
 import {
   AlertIcon,
   CheckIcon,
@@ -152,6 +153,11 @@ export function ReportView({ report, storageNote }: { report: Report; storageNot
           )}
         </div>
       )}
+
+      {/* ---------------------------------------- action-aware response -- */}
+      <section className="section">
+        <ResponsePlanPanel />
+      </section>
 
       {/* ------------------------------------------- the signature feature -- */}
       <section className="section" aria-labelledby="next-title">
