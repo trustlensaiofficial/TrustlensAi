@@ -1,10 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // The dev-only overlay badge sat on top of the prototype's own floating
-  // dock. It never ships in a production build, but turning it off keeps
-  // local runs and screenshots identical to what is deployed.
+  // Keep the development overlay from obscuring the prototype UI.
   devIndicators: false,
 
+  // Resolve the project root explicitly. This avoids Next.js selecting a
+  // package-lock.json from the parent directory on the owner's Mac.
+  turbopack: {
+    root: process.cwd(),
+  },
 };
 
 export default nextConfig;
