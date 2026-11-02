@@ -89,17 +89,14 @@ export default function HistoryPage() {
     return () => controller.abort();
   }, [auth.status, auth.email]);
 
-  // Signed-in users see their server history plus any guest-only reports that
-  // were created locally on this device before they signed in.
+  // Never mix browser-local entries into an authenticated account view.
+  // A shared device may contain another person's local report index; account
+  // history is therefore sourced only from rows owned by the verified user.
   const entries = useMemo(() => {
-    const accountEntries = auth.status === 'signed-in' && accountSnapshot?.email === auth.email
-      ? accountSnapshot.reports
-      : null;
-    if (!accountEntries) return localEntries;
-    const merged = new Map<string, HistoryEntry>();
-    for (const entry of localEntries) merged.set(entry.id, entry);
-    for (const entry of accountEntries) merged.set(entry.id, entry);
-    return [...merged.values()];
+    if (auth.status === 'signed-in') {
+      return accountSnapshot?.email === auth.email ? accountSnapshot.reports : [];
+    }
+    return localEntries;
   }, [auth.status, auth.email, accountSnapshot, localEntries]);
 
   const visible = useMemo(() => {
@@ -162,7 +159,7 @@ export default function HistoryPage() {
         <h1 style={{ fontSize: 'clamp(28px, 3.6vw, 42px)', marginTop: 14 }}>Your investigations</h1>
         <p className="lede" style={{ marginTop: 14, maxWidth: '66ch' }}>
           {auth.status === 'signed-in'
-            ? 'Reports saved while signed in are loaded securely from your account. Guest reports remain available on this device only.'
+            ? 'Reports saved while signed in are loaded securely from your account. Guest-only reports are shown when you are signed out on this device.'
             : 'Guest reports are held in this browser. Sign in with Google or a passkey to save new reports to your account and access them on another device.'}
         </p>
         <div className="toolbar" style={{ marginTop: 16 }}>
