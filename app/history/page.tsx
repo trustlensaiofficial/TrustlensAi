@@ -249,8 +249,8 @@ export default function HistoryPage() {
           <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {filtersActive && <button type="button" className="btn btn-ghost" onClick={() => { setQuery(''); setLevel('all'); }}>Clear filters</button>}
             <button type="button" className="btn btn-ghost" onClick={() => {
-              if (window.confirm(`Remove all ${localEntries.length} entries from this browser&apos;s list? Account reports remain saved until deleted individually.`)) clearHistory();
-            }}>Clear this browser's list</button>
+              if (window.confirm(`Remove all ${localEntries.length} entries from this browser's list? Account reports remain saved until deleted individually.`)) clearHistory();
+            }}>Clear this browser&apos;s list</button>
           </div>
         </>
       )}
