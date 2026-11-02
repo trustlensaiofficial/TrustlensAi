@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Report } from './analysis/types';
+import type { AssessmentLevel, InputContext, InputKind, Report } from './analysis/types';
 
 /**
  * Report persistence.
@@ -282,4 +282,90 @@ export async function deleteReport(
     return { deleted: false, reason: 'The report could not be deleted.' };
   }
   return { deleted: true };
+}
+
+
+/**
+ * Lists only the authenticated user's reports.
+ *
+ * This function is called exclusively by a server route after getUser()
+ * verifies the session cookie. The service-role client is never exposed to
+ * the browser, and the user_id filter is mandatory; guest rows and other
+ * accounts' rows are never returned.
+ */
+export interface StoredHistoryEntry {
+  id: string;
+  preview: string;
+  kind: InputKind;
+  level: AssessmentLevel;
+  createdAt: string;
+  isDemo: boolean;
+  persisted: true;
+  context?: InputContext;
+}
+
+export async function listReportsForUser(
+  userId: string,
+  limit = 100,
+): Promise<{ reports: StoredHistoryEntry[]; reason?: string }> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+    return { reports: [], reason: 'A verified account is required.' };
+  }
+
+  const status = storeStatus();
+  if (!status.enabled) return { reports: [], reason: status.reason };
+
+  const client = getClient();
+  if (!client) return { reports: [], reason: 'Supabase client could not be created.' };
+
+  const safeLimit = Math.min(Math.max(Math.floor(limit), 1), 100);
+  const { data, error } = await client
+    .from('scans')
+    .select('id,input_kind,input_preview,assessment_level,is_demo,created_at,report')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(safeLimit);
+
+  if (error) {
+    // Fail closed. Never retry without the owner filter.
+    console.error('[trustlens] account history query failed:', error.code ?? '', error.message.slice(0, 160));
+    return {
+      reports: [],
+      reason: error.code === '42703'
+        ? 'Account history is not available until the scans.user_id migration is applied.'
+        : 'Account history could not be retrieved.',
+    };
+  }
+
+  const validLevels = new Set<AssessmentLevel>([
+    'high_risk', 'elevated_risk', 'some_signals', 'no_signals_detected',
+  ]);
+  const validKinds = new Set<InputKind>(['message', 'url', 'claim']);
+  const validContexts = new Set<InputContext>([
+    'generic', 'bank_scam', 'job_offer', 'invoice', 'proposal', 'website',
+  ]);
+
+  const reports: StoredHistoryEntry[] = (data ?? []).flatMap((row) => {
+    if (!validLevels.has(row.assessment_level as AssessmentLevel)) return [];
+    if (!validKinds.has(row.input_kind as InputKind)) return [];
+    const report = row.report && typeof row.report === 'object'
+      ? row.report as Partial<Report>
+      : {};
+    const context = validContexts.has(report.inputContext as InputContext)
+      ? report.inputContext as InputContext
+      : undefined;
+
+    return [{
+      id: row.id,
+      preview: String(row.input_preview ?? '').slice(0, 400),
+      kind: row.input_kind as InputKind,
+      level: row.assessment_level as AssessmentLevel,
+      createdAt: row.created_at,
+      isDemo: Boolean(row.is_demo),
+      persisted: true as const,
+      ...(context ? { context } : {}),
+    }];
+  });
+
+  return { reports };
 }
