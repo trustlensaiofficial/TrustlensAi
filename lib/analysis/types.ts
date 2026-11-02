@@ -10,6 +10,14 @@
 
 export type InputKind = 'message' | 'url' | 'claim';
 
+/** The user's reported state after receiving a suspicious request. */
+export type UserActionState =
+  | 'not_acted'
+  | 'opened_link'
+  | 'shared_credentials'
+  | 'approved_payment'
+  | 'sent_money';
+
 /**
  * What the user says they are looking at.
  *
