@@ -292,8 +292,15 @@ a { color: inherit; }
 @media (max-width: 880px) {
   .site-header-inner { flex-wrap: wrap; padding: 10px 0; gap: var(--s3); }
   .nav {
-    order: 3; width: 100%; overflow-x: auto; scrollbar-width: none;
-    -webkit-overflow-scrolling: touch; padding-bottom: 2px;
+    /* flex-basis must be set here: the base rule's `flex: 1` makes the basis
+       0, which wins over `width: 100%` and keeps the nav on the first row,
+       where it was being cut off at the right edge. */
+    order: 3;
+    flex: 1 0 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
   }
   .nav::-webkit-scrollbar { display: none; }
   .header-end { margin-left: auto; }
