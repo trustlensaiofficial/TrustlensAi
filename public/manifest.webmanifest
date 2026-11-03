@@ -1,0 +1,21 @@
+{
+  "name": "TrustLens AI — Personal Financial Threat Protection",
+  "short_name": "TrustLens",
+  "description": "Check a message, link or payment request before you act on it.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#060A12",
+  "theme_color": "#060A12",
+  "categories": ["security", "finance", "utilities"],
+  "icons": [
+    { "src": "/logo-mark.png", "sizes": "564x472", "type": "image/png", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Check a message", "url": "/check" },
+    { "name": "I think I have been scammed", "url": "/respond" }
+  ]
+}

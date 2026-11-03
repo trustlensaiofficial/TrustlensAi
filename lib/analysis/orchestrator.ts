@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { buildChecklist } from './checklist';
 import { CONTEXT_LABEL, contextRuleCount, detectContextSignals } from './context-rules';
 import { detectSignals, ruleCount } from './detectors';
+import { detectTanglishSignals, TANGLISH_RULE_COUNT } from './tanglish';
 import { buildCompleteness, buildPositives, buildQuestions } from './insights';
 import { collectUrlEvidence, notCheckedEvidence } from './evidence';
 import { runContextualAnalysis } from './llm';
@@ -191,13 +192,20 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
   const context: InputContext = options.context ?? 'generic';
   const kind: InputKind =
     !options.kind || options.kind === 'auto' ? classifyInput(text) : options.kind;
-  const totalRules = ruleCount(kind) + contextRuleCount(context);
+  const totalRules = ruleCount(kind) + contextRuleCount(context) + TANGLISH_RULE_COUNT;
 
   // 1. Deterministic text rules — generic first, then any that apply only to
   //    the context the user selected.
   const signals: Signal[] = detectSignals(text, kind);
   for (const contextSignal of detectContextSignals(text, context)) {
     if (!signals.some((s) => s.id === contextSignal.id)) signals.push(contextSignal);
+  }
+
+  //    Tamil written in Latin script, run unconditionally. Real messages mix
+  //    languages freely — an English bank name with the demand in Tamil is the
+  //    norm — so gating this on a detected language would miss most of them.
+  for (const taSignal of detectTanglishSignals(text)) {
+    if (!signals.some((s) => s.id === taSignal.id)) signals.push(taSignal);
   }
 
   // 2. Offline link structure. For a bare URL the input itself is the link.
