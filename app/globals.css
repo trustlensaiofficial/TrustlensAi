@@ -508,3 +508,97 @@ a { color: inherit; }
   .check-side { position: static; }
   .demo-list { max-height: 260px; }
 }
+
+/* ======================================================================= */
+/* Incident response                                                       */
+/* ======================================================================= */
+
+.respond { display: flex; flex-direction: column; gap: var(--s5); }
+
+.state-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s2); }
+
+.state {
+  display: flex; align-items: center; gap: var(--s3); width: 100%;
+  padding: var(--s4); border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface); color: inherit; font: inherit; text-align: left; cursor: pointer;
+  transition: border-color var(--t-base) var(--ease), background var(--t-base) var(--ease), transform var(--t-fast) var(--ease);
+}
+.state:hover { border-color: var(--border-strong); }
+.state:active { transform: scale(.993); }
+.state-on { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent) inset; }
+.state-urgent .state-icon { color: var(--sev-high); }
+.state-urgent.state-on { border-color: var(--sev-high); background: var(--sev-high-soft); box-shadow: 0 0 0 1px var(--sev-high) inset; }
+
+.state-icon { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: var(--r-sm); background: var(--surface-2); color: var(--accent); }
+.state-icon svg { width: 18px; height: 18px; }
+.state-text { flex: 1; min-width: 0; }
+.state-label { display: block; font-weight: 640; font-size: .95rem; }
+.state-detail { display: block; margin-top: 2px; color: var(--text-dim); font-size: .83rem; }
+.state-tick { width: 19px; height: 19px; color: var(--accent); flex: none; }
+.state-urgent.state-on .state-tick { color: var(--sev-high); }
+
+/* The emergency block outranks the plan: when money has moved, the helpline
+   is the only thing that should compete for attention. */
+.emergency {
+  padding: var(--s5); border-radius: var(--r-lg);
+  background: var(--sev-high-soft); border: 2px solid var(--sev-high);
+  display: flex; flex-direction: column; gap: var(--s3);
+}
+.emergency h2 { display: flex; align-items: center; gap: 10px; color: var(--sev-high); font-size: 1.42rem; }
+.emergency h2 svg { width: 24px; height: 24px; }
+.emergency p { color: var(--text); font-size: .96rem; line-height: 1.6; }
+.emergency-actions { display: flex; flex-wrap: wrap; gap: var(--s3); margin-top: 4px; }
+.emergency-call { background: var(--sev-high); color: var(--sev-high-soft); font-weight: 700; }
+.emergency-call:hover { filter: brightness(1.08); }
+.emergency-note { color: var(--text-dim) !important; font-size: .87rem !important; }
+
+.plan { display: flex; flex-direction: column; gap: var(--s3); }
+.plan-summary { font-size: .95rem; }
+.link { color: var(--accent); font-weight: 620; }
+
+/* ======================================================================= */
+/* Campaign alerts                                                         */
+/* ======================================================================= */
+
+.camp-grid, .how-grid { list-style: none; margin: 0; padding: 0; }
+
+.camp { display: flex; flex-direction: column; gap: 9px; position: relative; overflow: hidden; }
+.camp-corroborated { border-color: var(--sev-high-line); }
+.camp-stale { opacity: .74; }
+
+.camp-top { display: flex; gap: 6px; flex-wrap: wrap; }
+.camp-title { font-size: 1.02rem; line-height: 1.35; }
+.camp-cat { color: var(--text-dim); font-size: .83rem; }
+
+.camp-stat { display: flex; align-items: center; gap: var(--s3); margin: 4px 0 2px; }
+.camp-num { font-size: 2.1rem; font-weight: 740; letter-spacing: -.04em; color: var(--accent); line-height: 1; }
+.camp-num-label { font-size: .8rem; color: var(--text-dim); line-height: 1.35; }
+
+.camp-inds { display: flex; flex-wrap: wrap; gap: 6px; }
+.camp-ind {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 9px; border-radius: var(--r-xs);
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: .75rem; color: var(--text-dim);
+}
+.camp-ind svg { width: 12px; height: 12px; flex: none; }
+.camp-ind code { font-family: var(--mono); font-size: .72rem; }
+
+.camp-seen { display: flex; align-items: center; gap: 6px; color: var(--text-faint); font-size: .76rem; }
+.camp-seen svg { width: 12px; height: 12px; }
+
+.camp-caveat {
+  margin-top: 2px; padding-top: 9px; border-top: 1px solid var(--border);
+  color: var(--text-faint); font-size: .78rem; line-height: 1.5;
+}
+
+.how-grid h3 { display: flex; align-items: center; gap: 8px; font-size: .96rem; margin-bottom: 7px; }
+.how-grid h3 svg { width: 17px; height: 17px; color: var(--accent); flex: none; }
+.how-grid p { color: var(--text-dim); font-size: .87rem; line-height: 1.6; }
+
+.cta-card { display: flex; align-items: center; justify-content: space-between; gap: var(--s5); flex-wrap: wrap; }
+.cta-card .lede { margin-top: 6px; font-size: .93rem; }
+
+@media (max-width: 620px) {
+  .cta-card { flex-direction: column; align-items: stretch; }
+}

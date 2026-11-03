@@ -12,6 +12,52 @@ export interface ResponsePlan {
  * can be recovered. The most advanced action the user reports takes priority.
  */
 const PLANS: Partial<Record<UserActionState, ResponsePlan>> = {
+  installed_app: {
+    title: 'You installed an app they asked for',
+    summary:
+      'An app installed at a stranger\u2019s request is the step that turns a conversation into control of your device. Treat it as live until it is removed, and assume anything on screen while it ran was visible to them.',
+    steps: [
+      {
+        action: 'Turn on aeroplane mode, or disconnect Wi-Fi and mobile data, before you do anything else.',
+        why: 'It cuts the app off immediately while you remove it, which matters more than the order of the remaining steps.',
+      },
+      {
+        action: 'Uninstall the app. On Android also check Settings \u2192 Accessibility and Settings \u2192 Device admin apps, and revoke anything you do not recognise.',
+        why: 'Some tools keep working after the icon is gone because they hold an accessibility or device-admin grant.',
+      },
+      {
+        action: 'Reconnect, then change the passwords for your bank and email from a different device you trust.',
+        why: 'Anything typed while the app was running should be treated as known to them, including passwords.',
+      },
+      {
+        action: 'Call your bank on the number printed on your card and tell them a remote-access app was installed.',
+        why: 'They can watch the account and stop transfers you did not make, which you cannot do yourself.',
+      },
+    ],
+  },
+  remote_access: {
+    title: 'You shared your screen or gave remote access',
+    summary:
+      'While the session was open they could see everything you saw, including balances, one-time codes and anything you typed. Ending it is the first priority.',
+    steps: [
+      {
+        action: 'End the session now \u2014 close the app, hang up the call, or disconnect from the internet if you cannot find the stop control.',
+        why: 'Nothing else helps while they still have a live view of the screen.',
+      },
+      {
+        action: 'Remove the screen-sharing or remote-support app, and revoke any accessibility or device-admin permission it was given.',
+        why: 'The grant can outlive the session and let them reconnect later.',
+      },
+      {
+        action: 'From a different device, change your banking and email passwords and sign out of all other sessions.',
+        why: 'Treat every credential visible during the session as known to them.',
+      },
+      {
+        action: 'Call your bank on the number printed on your card. Tell them a remote session was active and ask them to review recent and pending transactions.',
+        why: 'Payments set up during the session may not have completed yet, and those are the ones that can still be stopped.',
+      },
+    ],
+  },
   opened_link: {
     title: 'You opened the link',
     summary: 'Opening a page alone does not prove that an account or device was compromised. The important question is whether you entered information, approved anything, or installed something.',
