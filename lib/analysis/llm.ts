@@ -173,7 +173,14 @@ async function callAnthropic(system: string, user: string): Promise<string> {
  * that does not exist. The raw provider text can contain account identifiers
  * and URLs, so it is logged server-side and never returned to the client.
  */
-function describeFailure(raw: string): string {
+/**
+ * Turns a provider error into something a user can act on.
+ *
+ * Exported because the assistant hits the same provider and should give the
+ * same reason: "could not be reached" sends someone hunting a network fault
+ * when the real answer is that billing is not enabled.
+ */
+export function describeFailure(raw: string): string {
   const text = raw.toLowerCase();
   const tail = ' The deterministic warning signs and evidence below are unaffected and were produced without the model.';
 

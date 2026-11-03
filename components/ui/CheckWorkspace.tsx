@@ -7,6 +7,7 @@ import { LANGS, LANG_LABEL, type Lang } from '@/lib/i18n/strings';
 import { saveLocalReport } from '@/lib/offline/local-reports';
 import { useOnline } from './OnlineBadge';
 import { ReportView } from './ReportView';
+import { Kaval } from './Kaval';
 import { Alert, Bolt, Doc, Globe, Lens, Lock, Phone, Scales, Spark } from './icons';
 
 /** What the user says they are holding. The rule set changes with it. */
@@ -230,6 +231,8 @@ export function CheckWorkspace() {
           </div>
         )}
       </div>
+
+      <Kaval report={report} />
     </div>
   );
 }

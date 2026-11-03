@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Shell } from '@/components/ui/Shell';
+import { Kaval } from '@/components/ui/Kaval';
 import { RespondFlow } from '@/components/ui/RespondFlow';
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RespondPage() {
           </p>
         </header>
         <RespondFlow />
+        <Kaval />
       </div>
     </Shell>
   );

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Shell } from '@/components/ui/Shell';
+import { Kaval } from '@/components/ui/Kaval';
 import { CapabilityStrip } from '@/components/ui/CapabilityStrip';
 import { RecentActivity } from '@/components/ui/RecentActivity';
 import { demoCampaigns } from '@/lib/threat-intel/demo-network';
@@ -102,6 +103,7 @@ export default function Home() {
           </div>
         </section>
       </div>
+      <Kaval />
     </Shell>
   );
 }

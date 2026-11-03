@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { getLocalReport, type StoredReport } from '@/lib/offline/local-reports';
 import { LANGS, LANG_LABEL, type Lang } from '@/lib/i18n/strings';
 import { ReportView } from './ReportView';
-import { Arrow, Lens } from './icons';
+import { Arrow, Download, Lens } from './icons';
 
 type State = { phase: 'loading' } | { phase: 'found'; row: StoredReport } | { phase: 'missing' };
 
@@ -66,6 +66,12 @@ export function StoredReportView({ id }: { id: string }) {
         </div>
       </div>
       <ReportView report={state.row.report} lang={lang} />
+
+      <div className="check-actions" style={{ marginTop: 'var(--s6)' }}>
+        <Link href={`/report/${id}/evidence`} className="btn btn-secondary btn-lg">
+          <Download /> Prepare an evidence summary
+        </Link>
+      </div>
     </>
   );
 }
