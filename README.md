@@ -131,10 +131,10 @@ cp .env.example .env.local
 npm run dev           # http://localhost:3000
 ```
 
-**What works without any credentials:** the full deterministic engine, every
-demo scenario, link structure analysis, the report, the checklist, the
-showcase and the tour. The app tells you plainly which layers are unavailable
-rather than pretending.
+**What works without optional credentials:** deterministic text rules, demo
+scenarios, offline URL structure analysis, reports, checklists, browser-local
+history, showcase and tour. Live URL evidence, cloud AI and account sync are
+separate opt-in capabilities and degrade visibly when unavailable.
 
 **What each credential unlocks:**
 
@@ -198,7 +198,7 @@ Applied in order from `supabase/migrations/`, through the Supabase SQL editor.
 |---|---|
 | `0001_scans.sql` | The report table. RLS on, no browser-role policies. |
 | `0002_lock_analysis_history.sql` | Owner-scopes `analysis_history`. |
-`0003_scans_owner.sql` adds the nullable `user_id` column required for account-owned reports.
+| `0003_scans_owner.sql` | Adds nullable `user_id` required for account-owned reports. |
 
 All are additive. `0003` adds the nullable owner column. Account-owned writes
 fail closed until it is present; the application never falls back to an
@@ -214,8 +214,8 @@ ownerless server-side save.
 | Sign-in returns to `/login` with an error | Provider not enabled, or the app's callback is not in Supabase's redirect list |
 | Passkey says "no passkey found" | None registered for this RP ID — sign in with Google and add one from `/account` |
 | Passkey works locally but not in production | RP ID mismatch; they are separate hostnames and need separate registrations |
-| Reports not saving | `SUPABASE_SECRET_KEY` missing, or `SUPABASE_URL` holds a malformed value (the app names which) |
-| "Contextual analysis unavailable" | AI Gateway billing not enabled, or no key. Deterministic analysis is unaffected |
+| Account copy not saving | Sign in, enable account sync, configure the server key and apply `0003_scans_owner.sql` |
+| Cloud AI not available | No provider key or provider billing. Deterministic findings still run; cloud AI is optional |
 | Account sync unavailable | Apply `0003_scans_owner.sql`; saves fail closed until ownership can be enforced |
 
 ## Limitations
