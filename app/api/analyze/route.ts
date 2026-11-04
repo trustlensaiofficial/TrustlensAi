@@ -16,7 +16,7 @@ const Body = z.object({
   text: z.string().max(MAX_INPUT_LENGTH + 1_000).optional(),
   kind: z.enum(['auto', 'message', 'url', 'claim']).default('auto'),
   context: z.enum(['generic', 'bank_scam', 'job_offer', 'invoice', 'proposal', 'website']).default('generic'),
-  liveChecks: z.boolean().default(true),
+  liveChecks: z.boolean().default(false),
   /** Both cloud AI and account sync are opt-in. */
   allowCloudAI: z.boolean().default(false),
   saveToAccount: z.boolean().default(false),
