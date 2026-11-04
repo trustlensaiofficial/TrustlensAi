@@ -15,7 +15,7 @@ const ITEMS = [
   { href: '/privacy', label: 'Privacy & permissions', description: 'Understand your choices and controls', icon: <Lock /> },
 ];
 
-/** One accessible, centred navigation panel for every viewport. */
+/** One accessible right-side slide-out navigation drawer for every viewport. */
 export function Nav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
