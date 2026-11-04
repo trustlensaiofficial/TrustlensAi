@@ -1,6 +1,6 @@
 # Build Status Checkpoint
 
-**Updated:** 2026-11-04, late session · **Branch:** `product/real-platform-foundation`
+**Updated:** 2026-11-05 · **Merged to:** `main` at `054c0ae`
 
 A handoff note: where things stand, what is proven, what is not, and the next command to run.
 
@@ -10,11 +10,12 @@ A handoff note: where things stand, what is proven, what is not, and the next co
 
 | | |
 |---|---|
-| Branch | `product/real-platform-foundation`, pushed |
+| Branch | Merged into `main` via PR #55 as `054c0ae`. PR #54 closed as merged; `integration/final-release` preserved |
 | Web gate | `tsc` clean, `eslint` clean, **363 tests passing**, `next build` clean |
 | Android CI | **Green** — compile, unit tests, lint, APK all pass |
 | APK | `trustlens-debug-apk`, 51.4 MB, 563 entries, 14 dex files, structurally verified |
-| Deployed | **Nothing.** No production deploy, no merge to `main`, no Play submission |
+| Deployed | **Not deployed.** `main` is green in GitHub Actions, but all three Vercel projects refuse to build — `upgradeToPro=build-rate-limit`. The same failure is on `main` from before this release, so it is an account quota, not this code |
+| Production right now | `https://trustlens.in` serves the **previous** build and is healthy — a real analysis returns `high_risk` with 8 signals. It has `/api/v1/analyses` and `paymentAction`, but not `/api/v1/consent`, `/api/v1/recovery-plan` or the case endpoints |
 
 ---
 
@@ -96,3 +97,44 @@ npx vite-node scripts/benchmark-detection.mjs
 
 Both verification scripts are guarded behind `TRUSTLENS_ALLOW_DB_TESTS=1`, create their users at
 reserved `.invalid` addresses, touch no pre-existing row, and delete everything they made.
+
+
+---
+
+## 7. The release, and why production is still behind
+
+`main` is at `054c0ae` with both GitHub Actions workflows green. Production is not on it.
+
+**The blocker:** every Vercel deployment returns `?upgradeToPro=build-rate-limit`. Three separate
+Vercel projects — `trustlensai`, `trustlensai-u2r6` and `trustlensaivoid` — are attached to this
+repository, so a single push consumes three builds against one free-tier quota. The same checks
+were already failing on `main` before this release, which is how we know it is not the code.
+
+**What is actually live**, verified against `https://trustlens.in`:
+
+| | |
+|---|---|
+| Site | HTTP 200 |
+| `www.trustlens.in` | HTTP 308 → `https://trustlens.in/` — the required behaviour, already correct |
+| Real analysis | Works: `high_risk`, 8 signals, `paymentAction` present, 6 not-checked items, AI honestly reported degraded |
+| `/api/v1/analyses`, `/api/v1/capabilities` | Present |
+| `/api/v1/consent`, `/api/v1/recovery-plan`, case endpoints | **404 — not deployed** |
+| `caseStorage` in `/api/health` | Absent — predates this release |
+| `trustlensai.in` | **No DNS records at all.** Not expired-looking, simply unresolved — not even NS |
+
+**What the deploy would bring:** connection pinning against DNS rebinding, bearer-token auth (so
+the case API is reachable from the phone at all), Hindi and native-script detection, the
+safety-advice false positive fix, the UPI amount-truncation fix, consent endpoints, and the
+case endpoints.
+
+### Three owner actions, each one dashboard entry
+
+1. **Vercel build quota.** Either upgrade the plan, or disconnect two of the three projects from
+   this repository so one push costs one build instead of three.
+2. **`AI_GATEWAY_API_KEY` billing** — `/api/health` has reported `billing_blocked` throughout.
+   The product degrades honestly without it, so this is an enhancement rather than a fix.
+3. **`TRUSTLENS_HMAC_KEY`** — unset, so rate-limit tokens are an unkeyed hash. Any long random
+   string, set as a Vercel environment variable.
+
+And one that needs the registrar rather than a dashboard: **`trustlensai.in` has no DNS.** Nothing
+in this repository can restore it.
