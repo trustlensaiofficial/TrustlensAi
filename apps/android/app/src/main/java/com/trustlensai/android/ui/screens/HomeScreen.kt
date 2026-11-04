@@ -178,11 +178,20 @@ fun HomeScreen(
                             Text("YOUR PRIVACY CONTROLS",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary,letterSpacing=1.sp,fontWeight=FontWeight.Bold)
                             ConsentRow("Remote link checks","Only if you allow a remote destination check.",consent.liveChecks,vm::setLiveChecks)
                             ConsentRow("AI explanation","Sends the text to the configured AI provider.",consent.cloudAi,vm::setCloudAi)
-                            if(consent.isMinimal) Text("Both options are off. Your pasted text stays on this phone unless you initiate a check.",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (consent.isMinimal) Text(
+                                "Remote link checks and AI are off. When you tap Analyse, the text you submit is sent to the TrustLens analysis API.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "No SMS, contacts, call-log, notification or location access is requested. Camera access is requested only if you choose QR scanning; selecting a screenshot needs no camera permission.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                     Button(
-                        onClick={ { vm.analyse(input) } },enabled=input.isNotBlank()&&state !is AnalysisUiState.Loading,
+                        onClick = { vm.analyse(input) },enabled=input.isNotBlank()&&state !is AnalysisUiState.Loading,
                         modifier=Modifier.fillMaxWidth().height(54.dp),
                         shape=RoundedCornerShape(16.dp),
                         colors=ButtonDefaults.buttonColors(containerColor=MaterialTheme.colorScheme.primary,contentColor=MaterialTheme.colorScheme.onPrimary),
