@@ -35,8 +35,10 @@ export interface AnalyzeOptions {
   kind?: InputKind | 'auto';
   /** What the user says they are looking at; unlocks context-specific rules. */
   context?: InputContext;
-  /** When false, no outbound request is made at all. */
+  /** When false, no URL is contacted over the network. */
   liveChecks?: boolean;
+  /** Cloud model use is off by default and requires explicit user consent. */
+  allowCloudAI?: boolean;
   isDemo?: boolean;
 }
 
@@ -239,7 +241,13 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
   signals.sort((a, b) => severityRank[a.severity] - severityRank[b.severity]);
 
   // 5. Contextual layer, given only what we established above.
-  const contextual = await runContextualAnalysis(text, kind, signals, evidence);
+  const contextual = await runContextualAnalysis(
+    text,
+    kind,
+    signals,
+    evidence,
+    options.allowCloudAI === true,
+  );
 
   const assessment = buildAssessment(signals, kind, totalRules, context);
   if (contextual.output?.summary) {
