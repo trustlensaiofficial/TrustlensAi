@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { deleteLocalReport } from '@/lib/offline/local-reports';
-import { Arrow, Clock, Lock, Trash } from './icons';
+import { Clock, Lock, Trash } from './icons';
 
 interface AccountReport {
   id: string;
