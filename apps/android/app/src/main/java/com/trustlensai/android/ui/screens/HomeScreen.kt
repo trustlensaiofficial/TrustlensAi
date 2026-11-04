@@ -46,6 +46,7 @@ fun HomeScreen(
     onOpenReport: () -> Unit,
     onOpenIncident: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenQr: () -> Unit,
 ) {
     val state by vm.state.collectAsState()
     val consent by vm.consent.collectAsState()
@@ -133,6 +134,10 @@ fun HomeScreen(
                 } else {
                     Text("Check this message")
                 }
+            }
+
+            OutlinedButton(onClick = onOpenQr, modifier = Modifier.fillMaxWidth()) {
+                Text("Scan a payment code")
             }
 
             OutlinedButton(onClick = onOpenIncident, modifier = Modifier.fillMaxWidth()) {
