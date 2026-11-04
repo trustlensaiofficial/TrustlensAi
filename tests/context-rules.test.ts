@@ -67,6 +67,27 @@ describe('new demo scenarios meet their stated expectations', () => {
   });
 });
 
+describe('bank payment and QR context', () => {
+  it('flags a QR code sold as a way to receive a refund', async () => {
+    const report = await runDemo('upi-qr-refund');
+    expect(ids(report)).toContain('bank.qr_receive_money');
+    expect(report.assessment.level).toBe('high_risk');
+    expect(JSON.stringify(report.signals)).toMatch(/Scanning it alone does not prove money moved/);
+  });
+
+  it('does not flag a protective warning merely for mentioning a UPI PIN', async () => {
+    const text = 'Never share your UPI PIN with anyone. Your bank will never ask for it.';
+    const report = await analyze({ text, kind: 'message', context: 'bank_scam', liveChecks: false });
+    expect(ids(report).filter((id) => id.includes('secret_request') || id.includes('credentials'))).toHaveLength(0);
+  });
+
+  it('still flags an actual request to provide a UPI PIN', async () => {
+    const text = 'Please share your UPI PIN with our bank verification officer.';
+    const report = await analyze({ text, kind: 'message', context: 'bank_scam', liveChecks: false });
+    expect(ids(report)).toContain('bank.secret_request');
+  });
+});
+
 describe('derived report sections', () => {
   it('produces context-appropriate questions to ask', async () => {
     const invoice = await runDemo('invoice-bank-change');
