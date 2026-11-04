@@ -7,7 +7,7 @@ name: Android
 
 on:
   push:
-    branches: [main, "product/**", "feature/**", "fix/**", "chore/**"]
+    branches: [main, "product/**", "integration/**", "feature/**", "fix/**", "chore/**"]
     paths:
       - "apps/android/**"
       - ".github/workflows/android.yml"
