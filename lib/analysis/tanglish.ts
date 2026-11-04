@@ -1,4 +1,5 @@
 import type { Signal, SignalMatch } from './types';
+import { isNegatedCredentialInstruction } from './match-safety';
 
 /**
  * Tamil-language scam patterns, written in Latin script.
@@ -161,7 +162,9 @@ function collect(text: string, patterns: RegExp[]): SignalMatch[] {
 export function detectTanglishSignals(text: string): Signal[] {
   const out: Signal[] = [];
   for (const rule of RULES) {
-    const matches = collect(text, rule.patterns);
+    const matches = collect(text, rule.patterns).filter(
+      (match) => rule.category !== 'credentials' || !isNegatedCredentialInstruction(text, match.start),
+    );
     if (matches.length === 0) continue;
     out.push({
       id: rule.id,
