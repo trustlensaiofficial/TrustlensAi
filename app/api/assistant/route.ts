@@ -4,6 +4,7 @@ import { describeFailure, resolveProvider } from '@/lib/analysis/llm';
 import { kavalSystemPrompt, MAX_MESSAGE_CHARS, MAX_TURNS, type KavalTurn } from '@/lib/assistant/kaval';
 import { checkRateLimit, clientKeyFromHeaders } from '@/lib/ratelimit';
 import type { Report } from '@/lib/analysis/types';
+import { answerKavalLocally } from '@/lib/assistant/local-answers';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,16 +51,21 @@ export async function POST(request: Request) {
   const parsed = Body.safeParse(raw);
   if (!parsed.success) return fail('That request was not in the expected shape.', 400);
 
+  const { messages, report } = parsed.data;
+  const currentReport = (report as Report | undefined) ?? null;
+  const lastUserMessage = [...messages].reverse().find((turn) => turn.role === 'user')?.content ?? '';
   const provider = resolveProvider();
+
+  // Deterministic fallback keeps Kaval useful without pretending cloud AI ran.
   if (provider === 'none') {
-    return fail(
-      'Kaval needs a connection to answer. The rules, your saved reports and the response guidance all still work without it.',
-      503,
-    );
+    return NextResponse.json({
+      reply: answerKavalLocally({ message: lastUserMessage, report: currentReport }),
+      mode: 'local',
+      notice: 'Kaval is using its built-in safety guide; cloud AI is unavailable.',
+    });
   }
 
-  const { messages, report } = parsed.data;
-  const system = kavalSystemPrompt((report as Report | undefined) ?? null);
+  const system = kavalSystemPrompt(currentReport);
 
   try {
     const text =
@@ -68,18 +74,23 @@ export async function POST(request: Request) {
         : await viaAnthropic(system, messages);
 
     const reply = text.trim();
-    if (!reply) return fail('Kaval did not have an answer for that. Try rephrasing it.', 502);
-    return NextResponse.json({ reply });
+    if (!reply) {
+      return NextResponse.json({
+        reply: answerKavalLocally({ message: lastUserMessage, report: currentReport }),
+        mode: 'local',
+        notice: 'The cloud assistant returned an empty response; Kaval used its built-in safety guide.',
+      });
+    }
+    return NextResponse.json({ reply, mode: 'ai' });
   } catch (error) {
     const message = error instanceof Error ? error.message : '';
-    if (/timeout|abort/i.test(message)) {
-      return fail('Kaval took too long to answer. Try again, or ask something shorter.', 504);
-    }
-    // Same classifier the analyser uses: a billing refusal should not be
-    // reported as a network problem, or nobody ever fixes the real cause.
     const reason = describeFailure(message)
       .replace(' The deterministic warning signs and evidence below are unaffected and were produced without the model.', '');
-    return fail(`${reason} Everything else in TrustLens still works.`, 502);
+    return NextResponse.json({
+      reply: answerKavalLocally({ message: lastUserMessage, report: currentReport }),
+      mode: 'local',
+      notice: `${reason} Kaval switched to its built-in safety guide; the report and deterministic findings are unchanged.`,
+    });
   }
 }
 
