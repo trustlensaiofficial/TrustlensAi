@@ -91,8 +91,9 @@ check that did not happen.
 - **Database:** Supabase Postgres, service-role access only
 - **Hosting:** Vercel
 
-See [`AGENTS.md`](./AGENTS.md) for the full brief and
-[`TASKS.md`](./TASKS.md) for current state, verified results and known limits.
+See [`PRODUCT_SPEC.md`](./PRODUCT_SPEC.md) for the current feature contract,
+privacy defaults, unimplemented capabilities and roadmap. See [`AGENTS.md`](./AGENTS.md)
+for engineering rules and [`TASKS.md`](./TASKS.md) for verified project state.
 
 ---
 
