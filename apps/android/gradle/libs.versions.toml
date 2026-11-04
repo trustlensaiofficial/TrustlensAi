@@ -1,24 +1,33 @@
 # Pinned dependency versions for the TrustLens Android app.
 #
-# Every version here was read from the actual Maven repository rather than
-# recalled, and the toolchain combination is the documented-compatible one:
-# AGP 8.13.2 requires Gradle >= 8.13 and JDK >= 17, and supports compileSdk up
-# to 36.1. API 36 itself requires AGP >= 8.9.1.
+# Every version here was read from the actual Maven repository metadata, not
+# from the Maven Central search API — that API returns stale results and
+# reported Kotlin's latest as 2.2.0 when the repository had 2.4.21.
 #
-# AGP 9.x exists (9.5.0 is current) and is deliberately NOT used. It carries
-# breaking build-DSL changes, and this project cannot be compiled on the
-# machine it was written on — so the mature line is the responsible choice
-# until a real build has been run. Moving to 9.x should be its own change with
-# a green build behind it.
+# This started on AGP 8.13.2 and moved to 9.5.0 because CI said so, not on
+# taste: core-ktx 1.19.1, Compose 1.12.1, lifecycle 2.11.0 and
+# navigation 2.10.2 all refuse to resolve under AGP 8, each demanding
+# "Android Gradle plugin 9.1.0 or higher" and compileSdk 37. AGP 9 is the
+# mainstream now, so the cautious choice had become the broken one.
+#
+# compileSdk 37 with targetSdk 36 is intentional and Play-compliant: compiling
+# against a newer SDK than you target is normal, and 36 is what Play requires.
+#
+# AGP 9 brings built-in Kotlin, so there is deliberately no kotlin-android
+# plugin here — it is incompatible with AGP 9's new DSL.
 
 [versions]
-agp = "8.13.2"
-kotlin = "2.2.0"
+agp = "9.5.0"
+# AGP 9.5 carries KGP 2.2.10 for built-in Kotlin. The Compose and
+# serialization compiler plugins must match the Kotlin version AGP uses, so
+# this tracks that rather than the newest Kotlin release.
+kotlin = "2.2.10"
 
 # Android SDK levels.
 # targetSdk 36 is mandatory: since 31 August 2026 Google Play requires new apps
 # and updates for phones, tablets and foldables to target Android 16 (API 36).
-compileSdk = "36"
+# Newest AndroidX requires compiling against 37. Targeting 36 satisfies Play.
+compileSdk = "37"
 targetSdk = "36"
 # minSdk 26 (Android 8.0) keeps reach wide — which matters for this audience —
 # without dragging in legacy workarounds. Every library below supports it.
@@ -37,19 +46,17 @@ camera = "1.6.2"
 mlkitBarcode = "17.3.0"
 
 retrofit = "3.0.0"
-okhttp = "4.12.0"
-kotlinxSerialization = "1.9.0"
-coroutines = "1.10.2"
+okhttp = "5.5.1"
+kotlinxSerialization = "1.12.0"
+coroutines = "1.11.0"
 
-# Supabase Kotlin: 3.1.4 is the newest STABLE release. 3.2.0 exists only as
-# beta / rc / ksp prereleases, which do not belong in a product build.
-supabase = "3.1.4"
-ktor = "3.0.3"
+supabase = "3.9.0"
+ktor = "3.6.1"
 
 junit = "4.13.2"
 androidxTestJunit = "1.3.0"
 espresso = "3.7.0"
-mockk = "1.13.13"
+mockk = "1.14.11"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -97,8 +104,8 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-# Since Kotlin 2.0 the Compose compiler ships with Kotlin, so this plugin's
-# version always tracks the Kotlin version exactly.
+# No kotlin-android plugin: AGP 9 compiles Kotlin itself, and that plugin is
+# incompatible with the new DSL. These two are separate compiler plugins and
+# are still applied; their version must match the Kotlin that AGP uses.
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
