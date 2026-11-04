@@ -16,13 +16,24 @@ import { saveReport, storeStatus } from '@/lib/store';
 import { findDemoCase } from '@/lib/demo/cases';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
 
-const Body = z.object({
+export const AnalysisRequestBody = z.object({
   text: z.string().max(MAX_INPUT_LENGTH + 1_000).optional(),
   kind: z.enum(['auto', 'message', 'url', 'claim']).default('auto'),
   context: z.enum(['generic', 'bank_scam', 'job_offer', 'invoice', 'proposal', 'website']).default('generic'),
   liveChecks: z.boolean().default(false),
-  /** Both cloud AI and account sync are opt-in. */
-  allowCloudAI: z.boolean().default(false),
+  /**
+   * Both cloud AI and account sync are opt-in.
+   *
+   * Two spellings are accepted because they diverged: this route shipped
+   * `allowCloudAI` while docs/openapi.yaml documents `allowCloudAi`, which is
+   * the casing consistent with every other field. A client built strictly from
+   * the contract would have had its flag silently ignored and defaulted to
+   * false — no error, just a feature that never turned on. `allowCloudAi` is
+   * canonical; the capitalised form stays accepted so nothing already sending
+   * it breaks.
+   */
+  allowCloudAi: z.boolean().optional(),
+  allowCloudAI: z.boolean().optional(),
   saveToAccount: z.boolean().default(false),
   /**
    * A QR payload the client decoded on-device. Capped well above a real UPI
@@ -32,6 +43,19 @@ const Body = z.object({
   qrPayload: z.string().max(2_048).optional(),
   demoSlug: z.string().max(64).optional(),
 });
+
+/**
+ * Resolves the cloud-AI flag across both accepted spellings.
+ *
+ * Either being true enables the layer; neither present means off. Exported so
+ * the precedence is pinned by a test rather than inferred from the expression.
+ */
+export function resolveAllowCloudAi(body: {
+  allowCloudAi?: boolean | undefined;
+  allowCloudAI?: boolean | undefined;
+}): boolean {
+  return body.allowCloudAi === true || body.allowCloudAI === true;
+}
 
 function fail(message: string, status: number, extra: Record<string, unknown> = {}) {
   return NextResponse.json({ error: message, ...extra }, { status });
@@ -55,12 +79,13 @@ export async function handleAnalyses(request: Request): Promise<Response> {
     return fail('The request body must be valid JSON.', 400);
   }
 
-  const parsed = Body.safeParse(raw);
+  const parsed = AnalysisRequestBody.safeParse(raw);
   if (!parsed.success) {
     return fail('The request body did not match the expected shape.', 400);
   }
 
-  const { kind, liveChecks, allowCloudAI, saveToAccount, demoSlug, qrPayload } = parsed.data;
+  const { kind, liveChecks, saveToAccount, demoSlug, qrPayload } = parsed.data;
+  const allowCloudAI = resolveAllowCloudAi(parsed.data);
   let context = parsed.data.context;
 
   // A demo slug loads server-side canned text so the UI cannot pass off

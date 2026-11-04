@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Permissions are deliberately minimal.
+
+  INTERNET is needed to reach the analysis API. CAMERA is needed only while a
+  QR scan is open, and is requested at that moment rather than at launch;
+  the camera hardware is marked not-required so the app still installs on a
+  device without one, where picking an image is the alternative.
+
+  Deliberately NOT declared, per docs/PLATFORM_CAPABILITIES.md and the
+  engineering rules: READ_SMS, RECEIVE_SMS, READ_CALL_LOG, READ_CONTACTS,
+  RECORD_AUDIO, ACCESS_*_LOCATION, SYSTEM_ALERT_WINDOW, the default-SMS role,
+  any Accessibility service, and screen capture.
+
+  Two optional features are also absent from this release on purpose:
+
+    - NotificationListenerService. Google shipped on-device notification scam
+      detection across twelve OEMs in October 2026 (docs/COMPETITOR_RESEARCH.md
+      §2), so this would duplicate an OS feature while asking the user for one
+      of Android's most invasive grants. docs/PRODUCT_CHARTER.md §4 demotes it
+      from a core capability for exactly that reason.
+    - CallScreeningService. It must answer within about five seconds, so it
+      needs a local cached indicator set that does not exist yet. Shipping it
+      against a network lookup would miss the deadline.
+
+  Both are roadmap items with a documented mechanism, not silent omissions.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+
+    <application
+        android:name=".TrustLensApplication"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TrustLens"
+        android:enableOnBackInvokedCallback="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.TrustLens">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          The share target.
+
+          A separate activity so a share never lands on whatever screen the
+          user happened to leave open, and so the shared content can be shown
+          for confirmation before anything is sent anywhere.
+
+          excludeFromRecents + singleTask: a shared private message should not
+          sit in the recents list as a screenshot.
+        -->
+        <activity
+            android:name=".ShareReceiverActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:label="@string/share_target_label"
+            android:theme="@style/Theme.TrustLens">
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+
+            <!-- Several screenshots of one conversation is a normal share. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+
+            <!-- Selecting text inside another app and choosing TrustLens. -->
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          Google Play services needs to know which ML Kit model to bundle.
+          Barcode scanning runs entirely on the device.
+        -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode" />
+    </application>
+</manifest>

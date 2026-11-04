@@ -280,6 +280,70 @@ paths:
                 properties:
                   recoveryPlan: { $ref: '#/components/schemas/RecoveryPlan' }
 
+  /recovery-plan:
+    post:
+      summary: What to do now, for someone who has already acted
+      operationId: getRecoveryPlan
+      description: |
+        **Deliberately unauthenticated.** Someone whose money left their
+        account ten minutes ago must not meet a sign-in screen. This endpoint
+        reads nothing and stores nothing — it maps a caller-supplied action
+        state onto fixed guidance.
+
+        Rate limited at 30/minute rather than the usual 12, because a person
+        working through a plan may legitimately re-request it several times.
+      tags: [incident]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [actionState]
+              properties:
+                actionState: { $ref: '#/components/schemas/UserActionState' }
+      responses:
+        '200':
+          description: The plan for that state. Every state has one.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recoveryPlan: { $ref: '#/components/schemas/RecoveryPlan' }
+        '400':
+          description: |
+            Unrecognised state. The response body carries `validValues` with
+            every accepted state, so a client author need not open this spec.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+                  validValues:
+                    type: array
+                    items: { $ref: '#/components/schemas/UserActionState' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+    get:
+      summary: The action states a client can offer, mildest first
+      operationId: listActionStates
+      tags: [incident]
+      security: []
+      responses:
+        '200':
+          description: Ordered by exposure.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  actionStates:
+                    type: array
+                    items: { $ref: '#/components/schemas/UserActionState' }
+                  note: { type: string }
+
   /cases/{caseId}/recovery-plan:
     get:
       tags: [Recovery]
@@ -463,6 +527,15 @@ components:
           type: boolean
           default: false
           description: |
+        allowCloudAI:
+          type: boolean
+          default: false
+          deprecated: true
+          description: |
+            Accepted alias for `allowCloudAi`, kept because this route shipped
+            with the capitalised spelling before the contract existed. Use
+            `allowCloudAi` in new clients. If both are sent, either being true
+            enables the layer.
             Opt in to a third-party model for this request only. False means
             no private content leaves the TrustLens backend.
         language: { type: string, enum: [en, ta, hi], default: en }

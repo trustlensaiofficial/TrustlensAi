@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      A bare Material 3 shell. The real palette is applied in Compose, so this
+      only has to avoid a flash of the wrong colour on launch.
+    -->
+    <style name="Theme.TrustLens" parent="android:Theme.Material.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
