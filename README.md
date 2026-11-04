@@ -41,9 +41,10 @@ cp .env.example .env.local   # optional; the app runs without any keys
 npm run dev
 ```
 
-Open <http://localhost:3000>. With no environment variables the app still works:
-deterministic rules and live link checks run, and the UI states plainly that the
-contextual layer and report storage are unavailable.
+Open <http://localhost:3000>. With no environment variables the deterministic
+rules and report work. Live link checks, cloud AI interpretation and account
+storage are separate optional capabilities; cloud AI and account sync are off
+until the user explicitly enables them.
 
 ### Scripts
 
@@ -63,8 +64,8 @@ All optional — each missing capability degrades visibly rather than silently.
 
 | Variable | Needed for | Notes |
 |---|---|---|
-| `AI_GATEWAY_API_KEY` | contextual analysis | Preferred. Create at <https://vercel.com/ai-gateway>. |
-| `ANTHROPIC_API_KEY` | contextual analysis | Used only if the gateway key is absent. |
+| `AI_GATEWAY_API_KEY` | optional contextual analysis | Preferred. Used only after the user enables cloud AI. Create at <https://vercel.com/ai-gateway>. |
+| `ANTHROPIC_API_KEY` | optional contextual analysis | Used only if the gateway key is absent and the user opts in. |
 | `NEXT_PUBLIC_SUPABASE_URL` | report history | `SUPABASE_URL` also accepted. |
 | `SUPABASE_SERVICE_ROLE_KEY` | report history | **Server-only.** `SUPABASE_SECRET_KEY` also accepted. |
 
@@ -87,7 +88,7 @@ it. The model has no tools of its own, so it is structurally unable to claim a
 check that did not happen.
 
 - **Frontend / backend:** Next.js 16 App Router, React 19, TypeScript (strict)
-- **Model:** Claude via Vercel AI Gateway, or the Anthropic API directly
+- **Model:** Claude via Vercel AI Gateway, or the Anthropic API directly; per-analysis cloud consent is required
 - **Database:** Supabase Postgres, service-role access only
 - **Hosting:** Vercel
 
@@ -138,9 +139,9 @@ rather than pretending.
 
 | Variable | Unlocks | Without it |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Saved reports, sign-in | Analysis still runs; reports are not saved |
-| `SUPABASE_SECRET_KEY` | Server-side report writes | Reports are not saved |
-| `AI_GATEWAY_API_KEY` *or* `ANTHROPIC_API_KEY` | Contextual interpretation | Deterministic rules only, clearly labelled |
+| `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser auth and sign-in client | Analysis still runs without them |
+| `SUPABASE_SECRET_KEY` | Server-side account report storage | Account copies are not saved |
+| `AI_GATEWAY_API_KEY` *or* `ANTHROPIC_API_KEY` | Optional contextual interpretation after user consent | Deterministic rules only, clearly labelled |
 | `NEXT_PUBLIC_SITE_URL` | Correct OAuth redirect | Falls back to the deployment URL |
 
 Never commit `.env.local`. Never put a secret in a `NEXT_PUBLIC_` variable —
@@ -196,11 +197,11 @@ Applied in order from `supabase/migrations/`, through the Supabase SQL editor.
 |---|---|
 | `0001_scans.sql` | The report table. RLS on, no browser-role policies. |
 | `0002_lock_analysis_history.sql` | Owner-scopes `analysis_history`. |
-| `0003_scans_owner.sql` | Adds a **nullable** `user_id` so signed-in users own their reports. |
+| `0003_scans_owner.sql` | Adds a **nullable** `user_id` so signed-in users own explicitly synced reports. |
 
-All are additive. `0003` is safe to apply at any time: the column is nullable,
-existing guest rows keep working untouched, and the application already handles
-the column being absent.
+All are additive. `0003` adds the nullable owner column. Account-owned writes
+fail closed until it is present; the application never falls back to an
+ownerless server-side save.
 
 ---
 
