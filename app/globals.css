@@ -619,19 +619,6 @@ a { color: inherit; }
 .hero-lede { font-size: clamp(1rem, 1.9vw, 1.14rem); }
 .hero-actions { display: flex; flex-wrap: wrap; gap: var(--s3); }
 
-/* Capability strip: states what is actually running, never decoration. */
-.caps { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 2px; }
-.cap {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 11px; border-radius: var(--r-pill);
-  border: 1px solid var(--border); background: var(--surface-2);
-  font-size: .76rem; font-weight: 600; color: var(--text-dim);
-}
-.cap svg { width: 13px; height: 13px; }
-.cap-on { border-color: var(--sev-clear-line); background: var(--sev-clear-soft); color: var(--sev-clear); }
-.cap-off { color: var(--text-faint); }
-.cap-local { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent); }
-
 /* --- recent checks ----------------------------------------------------- */
 .recent { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s2); }
 .recent-row {
@@ -923,3 +910,14 @@ a { color: inherit; }
 .lang-note { display: block; margin-top: 6px; max-width: 46ch; }
 
 @media (max-width: 480px) { .account-name { display: none; } }
+
+/* A single line, shown only when a capability is genuinely missing. */
+.cap-note {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 11px 14px; margin-top: 2px;
+  border-radius: var(--r-md);
+  background: var(--sev-check-soft); border: 1px solid var(--sev-check-line);
+  color: var(--sev-check); font-size: .85rem; line-height: 1.5;
+  max-width: 62ch;
+}
+.cap-note svg { width: 16px; height: 16px; flex: none; margin-top: 1px; }

@@ -23,9 +23,8 @@ export default function Home() {
             Pause. Verify.<br />Then act.
           </h1>
           <p className="lede hero-lede rise" style={{ '--d': '140ms' } as React.CSSProperties}>
-            Before you tap a link, share a code or send money — check it. TrustLens shows you the
-            exact words that are wrong, what it could and could not verify, and the one safe
-            thing to do next.
+            Paste a suspicious message. We show you the exact words that are wrong, and the one
+            safe thing to do next.
           </p>
           <div className="hero-actions rise" style={{ '--d': '210ms' } as React.CSSProperties}>
             <Link href="/check" className="btn btn-primary btn-lg"><Lens /> Check a message</Link>
