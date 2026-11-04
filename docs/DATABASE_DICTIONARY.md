@@ -26,17 +26,24 @@ returns `42703`):
 The probe was validated against a deliberately non-existent table, which correctly returned
 `PGRST205`, so "exists" here is a real answer rather than a silent pass.
 
-**NOT verified, and not claimed:**
+**Verified behaviourally**, by `scripts/verify-security.mjs` against project `pwieplvvzftxdxvoueed`
+— 23 checks, all passing. These are the claims that introspection could not settle:
 
-- **The append-only triggers.** PostgREST does not expose trigger functions, and firing one needs a
-  real row, which needs a real `auth.users` id. So `case_events` and `consent_receipts` refusing
-  UPDATE is *written* and *unconfirmed against this database*.
-- **The RLS policies**, for the same reason.
-- **Whether the production deployment's environment points at this same project.** That is an owner
-  question, not something this working tree can answer.
+| Claim | How it was proved |
+|---|---|
+| RLS refuses the anonymous caller | Read every table with the **publishable key** — the one shipped in every browser bundle. All six return nothing, and `consume_rate_limit` refuses to execute |
+| One user cannot reach another's case | Two real signed-in users. The non-owner reads 0 rows, and cannot update or delete |
+| Forged ownership is refused by the database | A client inserting a case with someone else's `user_id` is rejected by the policy's `WITH CHECK`, not merely by our server remembering to filter |
+| `case_events` is genuinely append-only | UPDATE attempted **as the service role**, which RLS cannot stop. Refused: `relation public.case_events is append-only; rows cannot be updated`. This is the one that proves the trigger is attached to the right table — a trigger attached to the wrong one looks identical until you try |
+| `consent_receipts` is genuinely append-only | Same, same refusal |
+| Evidence cannot be silently edited | The *owner* cannot UPDATE their own artifact |
+| Deletion cascades | Deleting the account removed its case, artifacts, events and consent receipts |
 
-The code degrades honestly either way: `/api/health` probes rather than inferring, so it reports
-what is actually reachable.
+A service-role query was deliberately **not** treated as evidence about RLS, because the service
+role bypasses it. Every access-control claim above was tested as the role expected to be refused.
+
+Still open: whether the production deployment's environment points at this project. That is an
+owner question.
 
 ---
 

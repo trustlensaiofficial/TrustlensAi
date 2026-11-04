@@ -130,7 +130,7 @@ deliberately not done from here.
 | **B1** | Rate limiting per-instance | **Closed and verified.** Shared Postgres counter via atomic `INSERT .. ON CONFLICT DO UPDATE`. Falls back to the in-process limiter rather than failing open. Tested end to end against the live project: 12 allowed, 13th refused with `Retry-After: 52`, `X-RateLimit-Scope: shared` throughout |
 | **B2** | No API versioning | `POST /api/v1/analyses`, `GET /api/v1/capabilities`, `POST /api/v1/recovery-plan`. `/api/analyze` is a deprecated alias onto the same handler with `Deprecation: true` and a successor `Link` |
 | **B3** | No API contract | `docs/openapi.yaml` — 11 paths, 16 schemas, validated |
-| **B4** | No case model | `cases`, `case_artifacts`, `case_events`, `consent_receipts`, every CHECK matching a contract enum. Append-only enforced by trigger, not convention. **Tables and columns verified present**; the triggers and policies are written but unconfirmed — see `docs/DATABASE_DICTIONARY.md` §0 |
+| **B4** | No case model | **Closed and verified.** `cases`, `case_artifacts`, `case_events`, `consent_receipts`, every CHECK matching a contract enum. RLS, cross-user isolation, forged ownership, append-only triggers and delete cascades all proved behaviourally — 23 checks in `scripts/verify-security.mjs` |
 
 ### Gaps from §3 now closed
 
@@ -143,10 +143,10 @@ deliberately not done from here.
 
 ### Still open
 
-- Module 6 — **case endpoints are built**, and the tables they need exist. Their round trips are
-  still unverified, because exercising them needs a signed-in session this working tree cannot
-  create. The decision logic (`lib/cases/transitions.ts`) is pure and has 19 tests; the persistence
-  layer has none, which is the honest gap.
+- Module 6 — **case endpoints are built**, and the storage layer's round trips are now verified
+  against the live project: insert, owner read, non-owner refusal, forged-owner refusal, update
+  refusal and delete cascade. What is still unexercised is the HTTP layer end to end, which needs a
+  browser session.
 - Module 10 — consent endpoints. The table exists in a written migration; the routes do not.
 - Threat-intelligence provider abstraction. Not started.
 - `packages/contracts` typed client. Not started.
@@ -161,9 +161,10 @@ is configured against showed otherwise: every table and every column they define
 `consume_rate_limit` is callable and works. The probe was validated against a non-existent table
 first, so that is a real answer.
 
-What remains unverified is the part PostgREST cannot show: the append-only triggers and the RLS
-policies. Those are written and unconfirmed. Whether the production deployment points at this same
-project is an owner question.
+The part PostgREST cannot show — the append-only triggers and the RLS policies — is now verified
+behaviourally instead, by attempting each refused access as the role expected to be refused.
+`scripts/verify-security.mjs` runs 23 such checks and all pass. Whether the production deployment
+points at this same project remains an owner question.
 
 Nothing here was applied by me. The code was written to degrade honestly if the tables were
 missing, and it still does — which is why `/api/health` now probes rather than inferring from

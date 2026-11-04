@@ -100,8 +100,8 @@ containment property of the pipeline order, not of prompt wording.
 |---|---|---|
 | **IDOR on reports** | Owner check server-side; an owned report returns *identical* output to a non-existent one, because confirming an id is real is itself a leak | `lib/store.ts` `getReport` |
 | **Ownership forgery** | `user_id` comes from the verified session, never the request body — asserted by a test that reads the source text | `lib/api/analyses.ts`, `tests/report-ownership.test.ts` |
-| **Leaked publishable key** | RLS on with no `anon` grants. Reads nothing | all migrations |
-| **Server-side mistake rewriting history** | `case_events` and `consent_receipts` refuse UPDATE by trigger, which binds the service role too — a policy alone would not | `20261104174500_case_model.sql` |
+| **Leaked publishable key** | RLS on with no `anon` grants. **Verified**: the publishable key reads nothing from any of the six tables and cannot execute `consume_rate_limit` | `scripts/verify-security.mjs` |
+| **Server-side mistake rewriting history** | `case_events` and `consent_receipts` refuse UPDATE by trigger, which binds the service role too. **Verified by attempting it as the service role** and being refused | `scripts/verify-security.mjs` |
 | **Abuse / cost exhaustion** | Shared Postgres counter, atomic increment. Falls back to per-instance rather than failing open, and reports which | `lib/ratelimit.ts` |
 | **Rate-limit table as a tracking log** | Keys are hashed, never raw addresses; HMAC when `TRUSTLENS_HMAC_KEY` is set. Rows pruned after ten windows | same |
 | **Phone-number re-identification** | HMAC, not bare SHA-256: 10^10 ten-digit numbers reverse on a laptop | `lib/threat-intel/indicators.ts` |
@@ -149,9 +149,8 @@ Listed because an unlisted gap is the dangerous kind.
 ## 7. The next three pieces of security work, in order
 
 1. **Pin the validated address** for live URL retrieval, closing §3's rebinding gap.
-2. **Confirm the append-only triggers and RLS policies are live.** The tables exist and the
-   rate-limit function is verified working, but PostgREST cannot show a trigger, so
-   `case_events` refusing UPDATE is written and unconfirmed. This needs a psql session, not an
-   API call — `docs/DATABASE_DICTIONARY.md` §0.
-3. **Set `TRUSTLENS_HMAC_KEY`** in the canonical project, so rate-limit tokens stop being an
-   unkeyed hash of a 2^32 address space.
+2. **Set `TRUSTLENS_HMAC_KEY`** in the canonical project, so rate-limit tokens stop being an
+   unkeyed hash of a 2^32 address space. *(The append-only triggers and RLS policies are now
+   verified — `scripts/verify-security.mjs`, 23 checks. See `docs/DATABASE_DICTIONARY.md` §0.)*
+3. **Evaluate a commercial threat-intelligence provider.** The abstraction does not exist yet, so
+   no URL reputation is consulted at all.
