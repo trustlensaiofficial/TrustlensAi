@@ -922,3 +922,18 @@ a { color: inherit; }
 }
 .cap-note svg { width: 16px; height: 16px; flex: none; margin-top: 1px; }
 
+
+/* Explicit external-model consent in Kaval. */
+.kaval-cloud-consent {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 14px; margin: 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface-raised, var(--surface));
+  color: var(--text-muted); font-size: .74rem; line-height: 1.45;
+}
+.kaval-cloud-consent > input {
+  flex: none; margin: 3px 0 0; accent-color: var(--accent);
+}
+.kaval-cloud-consent > span { display: grid; gap: 3px; }
+.kaval-cloud-consent strong { color: var(--text); font-size: .78rem; }
+.kaval-cloud-consent span span { color: var(--text-faint); }
