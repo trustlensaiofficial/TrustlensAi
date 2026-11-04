@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import type { Finding, Report, Signal, SignalSeverity } from '@/lib/analysis/types';
+import type { Finding, Report, Signal, SignalSeverity, UserActionState } from '@/lib/analysis/types';
+import { responsePlanFor } from '@/lib/analysis/response-plan';
 import { helplinesFor } from '@/lib/analysis/helplines';
 import { copy, type Lang } from '@/lib/i18n/strings';
 import { Alert, Check, Chevron, Doc, Eye, Help, Lock, Phone, Scales, Shield } from './icons';
@@ -20,6 +21,16 @@ const LEVEL_TONE = {
   some_signals: 'check',
   no_signals_detected: 'clear',
 } as const;
+
+const ACTION_CHOICES: Array<{ value: UserActionState; label: string }> = [
+  { value: 'not_acted', label: 'I only received it' },
+  { value: 'opened_link', label: 'I opened the link' },
+  { value: 'shared_credentials', label: 'I shared an OTP or account detail' },
+  { value: 'installed_app', label: 'I installed an app' },
+  { value: 'remote_access', label: 'I shared my screen or remote access' },
+  { value: 'approved_payment', label: 'I approved a payment request' },
+  { value: 'sent_money', label: 'I already sent money' },
+];
 
 /**
  * Highlights the exact matched span inside the quoted text.
@@ -110,6 +121,8 @@ export function ReportView({ report, lang }: { report: Report; lang: Lang }) {
   const tone = LEVEL_TONE[report.assessment.level];
   const levelCopy = t.level[report.assessment.level];
   const helplines = helplinesFor(report);
+  const [actionState, setActionState] = useState<UserActionState>('not_acted');
+  const responsePlan = responsePlanFor(actionState);
 
   return (
     <div className="report">
@@ -131,6 +144,50 @@ export function ReportView({ report, lang }: { report: Report; lang: Lang }) {
           <span>{report.model.reason ?? 'The AI reading layer did not run. Everything below came from fixed rules and checks that did run.'}</span>
         </p>
       )}
+
+      <section className="section">
+        <div className="section-head">
+          <h2>What have you done so far?</h2>
+          <p>Choose the furthest step you took after receiving this. Your next steps change based on your answer.</p>
+        </div>
+        <div className="response-state-grid" role="group" aria-label="What you have done so far">
+          {ACTION_CHOICES.map((choice) => (
+            <button
+              key={choice.value}
+              type="button"
+              className={`btn btn-sm ${actionState === choice.value ? 'btn-primary' : 'btn-ghost'}`}
+              aria-pressed={actionState === choice.value}
+              onClick={() => setActionState(choice.value)}
+            >
+              {choice.label}
+            </button>
+          ))}
+        </div>
+        {responsePlan ? (
+          <div className="card card-pad response-plan">
+            <div className="section-head">
+              <h3>{responsePlan.title}</h3>
+              <p>{responsePlan.summary}</p>
+            </div>
+            <ol className="steps">
+              {responsePlan.steps.map((step, index) => (
+                <li key={index} className="step">
+                  <span className="step-num">{index + 1}</span>
+                  <div>
+                    <p className="step-action">{step.action}</p>
+                    <p className="step-why">{step.why}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            {lang !== 'en' && (
+              <p className="muted-xs">Detailed incident-response steps are currently in English. The selected explanation language applies to the translated report copy.</p>
+            )}
+          </div>
+        ) : (
+          <p className="notice notice-check">No incident response is needed based on your answer yet. Do not click, pay or share codes; verify independently before acting.</p>
+        )}
+      </section>
 
       {/* Warning signs, worst first. */}
       <section className="section">
