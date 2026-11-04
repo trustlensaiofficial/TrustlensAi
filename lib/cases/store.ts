@@ -500,10 +500,41 @@ export async function recordEvent(
   };
 }
 
-/** Whether case storage is usable, for `/api/health` and `/capabilities`. */
-export function caseStoreStatus(): { available: boolean; reason?: string } {
+/**
+ * Whether case storage is usable, for `/api/health`.
+ *
+ * Probes the table rather than inferring from configuration. An earlier
+ * version of this returned `available: true` whenever Supabase was configured
+ * and no request had yet failed — which put a green tick next to a table that
+ * may not exist. That is the same mistake `probeProvider` was written to fix
+ * for the AI capability, and it is worse here because a reader of /api/health
+ * is specifically trying to find out what works.
+ *
+ * `limit(0)` asks for the shape and no rows, so the probe costs a round trip
+ * and reads nothing.
+ */
+export async function caseStoreStatus(): Promise<{ available: boolean; reason?: string }> {
   if (tables === 'absent') return { available: false, reason: NOT_MIGRATED };
   const s = storeStatus();
   if (!s.enabled) return { available: false, reason: s.reason };
+  if (tables === 'present') return { available: true };
+
+  const c = getServiceClient();
+  if (!c) return { available: false, reason: 'The storage client could not be created.' };
+
+  const { error } = await c.from('cases').select('id').limit(0);
+  if (error) {
+    if (isMissingTable(error)) {
+      tables = 'absent';
+      return { available: false, reason: NOT_MIGRATED };
+    }
+    return { available: false, reason: 'Case storage did not answer.' };
+  }
+  tables = 'present';
   return { available: true };
+}
+
+/** Test hook: forget what the probe learned. */
+export function __resetCaseStore(): void {
+  tables = 'unknown';
 }

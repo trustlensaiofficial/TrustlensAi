@@ -5,8 +5,38 @@
 Every table, every column, and — where it is the interesting part — why the column exists at all.
 All eleven migrations parse against the real Postgres grammar (`libpg_query`).
 
-**Applied state:** the two migrations dated `20261104` are **written but not applied to any
-database**. Both are additive. Applying them to the canonical project is an owner action.
+## 0. Applied state — verified, 2026-11-04
+
+I originally recorded the two `20261104` migrations as unapplied. That was wrong, and probing the
+project this working tree is configured against corrected it.
+
+**Verified present** by asking for every column this code reads, one at a time (a missing column
+returns `42703`):
+
+| Object | Result |
+|---|---|
+| `scans`, `cases`, `case_artifacts`, `case_events`, `consent_receipts`, `rate_limits` | all exist |
+| `cases` | all 8 columns |
+| `case_artifacts` | all 13 columns |
+| `case_events` | all 6 columns |
+| `consent_receipts` | all 6 columns |
+| `rate_limits` | all 3 columns |
+| `consume_rate_limit(text,int,int)` | callable, and **verified working end to end** — 12 requests allowed, the 13th refused with `Retry-After: 52`, `X-RateLimit-Scope: shared` throughout |
+
+The probe was validated against a deliberately non-existent table, which correctly returned
+`PGRST205`, so "exists" here is a real answer rather than a silent pass.
+
+**NOT verified, and not claimed:**
+
+- **The append-only triggers.** PostgREST does not expose trigger functions, and firing one needs a
+  real row, which needs a real `auth.users` id. So `case_events` and `consent_receipts` refusing
+  UPDATE is *written* and *unconfirmed against this database*.
+- **The RLS policies**, for the same reason.
+- **Whether the production deployment's environment points at this same project.** That is an owner
+  question, not something this working tree can answer.
+
+The code degrades honestly either way: `/api/health` probes rather than inferring, so it reports
+what is actually reachable.
 
 ---
 

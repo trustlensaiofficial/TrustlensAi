@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { probeProvider, resolveProvider } from '@/lib/analysis/llm';
-import { rateLimitStatus } from '@/lib/ratelimit';
+import { caseStoreStatus } from '@/lib/cases/store';
+import { probeSharedRateLimit, rateLimitStatus } from '@/lib/ratelimit';
 import { storeStatus } from '@/lib/store';
 
 export const runtime = 'nodejs';
@@ -21,6 +22,8 @@ export async function GET() {
   const provider = resolveProvider();
   const store = storeStatus();
   const ai = await probeProvider();
+  // Probe both before reporting, so neither is a guess from configuration.
+  const [cases] = await Promise.all([caseStoreStatus(), probeSharedRateLimit()]);
   const limits = rateLimitStatus();
 
   const notes: string[] = [];
@@ -37,6 +40,7 @@ export async function GET() {
   // Stated whether good or bad: a dashboard that only mentions rate limiting
   // when it works is how per-instance counting goes unnoticed.
   notes.push(limits.note);
+  if (!cases.available && cases.reason) notes.push(cases.reason);
 
   return NextResponse.json(
     {
@@ -54,6 +58,10 @@ export async function GET() {
         sharedRateLimiting: limits.shared,
         rateLimitKeyedTokens: limits.keyedTokens,
         rateLimitPerMinute: limits.limit,
+        // False until the case migration is applied. The routes exist either
+        // way and answer 503 with a reason, which is better than a green tick
+        // over a table that does not exist.
+        caseStorage: cases.available,
       },
       notes,
     },

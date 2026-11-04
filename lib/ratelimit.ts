@@ -148,10 +148,11 @@ let sharedCounter: 'unknown' | 'present' | 'absent' = 'unknown';
 /** PostgREST reports an unknown function as 42883, a missing table as 42P01. */
 function isMissingFunction(error: { code?: string; message?: string }): boolean {
   return (
-    error.code === '42883' ||
-    error.code === '42P01' ||
-    error.code === 'PGRST202' ||
-    /consume_rate_limit/i.test(error.message ?? '')
+    error.code === '42883' ||   // undefined_function
+    error.code === '42P01' ||   // undefined_table, for the probe
+    error.code === 'PGRST202' || // PostgREST: function not found
+    error.code === 'PGRST205' || // PostgREST: table not found
+    /consume_rate_limit|rate_limits/i.test(error.message ?? '')
   );
 }
 
@@ -208,7 +209,34 @@ export async function consumeRateLimit(
   }
 }
 
-/** What the limiter can honestly say about itself, for `/api/health`. */
+/**
+ * Probes the shared counter without spending anyone's quota.
+ *
+ * `limit(0)` on the table asks for its shape and no rows. Needed because
+ * `rateLimitStatus()` on its own cannot distinguish "shared and working" from
+ * "configured but never yet attempted", and reporting the second as the first
+ * is how per-instance counting goes unnoticed.
+ */
+export async function probeSharedRateLimit(): Promise<void> {
+  if (sharedCounter !== 'unknown' || !storeStatus().enabled) return;
+  const client = getServiceClient();
+  if (!client) return;
+  const { error } = await client.from('rate_limits').select('key').limit(0);
+  if (error) {
+    if (isMissingFunction(error)) sharedCounter = 'absent';
+    return;
+  }
+  sharedCounter = 'present';
+}
+
+/**
+ * What the limiter can honestly say about itself, for `/api/health`.
+ *
+ * Reports `shared: false` until a real call or `probeSharedRateLimit` has
+ * confirmed the counter exists. Unverified is reported as not-shared, because
+ * the consequence of being wrong in that direction is only a cautious note,
+ * while the other direction is a green tick over absent protection.
+ */
 export function rateLimitStatus(): {
   shared: boolean;
   keyedTokens: boolean;
@@ -216,7 +244,7 @@ export function rateLimitStatus(): {
   windowSeconds: number;
   note: string;
 } {
-  const shared = sharedCounter !== 'absent' && storeStatus().enabled;
+  const shared = sharedCounter === 'present' && storeStatus().enabled;
   const keyedTokens = Boolean(process.env.TRUSTLENS_HMAC_KEY?.trim());
   return {
     shared,

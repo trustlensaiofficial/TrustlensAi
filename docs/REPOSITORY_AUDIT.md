@@ -127,10 +127,10 @@ deliberately not done from here.
 
 | ID | Was | Now |
 |---|---|---|
-| **B1** | Rate limiting per-instance | Shared Postgres counter via atomic `INSERT .. ON CONFLICT DO UPDATE`. Falls back to the in-process limiter rather than failing open, and reports the scope it actually enforced at in `X-RateLimit-Scope` and `/api/health`. **Migration not applied** — until it is, every deployment honestly reports `instance` |
+| **B1** | Rate limiting per-instance | **Closed and verified.** Shared Postgres counter via atomic `INSERT .. ON CONFLICT DO UPDATE`. Falls back to the in-process limiter rather than failing open. Tested end to end against the live project: 12 allowed, 13th refused with `Retry-After: 52`, `X-RateLimit-Scope: shared` throughout |
 | **B2** | No API versioning | `POST /api/v1/analyses`, `GET /api/v1/capabilities`, `POST /api/v1/recovery-plan`. `/api/analyze` is a deprecated alias onto the same handler with `Deprecation: true` and a successor `Link` |
 | **B3** | No API contract | `docs/openapi.yaml` — 11 paths, 16 schemas, validated |
-| **B4** | No case model | `cases`, `case_artifacts`, `case_events`, `consent_receipts`, every CHECK matching a contract enum. Append-only enforced by trigger, not convention. **Migration not applied** |
+| **B4** | No case model | `cases`, `case_artifacts`, `case_events`, `consent_receipts`, every CHECK matching a contract enum. Append-only enforced by trigger, not convention. **Tables and columns verified present**; the triggers and policies are written but unconfirmed — see `docs/DATABASE_DICTIONARY.md` §0 |
 
 ### Gaps from §3 now closed
 
@@ -143,9 +143,10 @@ deliberately not done from here.
 
 ### Still open
 
-- Module 6 — **case endpoints are built** but unverified against a live database, because the
-  migration is not applied. Their decision logic (`lib/cases/transitions.ts`) is pure and has 19
-  tests; the persistence layer has none, which is the honest gap.
+- Module 6 — **case endpoints are built**, and the tables they need exist. Their round trips are
+  still unverified, because exercising them needs a signed-in session this working tree cannot
+  create. The decision logic (`lib/cases/transitions.ts`) is pure and has 19 tests; the persistence
+  layer has none, which is the honest gap.
 - Module 10 — consent endpoints. The table exists in a written migration; the routes do not.
 - Threat-intelligence provider abstraction. Not started.
 - `packages/contracts` typed client. Not started.
@@ -153,12 +154,19 @@ deliberately not done from here.
   `docs/PRODUCT_CHARTER.md` §6 gates every public accuracy claim on it.
 - `apps/android` — unchanged, and still unbuildable here (§4).
 
-### Two migrations await an owner decision
+### Migration state — corrected
 
-Neither `20261104173000_shared_rate_limits.sql` nor `20261104174500_case_model.sql` has been
-applied to any database. Both are additive — `create table if not exists`, `create or replace
-function`, no drops of anything that holds data — but applying a migration to the canonical
-project is an owner action, not an agent one, and the code is written to degrade honestly until
-they land rather than to assume they have.
+I initially recorded both `20261104` migrations as unapplied. Probing the project this working tree
+is configured against showed otherwise: every table and every column they define is present, and
+`consume_rate_limit` is callable and works. The probe was validated against a non-existent table
+first, so that is a real answer.
+
+What remains unverified is the part PostgREST cannot show: the append-only triggers and the RLS
+policies. Those are written and unconfirmed. Whether the production deployment points at this same
+project is an owner question.
+
+Nothing here was applied by me. The code was written to degrade honestly if the tables were
+missing, and it still does — which is why `/api/health` now probes rather than inferring from
+configuration.
 
 Test count across the branch: **298 passing**, 26 files.

@@ -213,8 +213,8 @@ English for now.
 |---|---|---|
 | 1 | `POST /api/v1/analyses` | **Live.** `/api/analyze` is now a deprecated alias onto the same handler and returns `Deprecation: true` plus a `Link` header naming the successor |
 | 2 | `GET /api/v1/capabilities` | **Live.** Declare your platform with `X-TrustLens-Platform: web\|android\|ios`; it defaults to `web` and never guesses native from a user agent. Each entry now also carries `mechanism` and `limits` — render both |
-| 3 | Shared rate limiting | **Done in code**, migration not yet applied. Read `X-RateLimit-Scope` on a response: `instance` means the shared counter was unreachable and the real ceiling is higher than the configured one |
-| 4 | Case endpoints | **Built**, migration not yet applied. `POST`/`GET /api/v1/cases`, `GET`/`PATCH`/`DELETE /api/v1/cases/{caseId}`, `POST .../artifacts`, `POST .../events`, `GET .../recovery-plan`. Until the migration lands they return **503** with a reason naming the cause — render it as `unavailable`, not as an error |
+| 3 | Shared rate limiting | **Live and verified.** Read `X-RateLimit-Scope` on a response: `shared` is normal; `instance` means the shared counter was unreachable and the real ceiling is higher than the configured one |
+| 4 | Case endpoints | **Built**, tables present, round trips not yet exercised. `POST`/`GET /api/v1/cases`, `GET`/`PATCH`/`DELETE /api/v1/cases/{caseId}`, `POST .../artifacts`, `POST .../events`, `GET .../recovery-plan`. If case storage is ever unavailable they return **503** with a reason naming the cause — render that as `unavailable`, not as an error |
 | 4b | `POST /api/v1/recovery-plan` | **Live and deliberately unauthenticated.** `GET` the same path lists the action states to offer |
 | 5 | Threat-intelligence provider abstraction | Not started |
 | 6 | Typed client package at `packages/contracts` | Not started |

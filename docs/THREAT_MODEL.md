@@ -149,8 +149,9 @@ Listed because an unlisted gap is the dangerous kind.
 ## 7. The next three pieces of security work, in order
 
 1. **Pin the validated address** for live URL retrieval, closing §3's rebinding gap.
-2. **Apply the two pending migrations** so shared rate limiting is actually in force — today every
-   deployment honestly reports `instance` scope, meaning the real ceiling is higher than the
-   configured one.
+2. **Confirm the append-only triggers and RLS policies are live.** The tables exist and the
+   rate-limit function is verified working, but PostgREST cannot show a trigger, so
+   `case_events` refusing UPDATE is written and unconfirmed. This needs a psql session, not an
+   API call — `docs/DATABASE_DICTIONARY.md` §0.
 3. **Set `TRUSTLENS_HMAC_KEY`** in the canonical project, so rate-limit tokens stop being an
    unkeyed hash of a 2^32 address space.
