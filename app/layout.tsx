@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import './polish.css';
 import { RegisterSW } from '@/components/ui/RegisterSW';
 
 export const metadata: Metadata = {
