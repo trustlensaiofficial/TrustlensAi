@@ -200,7 +200,7 @@ export function ReportView({ report, lang }: { report: Report; lang: Lang }) {
           <h2>{ACTION_COPY[lang].title}</h2>
           <p>{ACTION_COPY[lang].description}</p>
         </div>
-        <div className="response-state-grid" role="group" aria-label="What you have done so far">
+        <div className="response-state-grid" role="group" aria-label={ACTION_COPY[lang].title}>
           {ACTION_CHOICES.map((choice) => (
             <button
               key={choice}
