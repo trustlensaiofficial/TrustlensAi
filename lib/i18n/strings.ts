@@ -5,22 +5,37 @@ import type { AssessmentLevel, SignalSeverity } from '../analysis/types';
  *
  * Scoped deliberately to the decision-critical copy — the verdict, the
  * severity words and the standing advice — rather than the whole interface.
- * Those are the sentences someone acts on, and they are authored per language
- * rather than machine-translated, so the Tanglish reads the way people
- * actually speak rather than like translated English.
+ * Those are the sentences someone acts on, and each is authored per language
+ * rather than machine-translated, so they read the way people actually speak.
  *
- * "Tanglish" is Tamil written in Latin script, which is how a very large
- * number of Tamil speakers actually type and read on a phone. Tamil script is
- * not offered yet because the detector patterns and the narration were not
- * tested in it, and claiming support we have not tested is the one thing this
- * product must never do.
+ * Tamil and Hindi are written here in Latin script, which is how a very large
+ * number of speakers type and read on a phone. Native script is not offered
+ * yet: the detector patterns and the narration were never tested in it, and
+ * claiming support that was not tested is the one thing this product must
+ * never do.
  */
-export const LANGS = ['en', 'ta'] as const;
+export const LANGS = ['en', 'ta', 'hi'] as const;
 export type Lang = (typeof LANGS)[number];
 
+/*
+ * Named the way a speaker would name their own language.
+ *
+ * An earlier label read "Tamil (Tanglish)". "Tanglish" is informal slang for
+ * the romanised form and looks unserious on a security product, so the
+ * languages are simply named — and the romanised form is explained once,
+ * below, rather than stamped on the picker.
+ */
 export const LANG_LABEL: Record<Lang, string> = {
   en: 'English',
-  ta: 'Tamil (Tanglish)',
+  ta: 'தமிழ் · Tamil',
+  hi: 'हिन्दी · Hindi',
+};
+
+/** How each language is written here, shown once beside the picker. */
+export const LANG_NOTE: Record<Lang, string> = {
+  en: 'Indian English',
+  ta: 'Written in English letters, the way most people type Tamil on a phone',
+  hi: 'Written in English letters, the way most people type Hindi on a phone',
 };
 
 interface Copy {
@@ -124,7 +139,46 @@ const TA: Copy = {
   goldenRule: 'OTP, PIN, password — yaarukkum share pannadheenga. Message-la irukkira number-ku call pannadheenga; unkitta already irukkira official number-la mattum verify pannunga.',
 };
 
-const COPY: Record<Lang, Copy> = { en: EN, ta: TA };
+
+const HI: Copy = {
+  level: {
+    high_risk: {
+      title: 'Yahan serious warning signs hain',
+      sub: 'Ise unsafe maaniye jab tak aap khud apne bharose wale channel se check na kar lein.',
+    },
+    elevated_risk: {
+      title: 'Verify karna zaroori hai',
+      sub: 'Kuch cheezein sandigdh hain. Kuch bhi karne se pehle check kijiye.',
+    },
+    some_signals: {
+      title: 'Thoda check karna chahiye',
+      sub: 'Kuch confirm nahi hai. Lekin paisa bhejne ya kuch share karne se pehle verify kijiye.',
+    },
+    no_signals_detected: {
+      title: 'Koi badi warning nahi mili',
+      sub: 'Iska matlab yeh genuine hai aisa nahi. Sirf itna ki hamare rules match nahi hue.',
+    },
+  },
+  severity: { critical: 'Bahut critical', high: 'Serious', medium: 'Dhyaan dene layak', low: 'Chhota' },
+  ui: {
+    whatWeFound: 'Humein kya mila',
+    exactText: 'Yeh shabd flag hue',
+    whyItMatters: 'Yeh kyun important hai',
+    whatWeChecked: 'Humne kya check kiya',
+    couldNotCheck: 'Jo check nahi kar sake',
+    whatToDo: 'Ab kya karein',
+    askSender: 'Bhejne wale se yeh poochiye',
+    getHelp: 'Madad kahan milegi',
+    noSignals: 'Hamare rules is text se match nahi hue.',
+    howEstablished: 'Yeh kaise pata chala',
+    deterministic: 'Fixed rule',
+    retrieved: 'Check kiya gaya',
+    inference: 'AI ki raay',
+  },
+  goldenRule: 'OTP, PIN ya password kisi ko mat dijiye. Message mein diye number par nahi — apne paas pehle se maujood official number par verify kijiye.',
+};
+
+const COPY: Record<Lang, Copy> = { en: EN, ta: TA, hi: HI };
 
 export function copy(lang: Lang): Copy {
   return COPY[lang];
@@ -132,5 +186,5 @@ export function copy(lang: Lang): Copy {
 
 /** The language a visitor last chose. Falls back to English. */
 export function readLang(raw: string | null | undefined): Lang {
-  return raw === 'ta' ? 'ta' : 'en';
+  return raw === 'ta' || raw === 'hi' ? raw : 'en';
 }

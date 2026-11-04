@@ -891,3 +891,35 @@ a { color: inherit; }
   .ev-cols { grid-template-columns: 1fr; }
   .ev-table th { width: 38%; }
 }
+
+/* ------------------------------------------------------------- sign-in -- */
+.signin-page { display: flex; justify-content: center; }
+.signin {
+  width: min(430px, 100%); display: flex; flex-direction: column;
+  align-items: center; gap: var(--s3); text-align: center; padding: var(--s6);
+}
+.signin-mark {
+  display: grid; place-items: center; width: 52px; height: 52px;
+  border-radius: var(--r-md); background: var(--accent-soft);
+  border: 1px solid var(--accent-line); color: var(--accent);
+}
+.signin-mark svg { width: 26px; height: 26px; }
+.signin h1 { font-size: 1.5rem; }
+.signin-lede { font-size: .92rem; }
+.signin-actions { display: flex; flex-direction: column; gap: var(--s2); width: 100%; margin-top: var(--s2); }
+.signin-hint { max-width: 40ch; }
+.signin-skip { margin-top: 2px; }
+.signin-note {
+  display: flex; gap: 8px; text-align: left; padding-top: var(--s3);
+  border-top: 1px solid var(--border); width: 100%;
+  color: var(--text-faint); font-size: .76rem; line-height: 1.5;
+}
+.signin-note svg { width: 13px; height: 13px; flex: none; margin-top: 2px; }
+
+.account-link { gap: 7px; }
+.account-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sev-clear); flex: none; }
+.account-name { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.lang-note { display: block; margin-top: 6px; max-width: 46ch; }
+
+@media (max-width: 480px) { .account-name { display: none; } }

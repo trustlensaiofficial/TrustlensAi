@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { InputContext, Report } from '@/lib/analysis/types';
 import { DEMO_CASES } from '@/lib/demo/cases';
-import { LANGS, LANG_LABEL, type Lang } from '@/lib/i18n/strings';
+import { LANGS, LANG_LABEL, LANG_NOTE, type Lang } from '@/lib/i18n/strings';
 import { saveLocalReport } from '@/lib/offline/local-reports';
 import { useOnline } from './OnlineBadge';
 import { ReportView } from './ReportView';
@@ -158,6 +158,7 @@ export function CheckWorkspace() {
                   </button>
                 ))}
               </div>
+              <span className="muted-xs lang-note">{LANG_NOTE[lang]}</span>
             </div>
           </div>
 
