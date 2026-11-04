@@ -45,6 +45,16 @@ describe('the refund-that-is-really-a-debit', () => {
     expect(a.explanation).toMatch(/never enter a UPI PIN to receive money|opposite of what will happen/i);
   });
 
+  it('tells the reader that P2P collect requests no longer exist', () => {
+    // Worth more than the generic warning: someone posing as an individual
+    // is describing a mechanism NPCI switched off on 1 October 2025.
+    const a = detectPaymentAction('I have sent a payment request for Rs 500. Please approve the request.');
+    expect(a.kind).toBe('approve_collect');
+    expect(a.direction).toBe('user_pays');
+    expect(a.explanation).toMatch(/1 October 2025/);
+    expect(a.explanation).toMatch(/registered merchants/i);
+  });
+
   it('catches the QR version of the same trick', () => {
     const a = detectPaymentAction('Scan this QR code to receive your cashback of Rs 500');
     expect(a.kind).toBe('scan_qr');

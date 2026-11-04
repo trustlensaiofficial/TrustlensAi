@@ -158,11 +158,15 @@ const INSTALL_APP =
 function explainCollect(claimsRefund: boolean): string {
   const mechanism =
     'A UPI collect request is someone asking you for money. Approving it and entering your PIN authorises a payment **out** of your account.';
-  if (!claimsRefund) return mechanism;
+  const npci =
+    'NPCI switched off person-to-person collect requests on 1 October 2025, specifically because they were used this way. ' +
+    'Only registered merchants can send one now — so an individual claiming to send you a payment request is describing something UPI no longer does.';
+  if (!claimsRefund) return `${mechanism}\n\n${npci}`;
   return (
     `${mechanism}\n\n` +
     'This message describes it as a refund. That cannot be true: you never enter a UPI PIN to receive money, only to send it. ' +
-    'A genuine refund arrives on its own, with nothing for you to approve.'
+    'A genuine refund arrives on its own, with nothing for you to approve.\n\n' +
+    npci
   );
 }
 
