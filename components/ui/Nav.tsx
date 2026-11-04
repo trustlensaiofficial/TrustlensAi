@@ -30,7 +30,24 @@ export function Nav() {
     document.body.style.overflow = 'hidden';
     panelRef.current?.querySelector<HTMLAnchorElement>('a')?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { event.preventDefault(); setOpen(false); }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (event.key === 'Tab') {
+        const items = panelRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])');
+        if (!items?.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => {
