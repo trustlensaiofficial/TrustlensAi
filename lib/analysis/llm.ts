@@ -269,3 +269,81 @@ export async function runContextualAnalysis(
     };
   }
 }
+
+/* ---------------------------------------------------------------- probing */
+
+/**
+ * What the contextual layer can actually do right now.
+ *
+ * `configured` is not the same as `responding`. An earlier version of the
+ * health endpoint reported the AI layer as available whenever a key existed,
+ * which showed a green tick on the dashboard for a provider that was
+ * refusing every request on billing. Distinguishing these is the difference
+ * between a status display and a decoration.
+ */
+export type ProviderHealth =
+  | 'not_configured'
+  | 'responding'
+  | 'billing_blocked'
+  | 'auth_rejected'
+  | 'rate_limited'
+  | 'unavailable';
+
+interface Probe {
+  health: ProviderHealth;
+  reason: string | null;
+  at: number;
+}
+
+/** Probes cost a real request, so the answer is reused briefly. */
+const PROBE_TTL_MS = 60_000;
+let cachedProbe: Probe | null = null;
+
+function classify(raw: string): ProviderHealth {
+  const text = raw.toLowerCase();
+  if (text.includes('credit card') || text.includes('billing') || text.includes('payment method')) {
+    return 'billing_blocked';
+  }
+  if (/401|403|unauthor|invalid api key|authentication/.test(text)) return 'auth_rejected';
+  if (/429|rate limit|quota|credit/.test(text)) return 'rate_limited';
+  return 'unavailable';
+}
+
+/**
+ * Asks the provider for one token to find out whether it will actually serve.
+ *
+ * Deliberately tiny — the answer is discarded; only whether the call
+ * succeeded matters. Failures are classified rather than swallowed, so the
+ * UI can say "billing is not enabled" instead of "unavailable", which is the
+ * difference between an actionable message and a shrug.
+ */
+export async function probeProvider(now = Date.now()): Promise<{ health: ProviderHealth; reason: string | null }> {
+  const provider = resolveProvider();
+  if (provider === 'none') return { health: 'not_configured', reason: 'No AI credential is configured for this deployment.' };
+
+  if (cachedProbe && now - cachedProbe.at < PROBE_TTL_MS) {
+    return { health: cachedProbe.health, reason: cachedProbe.reason };
+  }
+
+  try {
+    const { generateText } = await import('ai');
+    await generateText({
+      model: provider === 'vercel-ai-gateway' ? GATEWAY_MODEL : ANTHROPIC_MODEL,
+      prompt: 'ok',
+      maxOutputTokens: 1,
+      abortSignal: AbortSignal.timeout(6_000),
+    });
+    cachedProbe = { health: 'responding', reason: null, at: now };
+  } catch (error) {
+    const raw = error instanceof Error ? error.message : String(error);
+    const health = classify(raw);
+    cachedProbe = { health, reason: describeFailure(raw).replace(/ The deterministic.*$/, ''), at: now };
+  }
+
+  return { health: cachedProbe.health, reason: cachedProbe.reason };
+}
+
+/** Clears the cached probe. Tests only. */
+export function __resetProbe(): void {
+  cachedProbe = null;
+}

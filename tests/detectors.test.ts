@@ -74,3 +74,37 @@ describe('deterministic detectors', () => {
     expect(second[0]?.matches).toEqual(first[0]?.matches);
   });
 });
+
+/**
+ * A critical-severity rule firing on ordinary conversation is worse than a
+ * miss: it teaches people to dismiss the product, and the next warning — the
+ * real one — gets dismissed with it. These pin the request-vs-mention line.
+ */
+describe('credential requests: a mention is not a demand', () => {
+  const ids = (t: string) => detectSignals(t, 'message').map((s) => s.id);
+
+  it('stays silent when a one-time code is merely mentioned', () => {
+    const benign = [
+      'I got the OTP for the train booking, the ticket is confirmed. See you Sunday.',
+      'The OTP never arrived, I had to book again.',
+      'My card expiry date is next month, I should renew it.',
+      'Did you receive the verification code from the college portal?',
+    ];
+    for (const text of benign) {
+      expect(ids(text), text).not.toContain('credentials.request');
+    }
+  });
+
+  it('still catches the demand, in either word order', () => {
+    const scams = [
+      'Please share the OTP sent to your mobile now',
+      'To stop the transaction, enter your UPI PIN immediately',
+      'The OTP has been sent — read it out to our executive',
+      'Confirm your card number and CVV to release the refund',
+      'Reply with the verification code to complete the process',
+    ];
+    for (const text of scams) {
+      expect(ids(text), text).toContain('credentials.request');
+    }
+  });
+});

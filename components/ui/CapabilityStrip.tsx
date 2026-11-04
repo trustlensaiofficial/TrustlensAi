@@ -6,7 +6,7 @@ import { useOnline } from './OnlineBadge';
 
 interface Health {
   ok: boolean;
-  capabilities: Record<string, boolean | string>;
+  capabilities: Record<string, boolean | string | null>;
 }
 
 const LABEL: Record<string, { on: string; off: string }> = {
@@ -55,8 +55,14 @@ export function CapabilityStrip() {
     <div className="caps">
       {Object.entries(LABEL).map(([key, words]) => {
         const on = health.capabilities[key] === true;
+        // The AI tile carries the real reason when it is not serving, so the
+        // user is told "billing is not enabled" rather than just a grey chip.
+        const reason =
+          key === 'contextualAnalysis' && !on
+            ? (health.capabilities.contextualReason as string | null) ?? null
+            : null;
         return (
-          <span key={key} className={`cap ${on ? 'cap-on' : 'cap-off'}`}>
+          <span key={key} className={`cap ${on ? 'cap-on' : 'cap-off'}`} title={reason ?? undefined}>
             {on ? <Check /> : <Help />}
             {on ? words.on : words.off}
           </span>

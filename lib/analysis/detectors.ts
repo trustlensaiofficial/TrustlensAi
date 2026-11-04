@@ -106,12 +106,26 @@ const RULES: Rule[] = [
     severity: 'critical',
     explanation:
       'No legitimate bank, platform or official will ask for your password, OTP, PIN or CVV. Anyone requesting a one-time code is almost certainly trying to complete a login or payment as you.',
+    /*
+     * Every pattern requires a REQUEST, not merely a mention.
+     *
+     * The first pattern used to match the bare word "OTP" anywhere, which
+     * fired this critical rule on "I got the OTP for the train booking" — an
+     * entirely innocent sentence. A critical false positive on ordinary
+     * conversation is worse than a miss: it teaches people to dismiss the
+     * product, and then the real warning is ignored too. The rule's own
+     * explanation says "anyone requesting a one-time code", so the patterns
+     * now match that and nothing else.
+     */
     patterns: [
-      /\b(otp|one[-\s]?time\s+(password|code|pin)|verification\s+code|security\s+code|auth(entication)?\s+code)\b/gi,
-      /\b(share|send|provide|enter|confirm|tell\s+(me|us))\s+(your\s+)?(password|passcode|pin|cvv|otp)\b/gi,
-      /\b(card\s+number|cvv|expiry\s+date)\b/gi,
+      // "share / send / enter your OTP" — demand before the code.
+      /\b(share|send|provide|enter|confirm|forward|give|tell\s+(me|us)|read(\s+\w+)?\s+out|reply\s+with)\b[^.!?]{0,30}?\b(otp|one[-\s]?time\s+(password|code|pin)|verification\s+code|security\s+code|passcode|password|pin|cvv)\b/gi,
+      // "the OTP ... send it to me" — code before the demand.
+      /\b(otp|one[-\s]?time\s+(password|code|pin)|verification\s+code|security\s+code)\b[^.!?]{0,30}?\b(share|send|provide|enter|forward|tell\s+(me|us)|read(\s+\w+)?\s+out|reply\s+with)\b/gi,
+      // Card data is only ever requested by an attacker in a message.
+      /\b(share|send|provide|enter|confirm|give)\b[^.!?]{0,30}?\b(card\s+number|cvv|expiry\s+date|card\s+details)\b/gi,
       /\b(net\s*banking|internet\s+banking)\s+(login|credentials|password|user\s*id)\b/gi,
-      /\b(aadhaar|pan\s+card|social\s+security\s+number|ssn)\s+(number|details)?\b/gi,
+      /\b(share|send|provide|submit|confirm)\b[^.!?]{0,30}?\b(aadhaar|pan\s+card)\s*(number|details|card)?\b/gi,
     ],
   },
   {
