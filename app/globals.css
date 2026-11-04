@@ -944,3 +944,23 @@ a { color: inherit; }
   border-top: 1px solid var(--sev-check-line);
   font-size: .72rem; line-height: 1.45;
 }
+
+/* Action-aware incident response selection inside each report. */
+.response-state-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+}
+.response-state-grid .btn {
+  justify-content: flex-start;
+  min-height: 44px;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.35;
+}
+.response-plan { margin-top: var(--s3); }
+.response-plan .section-head { margin-bottom: var(--s3); }
+@media (max-width: 560px) {
+  .response-state-grid { grid-template-columns: 1fr; }
+}
