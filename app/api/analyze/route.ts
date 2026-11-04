@@ -17,6 +17,9 @@ const Body = z.object({
   kind: z.enum(['auto', 'message', 'url', 'claim']).default('auto'),
   context: z.enum(['generic', 'bank_scam', 'job_offer', 'invoice', 'proposal', 'website']).default('generic'),
   liveChecks: z.boolean().default(true),
+  /** Both cloud AI and account sync are opt-in. */
+  allowCloudAI: z.boolean().default(false),
+  saveToAccount: z.boolean().default(false),
   demoSlug: z.string().max(64).optional(),
 });
 
@@ -47,7 +50,7 @@ export async function POST(request: Request) {
     return fail('The request body did not match the expected shape.', 400);
   }
 
-  const { kind, liveChecks, demoSlug } = parsed.data;
+  const { kind, liveChecks, allowCloudAI, saveToAccount, demoSlug } = parsed.data;
   let context = parsed.data.context;
 
   // A demo slug loads server-side canned text so the UI cannot pass off
@@ -75,24 +78,31 @@ export async function POST(request: Request) {
       kind: effectiveKind,
       context,
       liveChecks,
+      allowCloudAI,
       isDemo,
     });
 
-    const store = storeStatus();
-    let storageNote: string | undefined;
-    if (store.enabled) {
-      /**
-       * Ownership comes from the session cookie, never from the request body.
-       * Accepting a client-supplied user id would let anyone write reports
-       * into someone else's account.
-       */
+    // Account storage is a separate, explicit opt-in. Guest scans remain in
+    // browser IndexedDB only; an available service key never silently stores
+    // private content on the server.
+    report.persisted = false;
+    let storageNote = 'This report is kept in this browser only. Account sync was not requested.';
+    if (saveToAccount) {
       const user = await getCurrentUser();
-      const result = await saveReport(report, user?.id ?? null);
-      report.persisted = result.saved;
-      if (!result.saved) storageNote = result.reason;
-    } else {
-      report.persisted = false;
-      storageNote = store.reason;
+      if (!user) {
+        storageNote = 'This report remains in this browser. Sign in before enabling account sync.';
+      } else {
+        const store = storeStatus();
+        if (!store.enabled) {
+          storageNote = store.reason ?? 'Account storage is not configured; this report remains in this browser.';
+        } else {
+          const result = await saveReport(report, user.id);
+          report.persisted = result.saved;
+          storageNote = result.saved
+            ? 'An account copy was saved as requested. A local copy is also kept in this browser.'
+            : (result.reason ?? 'The account copy could not be saved; the local copy remains available.');
+        }
+      }
     }
 
     return NextResponse.json(
