@@ -8,6 +8,10 @@
  * which is which.
  */
 
+import type { PaymentAction } from './payment-action';
+
+export type { PaymentAction };
+
 export type InputKind = 'message' | 'url' | 'claim';
 
 /** The user's reported state after receiving a suspicious request. */
@@ -193,6 +197,15 @@ export interface Report {
   questions: QuestionToAsk[];
   /** How much of the possible investigation actually ran. */
   completeness: Completeness;
+  /**
+   * What the content is asking the reader to do with money, and which way the
+   * money would move. Null when nothing financial was found.
+   *
+   * This is deliberately a first-class field rather than another signal: the
+   * report renders it above the signal list, because what someone is being
+   * asked to do matters more to them than which rules fired.
+   */
+  paymentAction: PaymentAction | null;
   model: ModelStatus;
   /** True for the built-in example cases shown to reviewers. */
   isDemo: boolean;

@@ -5,6 +5,12 @@ import { detectSignals, ruleCount } from './detectors';
 import { detectTanglishSignals, TANGLISH_RULE_COUNT } from './tanglish';
 import { buildCompleteness, buildPositives, buildQuestions } from './insights';
 import { collectUrlEvidence, notCheckedEvidence } from './evidence';
+import {
+  detectPaymentAction,
+  isImmediatePaymentPrompt,
+  paymentActionLabel,
+  paymentActionStep,
+} from './payment-action';
 import { runContextualAnalysis } from './llm';
 import { buildPreview, classifyInput } from './normalize';
 import {
@@ -14,6 +20,7 @@ import {
   type Finding,
   type InputContext,
   type InputKind,
+  type PaymentAction,
   type Report,
   type Signal,
   type Uncertainty,
@@ -39,6 +46,11 @@ export interface AnalyzeOptions {
   liveChecks?: boolean;
   /** Cloud model use is off by default and requires explicit user consent. */
   allowCloudAI?: boolean;
+  /**
+   * A QR payload the client already decoded on-device. The image itself never
+   * needs to reach the server for the payment instruction to be read.
+   */
+  qrPayload?: string | null;
   isDemo?: boolean;
 }
 
@@ -114,6 +126,39 @@ function buildFindings(
   }
 
   return findings;
+}
+
+/**
+ * Payment facts, stated as deterministic findings.
+ *
+ * All of these come from parsing the instruction itself, so none of them is an
+ * inference. The payee address is reported as the account that would be
+ * credited and never as an identity, because anyone can create one.
+ */
+function paymentFindings(action: PaymentAction): Finding[] {
+  if (!action.detected) return [];
+  const out: Finding[] = [{ statement: paymentActionLabel(action), provenance: 'deterministic' }];
+
+  if (action.direction === 'user_pays') {
+    out.push({
+      statement: 'The mechanism being described moves money out of your account, not into it.',
+      provenance: 'deterministic',
+    });
+  }
+  if (action.upi?.payeeVpa) {
+    out.push({
+      statement: `The payment address that would be credited is ${action.upi.payeeVpa}.` +
+        (action.upi.payeeName ? ` The name attached to it, “${action.upi.payeeName}”, is set by whoever created the request and is not verified by any bank.` : ''),
+      provenance: 'deterministic',
+    });
+  }
+  if (action.upi?.amount) {
+    out.push({
+      statement: `The instruction fixes the amount at ${action.upi.currency ?? 'INR'} ${action.upi.amount}.`,
+      provenance: 'deterministic',
+    });
+  }
+  return out;
 }
 
 function buildUncertainty(
@@ -210,7 +255,33 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
     if (!signals.some((s) => s.id === taSignal.id)) signals.push(taSignal);
   }
 
-  // 2. Offline link structure. For a bare URL the input itself is the link.
+  // 2. What is this asking the reader to do with money? This runs before the
+  //    link work because the answer does not depend on it, and because a
+  //    contradiction between the claim and the mechanism is the strongest
+  //    deterministic finding the product can produce.
+  const paymentAction = detectPaymentAction(text, options.qrPayload ?? null);
+  if (paymentAction.claimContradiction && paymentAction.claimSpan) {
+    // Only the contradiction earns a signal. A plain payment instruction with
+    // no deceptive framing is information, not a warning sign, and inflating
+    // it would train people to ignore the ones that matter.
+    signals.push({
+      id: 'payment.claim_contradiction',
+      title: `${paymentActionLabel(paymentAction)}, while the message describes money coming to you`,
+      category: 'payment',
+      severity: 'critical',
+      explanation: paymentAction.explanation,
+      matches: [
+        {
+          text: paymentAction.claimSpan.text,
+          start: paymentAction.claimSpan.start,
+          end: paymentAction.claimSpan.end,
+          note: 'The mechanism this message asks you to use takes money out. These are the words promising the opposite.',
+        },
+      ],
+    });
+  }
+
+  // 3. Offline link structure. For a bare URL the input itself is the link.
   const urls = kind === 'url' ? [text.trim()] : extractUrls(text);
   for (const u of urls) {
     const { signals: urlSignals } = analyzeUrlStructure(u);
@@ -219,7 +290,7 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
     }
   }
 
-  // 3. Live evidence, only for the primary link and only if enabled.
+  // 4. Live evidence, only for the primary link and only if enabled.
   let evidence: EvidenceRecord[] = [];
   const primaryUrl = urls[0];
   if (primaryUrl && liveChecks) {
@@ -236,11 +307,11 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
     ];
   }
 
-  // 4. Order the warning signs by severity for display.
+  // 5. Order the warning signs by severity for display.
   const severityRank = { critical: 0, high: 1, medium: 2, low: 3 } as const;
   signals.sort((a, b) => severityRank[a.severity] - severityRank[b.severity]);
 
-  // 5. Contextual layer, given only what we established above.
+  // 6. Contextual layer, given only what we established above.
   const contextual = await runContextualAnalysis(
     text,
     kind,
@@ -255,6 +326,7 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
   }
 
   const findings = buildFindings(signals, evidence, contextual.output?.inferences ?? []);
+  findings.push(...paymentFindings(paymentAction));
 
   const uncertainty = buildUncertainty(
     kind,
@@ -264,11 +336,21 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
     contextual.status.reason,
     liveChecks,
     urls.length,
-    contextual.output?.unknowns ?? [],
+    [...(contextual.output?.unknowns ?? []), ...paymentAction.unknowns],
     context,
   );
 
   const checklist = buildChecklist(signals, kind, context);
+  /*
+   * The refusal leads only when a payment prompt is already open. Otherwise it
+   * sits directly under the context step, because for a scam still in progress
+   * on a phone call, hanging up and ringing the bank back resolves the whole
+   * situation — including the demand this step refuses.
+   */
+  const preventive = paymentActionStep(paymentAction);
+  if (preventive && !checklist.some((c) => c.id === preventive.id)) {
+    checklist.splice(isImmediatePaymentPrompt(paymentAction) ? 0 : 1, 0, preventive);
+  }
   for (const extra of contextual.output?.suggestedChecks ?? []) {
     if (checklist.length >= 8) break;
     checklist.push({
@@ -297,6 +379,7 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
     positives,
     questions,
     completeness,
+    paymentAction: paymentAction.detected ? paymentAction : null,
     model: contextual.status,
     isDemo,
     persisted: false,

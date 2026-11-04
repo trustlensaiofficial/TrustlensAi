@@ -35,6 +35,7 @@ const report: Report = {
   completeness: { score: 1, max: 2, items: [{ label: 'Message text', present: true, note: 'Provided' }] },
   model: { used: false, provider: 'none', degraded: true, reason: 'Billing unavailable' },
   isDemo: true,
+  paymentAction: null,
   persisted: false,
 };
 

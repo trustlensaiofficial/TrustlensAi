@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { probeProvider, resolveProvider } from '@/lib/analysis/llm';
+import { rateLimitStatus } from '@/lib/ratelimit';
 import { storeStatus } from '@/lib/store';
 
 export const runtime = 'nodejs';
@@ -20,6 +21,7 @@ export async function GET() {
   const provider = resolveProvider();
   const store = storeStatus();
   const ai = await probeProvider();
+  const limits = rateLimitStatus();
 
   const notes: string[] = [];
   if (ai.health === 'responding') {
@@ -32,6 +34,9 @@ export async function GET() {
     );
   }
   notes.push(store.enabled ? 'Report persistence is configured.' : (store.reason ?? 'Report persistence is not configured.'));
+  // Stated whether good or bad: a dashboard that only mentions rate limiting
+  // when it works is how per-instance counting goes unnoticed.
+  notes.push(limits.note);
 
   return NextResponse.json(
     {
@@ -45,6 +50,10 @@ export async function GET() {
         contextualHealth: ai.health,
         contextualReason: ai.reason,
         reportHistory: store.enabled,
+        // True only when one counter is genuinely shared across instances.
+        sharedRateLimiting: limits.shared,
+        rateLimitKeyedTokens: limits.keyedTokens,
+        rateLimitPerMinute: limits.limit,
       },
       notes,
     },

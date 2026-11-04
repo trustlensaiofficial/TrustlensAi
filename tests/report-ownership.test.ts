@@ -11,7 +11,10 @@ import { readFileSync } from 'node:fs';
  * exists. The exact wording of the refusal is load-bearing, so it is pinned.
  */
 const store = readFileSync(new URL('../lib/store.ts', import.meta.url), 'utf8');
-const analyze = readFileSync(new URL('../app/api/analyze/route.ts', import.meta.url), 'utf8');
+// The handler moved to a shared module when /api/v1/analyses was introduced;
+// /api/analyze is now a thin deprecated alias onto it. The invariant being
+// asserted is unchanged — it just lives where the logic does.
+const analyze = readFileSync(new URL('../lib/api/analyses.ts', import.meta.url), 'utf8');
 const reportApi = readFileSync(new URL('../app/api/report/[id]/route.ts', import.meta.url), 'utf8');
 
 describe('report ownership', () => {

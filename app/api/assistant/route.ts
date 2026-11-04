@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { describeFailure, resolveProvider } from '@/lib/analysis/llm';
 import { kavalSystemPrompt, MAX_MESSAGE_CHARS, MAX_TURNS, type KavalTurn } from '@/lib/assistant/kaval';
-import { checkRateLimit, clientKeyFromHeaders } from '@/lib/ratelimit';
+import { clientKeyFromHeaders, consumeRateLimit } from '@/lib/ratelimit';
 import type { Report } from '@/lib/analysis/types';
 import { answerKavalLocally } from '@/lib/assistant/local-answers';
 
@@ -38,7 +38,7 @@ function fail(message: string, status: number) {
  * containing text that looks like one.
  */
 export async function POST(request: Request) {
-  const limit = checkRateLimit(`assistant:${clientKeyFromHeaders(request.headers)}`);
+  const limit = await consumeRateLimit(`assistant:${clientKeyFromHeaders(request.headers)}`);
   if (!limit.allowed) {
     return fail('Too many messages just now. Wait a moment and try again.', 429);
   }

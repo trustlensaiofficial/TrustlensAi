@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { listReportsForUser } from '@/lib/store';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
-import { checkRateLimit, clientKeyFromHeaders } from '@/lib/ratelimit';
+import { clientKeyFromHeaders, consumeRateLimit } from '@/lib/ratelimit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** Returns only the signed-in user's account-synced reports. */
 export async function GET(request: Request) {
-  const limit = checkRateLimit(`account-history:${clientKeyFromHeaders(request.headers)}`);
+  const limit = await consumeRateLimit(`account-history:${clientKeyFromHeaders(request.headers)}`);
   if (!limit.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Try again shortly.' },

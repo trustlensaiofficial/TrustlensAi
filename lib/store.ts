@@ -116,6 +116,17 @@ function getClient(): SupabaseClient | null {
   return cached;
 }
 
+/**
+ * The service-role client, for other server-side modules that need it.
+ *
+ * Shared rather than duplicated because the env resolution above is not
+ * trivial — it tolerates two naming conventions and an invalid URL shadowing a
+ * valid one, which is a misconfiguration this project has actually hit.
+ */
+export function getServiceClient(): SupabaseClient | null {
+  return getClient();
+}
+
 /** Row shape written to `public.scans`. Keep in sync with the migration. */
 interface ScanRow {
   id: string;
@@ -227,7 +238,9 @@ export async function getReport(
    * string is dynamic, which the typed query builder cannot narrow, so the
    * row is validated structurally below instead.
    */
-  type ScanRead = { report: Report; user_id?: string | null };
+  // The report column is JSON written by an earlier version of this code, so
+  // it is read as a partial and completed below rather than trusted as a Report.
+  type ScanRead = { report: Omit<Report, 'paymentAction'> & Partial<Pick<Report, 'paymentAction'>>; user_id?: string | null };
   const read = async (columns: string) =>
     (await client
       .from('scans')
@@ -265,7 +278,13 @@ export async function getReport(
     return { report: null, reason: 'No report exists with that id.' };
   }
 
-  return { report: { ...row.report, persisted: true } };
+  /*
+   * Rows written before the payment-action field existed have no such key.
+   * Defaulting it here keeps every report that leaves this module the same
+   * shape, so no caller has to guess whether an older report is missing the
+   * field or genuinely had no payment instruction in it.
+   */
+  return { report: { ...row.report, paymentAction: row.report.paymentAction ?? null, persisted: true } };
 }
 
 /** Deletes one report. Used by the history page's remove action. */
