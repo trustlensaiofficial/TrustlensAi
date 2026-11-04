@@ -1,0 +1,254 @@
+/* ==========================================================================
+   Polish layer
+   --------------------------------------------------------------------------
+   Presentation only. Loaded last so it refines what the base sheet already
+   lays out, and touches no markup, no behaviour and no copy — the prototype
+   underneath is unchanged.
+
+   Three things it is trying to fix:
+   1. Everything had the same visual weight, so the verdict did not dominate
+      the way the most important sentence on the page should.
+   2. Surfaces were flat fills. Real depth comes from a lit top edge and a
+      shadow that matches the light direction, not from a heavier border.
+   3. Interactions had no physical feedback — nothing lifted, pressed or
+      arrived in sequence, which is what makes an interface feel built.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1 · Depth tokens
+   A single light source, top-centre. Every elevation below is the same
+   lighting at a different distance, which is what keeps surfaces coherent.
+   -------------------------------------------------------------------------- */
+:root {
+  --lit: inset 0 1px 0 rgba(255, 255, 255, .75);
+  --e1: 0 1px 2px rgba(10, 26, 47, .06), 0 2px 6px rgba(10, 26, 47, .04);
+  --e2: 0 2px 6px rgba(10, 26, 47, .07), 0 8px 20px rgba(10, 26, 47, .07);
+  --e3: 0 4px 12px rgba(10, 26, 47, .09), 0 18px 42px rgba(10, 26, 47, .10);
+  --ring-accent: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+                 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+  --stagger: 55ms;
+}
+
+:root[data-theme='dark'] {
+  --lit: inset 0 1px 0 rgba(255, 255, 255, .07);
+  --e1: 0 1px 2px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .3);
+  --e2: 0 3px 10px rgba(0, 0, 0, .5), 0 10px 26px rgba(0, 0, 0, .38);
+  --e3: 0 6px 18px rgba(0, 0, 0, .55), 0 22px 50px rgba(0, 0, 0, .45);
+}
+
+/* --------------------------------------------------------------------------
+   2 · Surfaces
+   A card is a lit plane, not a bordered rectangle.
+   -------------------------------------------------------------------------- */
+.card {
+  box-shadow: var(--lit), var(--e1);
+  transition: box-shadow var(--t-base) var(--ease), border-color var(--t-base) var(--ease),
+              transform var(--t-base) var(--ease);
+}
+
+/* Only cards that actually do something lift. A static panel that rises on
+   hover is a lie about what is clickable. */
+.ctx, .state, .demo, .recent-row, .camp, .help-card, .pillars li, .how-grid li {
+  will-change: transform;
+}
+
+.ctx:hover, .state:hover, .camp:hover, .pillars li:hover, .how-grid li:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lit), var(--e2);
+}
+
+.ctx:active, .state:active { transform: translateY(0) scale(.99); transition-duration: 80ms; }
+
+.recent-row:hover { box-shadow: var(--lit), var(--e1); }
+
+/* --------------------------------------------------------------------------
+   3 · Hierarchy — the verdict must dominate
+   It is the one sentence someone reads under stress, so it gets the largest
+   type, the most contrast and the only coloured plane on the screen.
+   -------------------------------------------------------------------------- */
+.verdict {
+  box-shadow: var(--lit), var(--e2);
+  position: relative;
+  overflow: hidden;
+}
+
+/* A severity bar down the leading edge: colour the eye catches before it
+   has read a word. */
+.verdict::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+}
+.verdict-high::before  { background: var(--sev-high); }
+.verdict-check::before { background: var(--sev-check); }
+.verdict-clear::before { background: var(--sev-clear); }
+
+.verdict h2 { font-size: clamp(1.35rem, 2.6vw, 1.7rem); letter-spacing: -.028em; }
+.verdict-sub { font-weight: 520; }
+
+.verdict-icon { box-shadow: var(--e1); }
+
+/* --------------------------------------------------------------------------
+   4 · Findings — severity drives weight
+   -------------------------------------------------------------------------- */
+.signal {
+  box-shadow: var(--lit), var(--e1);
+  border-left: 3px solid var(--border);
+  transition: border-color var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
+}
+.signal:has(.chip-high)  { border-left-color: var(--sev-high); }
+.signal:has(.chip-check) { border-left-color: var(--sev-check); }
+.signal:hover { box-shadow: var(--lit), var(--e2); }
+
+.signal-head { transition: background var(--t-fast) var(--ease); }
+.signal-title { letter-spacing: -.012em; }
+
+/* The quoted span is the proof. It should read as evidence lifted out of the
+   message, not as another paragraph. */
+.quote {
+  box-shadow: var(--lit);
+  font-family: var(--mono);
+  font-size: .86rem;
+}
+.quote mark { font-family: var(--font); font-weight: 680; }
+
+/* --------------------------------------------------------------------------
+   5 · Arrival — sequence, not a flash
+   Staggering a list reads as deliberate; everything landing at once reads as
+   a page load. Capped so a long report never crawls in.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .signal, .step, .camp, .pillars li, .how-grid li, .help-card, .ctx {
+    animation: lift-in .5s var(--ease) both;
+  }
+  .signal:nth-child(1), .step:nth-child(1), .camp:nth-child(1) { animation-delay: 0ms; }
+  .signal:nth-child(2), .step:nth-child(2), .camp:nth-child(2) { animation-delay: calc(var(--stagger) * 1); }
+  .signal:nth-child(3), .step:nth-child(3), .camp:nth-child(3) { animation-delay: calc(var(--stagger) * 2); }
+  .signal:nth-child(4), .step:nth-child(4), .camp:nth-child(4) { animation-delay: calc(var(--stagger) * 3); }
+  .signal:nth-child(n+5), .step:nth-child(n+5), .camp:nth-child(n+5) { animation-delay: calc(var(--stagger) * 4); }
+
+  .ctx:nth-child(1) { animation-delay: 0ms; }
+  .ctx:nth-child(2) { animation-delay: 40ms; }
+  .ctx:nth-child(3) { animation-delay: 80ms; }
+  .ctx:nth-child(4) { animation-delay: 120ms; }
+  .ctx:nth-child(5) { animation-delay: 160ms; }
+  .ctx:nth-child(6) { animation-delay: 200ms; }
+}
+
+@keyframes lift-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The expanding body slides rather than snapping open. */
+@media (prefers-reduced-motion: no-preference) {
+  .signal-body { animation: open-down .28s var(--ease) both; }
+}
+@keyframes open-down {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* --------------------------------------------------------------------------
+   6 · Controls
+   -------------------------------------------------------------------------- */
+.btn-primary {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), var(--e2);
+  letter-spacing: -.005em;
+}
+.btn-primary:hover:not(:disabled) {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .34), var(--e3);
+  transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) { transform: translateY(0) scale(.985); }
+
+.btn-secondary { box-shadow: var(--lit), var(--e1); }
+.btn-secondary:hover:not(:disabled) { box-shadow: var(--lit), var(--e2); transform: translateY(-1px); }
+
+/* One focus treatment everywhere, so keyboard users get a consistent signal. */
+:focus-visible { box-shadow: var(--ring-accent) !important; outline: none; }
+
+.field:focus { box-shadow: var(--ring-accent); }
+
+.chip { box-shadow: var(--lit); }
+
+/* The selected context is the one decision on the page before typing. */
+.ctx-on {
+  box-shadow: var(--ring-accent), var(--e2);
+  border-color: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   7 · Emergency — louder than everything else, on purpose
+   -------------------------------------------------------------------------- */
+.emergency { box-shadow: var(--e3); }
+.emergency-call {
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--sev-high) 42%, transparent), var(--e2);
+  letter-spacing: .005em;
+}
+.emergency-call:hover { transform: translateY(-1px); }
+
+/* A slow pulse on the ring only — the label never moves, so it stays
+   readable, and the motion stops entirely under reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .emergency-call { animation: urgent 2.6s ease-in-out infinite; }
+}
+@keyframes urgent {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sev-high) 42%, transparent), var(--e2); }
+  50%      { box-shadow: 0 0 0 7px color-mix(in srgb, var(--sev-high) 0%, transparent), var(--e2); }
+}
+
+/* --------------------------------------------------------------------------
+   8 · Typography rhythm
+   -------------------------------------------------------------------------- */
+.hero-title { letter-spacing: -.042em; }
+.page-head h1 { letter-spacing: -.034em; }
+.lede { font-size: clamp(.98rem, 1.8vw, 1.08rem); }
+.section-head h2 { letter-spacing: -.022em; }
+
+/* Numbers want tabular figures so columns and counts do not jitter. */
+.camp-num, .step-num, .help-contact, .check-meta { font-variant-numeric: tabular-nums; }
+
+/* --------------------------------------------------------------------------
+   9 · Phones
+   Touch targets reach 44px, spacing opens up, and anything that was a hover
+   affordance stops pretending there is a cursor.
+   -------------------------------------------------------------------------- */
+@media (max-width: 720px) {
+  .btn { min-height: 44px; padding-inline: 16px; }
+  .btn-sm { min-height: 38px; }
+  .ctx { min-height: 76px; }
+  .state { min-height: 62px; }
+  .signal-head { min-height: 56px; }
+  .nav-link { min-height: 40px; }
+
+  .card-pad { padding: var(--s4); }
+  .verdict { padding: var(--s4); }
+  .hero { gap: var(--s3); }
+
+  /* Primary actions go full width — a thumb should not have to aim. */
+  .hero-actions .btn, .check-actions .btn-primary, .emergency-actions .btn { width: 100%; }
+  .check-actions, .emergency-actions, .hero-actions { width: 100%; }
+}
+
+@media (hover: none) {
+  .ctx:hover, .state:hover, .camp:hover, .pillars li:hover, .how-grid li:hover,
+  .btn-primary:hover, .btn-secondary:hover {
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   10 · Reduced motion
+   Everything above degrades to a still, readable page. Nothing is hidden,
+   and no warning is ever delayed behind an animation.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .signal, .step, .camp, .pillars li, .how-grid li, .help-card, .ctx,
+  .signal-body, .emergency-call {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
