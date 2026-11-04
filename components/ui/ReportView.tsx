@@ -22,15 +22,65 @@ const LEVEL_TONE = {
   no_signals_detected: 'clear',
 } as const;
 
-const ACTION_CHOICES: Array<{ value: UserActionState; label: string }> = [
-  { value: 'not_acted', label: 'I only received it' },
-  { value: 'opened_link', label: 'I opened the link' },
-  { value: 'shared_credentials', label: 'I shared an OTP or account detail' },
-  { value: 'installed_app', label: 'I installed an app' },
-  { value: 'remote_access', label: 'I shared my screen or remote access' },
-  { value: 'approved_payment', label: 'I approved a payment request' },
-  { value: 'sent_money', label: 'I already sent money' },
+const ACTION_CHOICES: UserActionState[] = [
+  'not_acted',
+  'opened_link',
+  'shared_credentials',
+  'installed_app',
+  'remote_access',
+  'approved_payment',
+  'sent_money',
 ];
+
+const ACTION_COPY: Record<Lang, {
+  title: string;
+  description: string;
+  notActed: string;
+  choices: Record<UserActionState, string>;
+}> = {
+  en: {
+    title: 'What have you done so far?',
+    description: 'Choose the furthest step you took after receiving this. Your next steps change based on your answer.',
+    notActed: 'You said you have not acted yet. Do not click, pay or share codes; verify independently before acting.',
+    choices: {
+      not_acted: 'I only received it',
+      opened_link: 'I opened the link',
+      shared_credentials: 'I shared an OTP or account detail',
+      installed_app: 'I installed an app',
+      remote_access: 'I shared my screen or remote access',
+      approved_payment: 'I approved a payment request',
+      sent_money: 'I already sent money',
+    },
+  },
+  ta: {
+    title: 'Idhu vandhadhukku apram neenga enna pannineenga?',
+    description: 'Neenga pannina kadaisi step-ai select pannunga. Adhukku yetha maadhiri next steps maarum.',
+    notActed: 'Neenga innum edhuvum pannala-nu solreenga. Link click pannadheenga, panam anuppadheenga, code share pannadheenga. Neenga thaniya verify pannunga.',
+    choices: {
+      not_acted: 'Message mattum vandhuchu',
+      opened_link: 'Naan link open panninen',
+      shared_credentials: 'OTP illa account details share panninen',
+      installed_app: 'Oru app install panninen',
+      remote_access: 'Screen share / remote access kuduthen',
+      approved_payment: 'Payment request approve panninen',
+      sent_money: 'Naan already panam anuppitten',
+    },
+  },
+  hi: {
+    title: 'Iske baad aapne kya kiya?',
+    description: 'Aapne jo sabse aage ka step liya, use chuniye. Agle steps aapke jawab ke hisaab se badlenge.',
+    notActed: 'Aapne abhi kuch nahi kiya. Link na kholen, paise na bhejen, code share na karein. Khud official channel se verify karein.',
+    choices: {
+      not_acted: 'Sirf message mila',
+      opened_link: 'Maine link khola',
+      shared_credentials: 'OTP ya account details share ki',
+      installed_app: 'Maine app install ki',
+      remote_access: 'Screen share ya remote access diya',
+      approved_payment: 'Payment request approve ki',
+      sent_money: 'Maine paise bhej diye',
+    },
+  },
+};
 
 /**
  * Highlights the exact matched span inside the quoted text.
@@ -147,19 +197,19 @@ export function ReportView({ report, lang }: { report: Report; lang: Lang }) {
 
       <section className="section">
         <div className="section-head">
-          <h2>What have you done so far?</h2>
-          <p>Choose the furthest step you took after receiving this. Your next steps change based on your answer.</p>
+          <h2>{ACTION_COPY[lang].title}</h2>
+          <p>{ACTION_COPY[lang].description}</p>
         </div>
         <div className="response-state-grid" role="group" aria-label="What you have done so far">
           {ACTION_CHOICES.map((choice) => (
             <button
-              key={choice.value}
+              key={choice}
               type="button"
-              className={`btn btn-sm ${actionState === choice.value ? 'btn-primary' : 'btn-ghost'}`}
+              className={`btn btn-sm ${actionState === choice ? 'btn-primary' : 'btn-ghost'}`}
               aria-pressed={actionState === choice.value}
-              onClick={() => setActionState(choice.value)}
+              onClick={() => setActionState(choice)}
             >
-              {choice.label}
+              {ACTION_COPY[lang].choices[choice]}
             </button>
           ))}
         </div>
@@ -185,7 +235,7 @@ export function ReportView({ report, lang }: { report: Report; lang: Lang }) {
             )}
           </div>
         ) : (
-          <p className="notice notice-check">No incident response is needed based on your answer yet. Do not click, pay or share codes; verify independently before acting.</p>
+          <p className="notice notice-check">{ACTION_COPY[lang].notActed}</p>
         )}
       </section>
 
