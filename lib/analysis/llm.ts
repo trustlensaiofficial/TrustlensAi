@@ -213,7 +213,23 @@ export async function runContextualAnalysis(
   kind: InputKind,
   signals: Signal[],
   evidence: EvidenceRecord[],
+  allowCloudAI = false,
 ): Promise<ContextualResult> {
+  // Explicit opt-in is required before submitted content leaves TrustLens for
+  // a third-party model provider. Fixed rules and any user-requested URL checks
+  // still run when this is disabled.
+  if (!allowCloudAI) {
+    return {
+      status: {
+        used: false,
+        provider: 'none',
+        degraded: true,
+        reason: 'Cloud AI interpretation was not enabled. The submitted text was not sent to an external AI model; fixed rules and requested link checks still ran.',
+      },
+      output: null,
+    };
+  }
+
   const provider = resolveProvider();
 
   if (provider === 'none') {
