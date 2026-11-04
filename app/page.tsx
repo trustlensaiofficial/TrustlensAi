@@ -56,7 +56,7 @@ export default function Opening() {
         </div>
 
         <p className="op-skip op-step" style={{ '--d': `${T.skip}ms` } as React.CSSProperties}>
-          Been here before? <Link href="/home">Go straight in</Link>
+          Already have an account? <Link href="/login?next=%2Fhome">Sign in</Link>
         </p>
       </div>
     </Shell>
