@@ -151,10 +151,16 @@ function isMissingColumn(error: { code?: string; message?: string }): boolean {
  */
 export async function saveReport(
   report: Report,
-  ownerId?: string | null,
+  ownerId: string,
 ): Promise<{ saved: boolean; reason?: string }> {
   const status = storeStatus();
   if (!status.enabled) return { saved: false, reason: status.reason };
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ownerId)) {
+    return { saved: false, reason: 'A verified signed-in account is required for server-side report storage.' };
+  }
+  if (ownerColumn === 'absent') {
+    return { saved: false, reason: 'Account-owned report storage is unavailable until supabase/migrations/0003_scans_owner.sql is applied.' };
+  }
 
   const client = getClient();
   if (!client) return { saved: false, reason: 'Supabase client could not be created.' };
@@ -170,20 +176,20 @@ export async function saveReport(
     created_at: report.createdAt,
   };
 
-  const wantsOwner = Boolean(ownerId) && ownerColumn !== 'absent';
-  const row: ScanRow = wantsOwner ? { ...base, user_id: ownerId } : base;
+  const row: ScanRow = { ...base, user_id: ownerId };
 
-  let { error } = await client.from('scans').insert(row);
+  const { error } = await client.from('scans').insert(row);
 
-  // The owner column may not exist yet. Save the report rather than lose it,
-  // and remember so we stop trying.
-  if (error && wantsOwner && isMissingColumn(error)) {
+  // Fail closed: never retry an account copy without its owner id. That would
+  // turn an explicitly private save into an unowned, bearer-link report.
+  if (error && isMissingColumn(error)) {
     ownerColumn = 'absent';
-    console.warn('[trustlens] scans.user_id missing — saving without an owner. Apply supabase/migrations/0003_scans_owner.sql to enable account-owned reports.');
-    ({ error } = await client.from('scans').insert(base));
-  } else if (!error && wantsOwner) {
-    ownerColumn = 'present';
+    return {
+      saved: false,
+      reason: 'Account-owned storage is not enabled yet. Apply supabase/migrations/0003_scans_owner.sql; this report was not saved to the server.',
+    };
   }
+  if (!error) ownerColumn = 'present';
 
   if (error) {
     // Never log the row itself; it contains the analysed content.
