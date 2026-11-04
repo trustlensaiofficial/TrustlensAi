@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Shell } from '@/components/ui/Shell';
+import { InstallApp } from '@/components/ui/InstallApp';
 import { Kaval } from '@/components/ui/Kaval';
 import { CapabilityStrip } from '@/components/ui/CapabilityStrip';
 import { RecentActivity } from '@/components/ui/RecentActivity';
@@ -33,6 +34,7 @@ export default function Dashboard() {
           <div className="rise" style={{ '--d': '280ms' } as React.CSSProperties}>
             <CapabilityStrip />
           </div>
+          <InstallApp />
         </section>
 
         {/* Recent checks from this device. */}
