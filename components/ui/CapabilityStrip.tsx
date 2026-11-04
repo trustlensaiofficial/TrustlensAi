@@ -9,11 +9,19 @@ interface Health {
   capabilities: Record<string, boolean | string | null>;
 }
 
+/*
+ * Labels describe what actually happens, not what sounds reassuring.
+ *
+ * `reportHistory` used to read "Saved to your account". There is no account
+ * in this build — no sign-in, no /login — so that was claiming something the
+ * product does not do. What the flag really means is that server-side
+ * persistence is configured, which is what it now says.
+ */
 const LABEL: Record<string, { on: string; off: string }> = {
   deterministicRules: { on: 'Rule engine running', off: 'Rule engine unavailable' },
   liveUrlChecks: { on: 'Live link checks', off: 'Live link checks off' },
   contextualAnalysis: { on: 'AI reading layer', off: 'AI layer unavailable' },
-  reportHistory: { on: 'Saved to your account', off: 'Account history off' },
+  reportHistory: { on: 'Reports saved by link', off: 'Reports not saved' },
 };
 
 /**

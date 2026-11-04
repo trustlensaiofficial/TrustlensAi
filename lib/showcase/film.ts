@@ -1,13 +1,15 @@
 /**
- * The explainer film.
+ * The explainer.
  *
- * Structure follows the brief: a short statement of what the product is,
- * then every feature explained one at a time, then the invitation to open the
- * prototype. Each scene owns its narration line and its caption — they are
- * the same string, so voice and text can never drift apart.
+ * What the product is, then each capability it actually has, then an
+ * invitation to try it. Every scene owns one narration line which is also its
+ * caption — the same string, so the voice and the text on screen can never
+ * drift apart.
  *
- * The film is a scripted presentation. It calls no API; the working analysis
- * lives in the tour that follows.
+ * The scenes track the shipped product deliberately. An earlier version
+ * described a feature set that had moved on, which meant the explainer was
+ * quietly selling something the app no longer did. Every claim below points
+ * at something a viewer can go and exercise in the next two clicks.
  */
 
 export interface FilmScene {
@@ -19,99 +21,112 @@ export interface FilmScene {
   /** On-screen headline for the scene. */
   title: string;
   durationMs: number;
-  /** The narration for this scene. Also shown as the caption, so voice
-   *  and text can never drift apart. */
+  /** The narration for this scene. Also shown as the caption. */
   en: string;
 }
 
+/*
+ * Durations are roughly 11 words per second of speech plus a beat to read the
+ * slide. They are a backstop, not the clock: a scene advances when its
+ * narration finishes, and these only matter when the voice is muted or
+ * missing.
+ */
 export const FILM_SCENES: FilmScene[] = [
   {
     id: 'what',
     label: 'The idea',
     kicker: 'What it is',
     title: 'Know what you are trusting',
-    durationMs: 14800,
-    en: 'TrustLens AI checks whether a message, a link or a request actually deserves your trust.',
+    durationMs: 13000,
+    en: 'TrustLens AI checks whether a message, a link or a payment request actually deserves your trust — before you act on it.',
   },
   {
     id: 'problem',
     label: 'The problem',
     kicker: 'Why it matters',
     title: 'A warning is not an answer',
-    durationMs: 15800,
-    en: 'Most tools only show a red warning. That creates worry, but it does not tell you what to do.',
+    durationMs: 14000,
+    en: 'Most tools show a red warning and stop there. That creates worry without telling you what is wrong, or what to do about it.',
   },
   {
-    id: 'f1',
+    id: 'evidence',
     label: 'Evidence',
-    kicker: 'Feature one',
-    title: 'Evidence you can inspect',
-    durationMs: 15100,
-    en: 'Feature one. Every warning sign shows the exact words that triggered it, so you can judge it yourself.',
-  },
-  {
-    id: 'f2',
-    label: 'Context',
-    kicker: 'Feature two',
-    title: 'Rules that fit what you are holding',
-    durationMs: 16100,
-    en: 'Feature two. Choose what you are holding, and the rules change to match it.',
-  },
-  {
-    id: 'f3',
-    label: 'Investigation',
-    kicker: 'Feature three',
-    title: 'A transparent investigation',
-    durationMs: 15800,
-    en: 'Feature three. Rules run first, links are taken apart, and only then does the model interpret.',
-  },
-  {
-    id: 'f4',
-    label: 'Provenance',
-    kicker: 'Feature four',
-    title: 'Three kinds of claim, never blended',
-    durationMs: 16400,
-    en: 'Feature four. A rule match, a verified fact and a model opinion stay clearly separate.',
-  },
-  {
-    id: 'f5',
-    label: 'Uncertainty',
-    kicker: 'Feature five',
-    title: 'What it could not establish',
-    durationMs: 15800,
-    en: 'Feature five. It states what it could not check. No warning does not mean verified safe.',
-  },
-  {
-    id: 'f6',
-    label: 'Next action',
-    kicker: 'Feature six',
-    title: 'The next safe move',
-    durationMs: 17000,
-    en: 'Feature six, the heart of it. Findings become safe next steps, like calling the number printed on your card.',
-  },
-  {
-    id: 'f7',
-    label: 'The report',
-    kicker: 'Feature seven',
-    title: 'One report you can keep',
+    kicker: 'One',
+    title: 'It shows you the exact words',
     durationMs: 14500,
-    en: 'Feature seven. One complete report, which you can copy or download.',
+    en: 'Every warning quotes the precise phrase that triggered it. You can judge the reasoning yourself instead of trusting a colour.',
   },
   {
-    id: 'f8',
-    label: 'History',
-    kicker: 'Feature eight',
-    title: 'Your own history, kept private',
-    durationMs: 15100,
-    en: 'Feature eight. Your past checks stay in your own browser, where nobody else can list them.',
+    id: 'provenance',
+    label: 'Provenance',
+    kicker: 'Two',
+    title: 'Three kinds of claim, never blended',
+    durationMs: 16000,
+    en: 'A fixed rule, a check that actually ran, and an AI reading are three different things. They are kept apart, so you always know which one you are looking at.',
+  },
+  {
+    id: 'unknowns',
+    label: 'Unknowns',
+    kicker: 'Three',
+    title: 'It tells you what it could not check',
+    durationMs: 15500,
+    en: 'A check that did not run is never reported as one that passed. And no warning found is not the same as safe — it only means our rules did not match.',
+  },
+  {
+    id: 'tamil',
+    label: 'Tamil',
+    kicker: 'Four',
+    title: 'It understands Tamil too',
+    durationMs: 15500,
+    en: 'Scams in India arrive in Tamil written in English letters. "OTP share pannunga" is a demand for your code, and TrustLens reads it as one.',
+  },
+  {
+    id: 'action',
+    label: 'Next step',
+    kicker: 'Five',
+    title: 'One clear thing to do next',
+    durationMs: 14000,
+    en: 'Every report ends with a concrete step — usually calling your bank on the number printed on your card, never one from the message.',
+  },
+  {
+    id: 'respond',
+    label: 'Already happened',
+    kicker: 'Six',
+    title: 'If it already happened',
+    durationMs: 16000,
+    en: 'Tell it what you already did and the plan changes. If money has moved, it leads with 1930 — India’s fraud helpline — because the first hours decide whether a transfer can be frozen.',
+  },
+  {
+    id: 'campaigns',
+    label: 'Campaigns',
+    kicker: 'Seven',
+    title: 'One scam reaches thousands',
+    durationMs: 16500,
+    en: 'The same campaign arrives reworded, from a new number, on a new link. Matching the parts that cannot change connects them — so one person’s report can warn the next.',
+  },
+  {
+    id: 'evidence_doc',
+    label: 'Evidence file',
+    kicker: 'Eight',
+    title: 'Something you can hand over',
+    durationMs: 15000,
+    en: 'It builds a clean summary for your bank or a cybercrime complaint. You choose what it includes, and it says plainly that it is not an official document.',
+  },
+  {
+    id: 'offline',
+    label: 'Offline',
+    kicker: 'Nine',
+    title: 'It works without internet',
+    durationMs: 14500,
+    en: 'Your saved reports and the emergency guidance open with no connection at all. You are told which checks are paused — never shown a stale answer as a fresh one.',
   },
   {
     id: 'invite',
     label: 'Your turn',
     kicker: 'Now you try',
-    title: 'Open the working prototype',
-    durationMs: 13300,
-    en: 'That is TrustLens AI. Now open the prototype and try it yourself.',
+    title: 'Check something yourself',
+    durationMs: 12000,
+    en: 'That is TrustLens AI. Paste a suspicious message and see the whole thing work. Pause. Verify. Then act.',
   },
 ];
 
@@ -125,4 +140,3 @@ export function sceneStartMs(index: number): number {
 export const FILM_TRANSCRIPT = FILM_SCENES
   .map((s) => `${s.title}\n${s.en}`)
   .join('\n\n---\n\n');
-
