@@ -143,8 +143,10 @@ deliberately not done from here.
 
 ### Still open
 
-- Module 6 — case endpoints. The schema exists; the routes do not.
-- Module 10 — consent endpoints. Same.
+- Module 6 — **case endpoints are built** but unverified against a live database, because the
+  migration is not applied. Their decision logic (`lib/cases/transitions.ts`) is pure and has 19
+  tests; the persistence layer has none, which is the honest gap.
+- Module 10 — consent endpoints. The table exists in a written migration; the routes do not.
 - Threat-intelligence provider abstraction. Not started.
 - `packages/contracts` typed client. Not started.
 - **Benchmark corpus with measured precision and recall.** Still absent, and

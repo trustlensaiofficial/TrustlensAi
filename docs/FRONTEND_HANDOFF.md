@@ -214,9 +214,24 @@ English for now.
 | 1 | `POST /api/v1/analyses` | **Live.** `/api/analyze` is now a deprecated alias onto the same handler and returns `Deprecation: true` plus a `Link` header naming the successor |
 | 2 | `GET /api/v1/capabilities` | **Live.** Declare your platform with `X-TrustLens-Platform: web\|android\|ios`; it defaults to `web` and never guesses native from a user agent. Each entry now also carries `mechanism` and `limits` — render both |
 | 3 | Shared rate limiting | **Done in code**, migration not yet applied. Read `X-RateLimit-Scope` on a response: `instance` means the shared counter was unreachable and the real ceiling is higher than the configured one |
-| 4 | `cases`, `case_artifacts`, `case_events`, `consent_receipts` tables | Migration written, not yet applied. Case endpoints not built |
+| 4 | Case endpoints | **Built**, migration not yet applied. `POST`/`GET /api/v1/cases`, `GET`/`PATCH`/`DELETE /api/v1/cases/{caseId}`, `POST .../artifacts`, `POST .../events`, `GET .../recovery-plan`. Until the migration lands they return **503** with a reason naming the cause — render it as `unavailable`, not as an error |
+| 4b | `POST /api/v1/recovery-plan` | **Live and deliberately unauthenticated.** `GET` the same path lists the action states to offer |
 | 5 | Threat-intelligence provider abstraction | Not started |
 | 6 | Typed client package at `packages/contracts` | Not started |
+
+### Cases — three things to build against
+
+1. **Cases need an account; nothing else does.** A 401 here carries a `note` saying so. Do not let
+   that 401 push the user toward sign-in for an analysis or a recovery plan.
+2. **Post the furthest action, and do not try to correct it downward.** `POST .../events` with
+   `{"actionState": "transferred_money"}` is enough — `kind` defaults to `action_reported`. The
+   case's `furthestAction` only ever moves toward more exposure, so a milder answer given later
+   never produces a milder plan. That is deliberate; do not work around it.
+3. **Paginate with `nextCursor`, never an offset.** An offset page skips or repeats rows when a
+   case is touched between requests.
+
+When `recoveryPlan` comes back `null` with a `note`, that is a case where nothing was acted on —
+an empty state, not an error.
 
 ### Rendering `paymentAction`, now that it is live
 
