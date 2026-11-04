@@ -937,3 +937,10 @@ a { color: inherit; }
 .kaval-cloud-consent > span { display: grid; gap: 3px; }
 .kaval-cloud-consent strong { color: var(--text); font-size: .78rem; }
 .kaval-cloud-consent span span { color: var(--text-faint); }
+
+.kaval-notice {
+  margin: 0; padding: 8px 14px;
+  color: var(--text-muted); background: var(--sev-check-soft);
+  border-top: 1px solid var(--sev-check-line);
+  font-size: .72rem; line-height: 1.45;
+}
