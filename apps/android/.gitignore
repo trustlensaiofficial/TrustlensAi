@@ -1,0 +1,23 @@
+# Build outputs
+.gradle/
+build/
+app/build/
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Local toolchain paths and any injected configuration. local.properties can
+# hold an SDK path and the build-time config, so it never gets committed.
+local.properties
+
+# Signing material must never be committed.
+*.jks
+*.keystore
+keystore.properties
+
+# IDE
+.idea/
+*.iml
+.cxx/

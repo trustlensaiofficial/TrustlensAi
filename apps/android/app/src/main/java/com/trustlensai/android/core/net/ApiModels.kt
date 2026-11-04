@@ -31,8 +31,13 @@ data class AnalysisRequest(
     val context: String = "generic",
     /** Contacts the link from the server. Off unless the user asks for it. */
     val liveChecks: Boolean = false,
-    /** Sends the text to a model provider. Off unless the user asks for it. */
-    @SerialName("allowCloudAI") val allowCloudAi: Boolean = false,
+    /**
+     * Sends the text to a model provider. Off unless the user asks for it.
+     *
+     * The canonical contract spelling. The server also accepts the legacy
+     * capitalised `allowCloudAI`, but a new client should not use it.
+     */
+    val allowCloudAi: Boolean = false,
     /** Stores a copy against the account. Off unless the user asks for it. */
     val saveToAccount: Boolean = false,
     /**
@@ -411,4 +416,56 @@ data class ApiError(
     val note: String? = null,
     /** Returned with a 400 on an unrecognised enum, so a client can recover. */
     val validValues: List<String>? = null,
+)
+
+/* -------------------------------------------------- remaining request types */
+
+@Serializable
+data class RecoveryPlanRequest(val actionState: String)
+
+@Serializable
+data class UpdateCaseRequest(val title: String? = null, val status: String? = null)
+
+@Serializable
+data class ArtifactEnvelope(val artifact: CaseArtifact)
+
+/** `POST .../events` returns both the appended event and the moved case. */
+@Serializable
+data class CaseEventEnvelope(val result: CaseEventResult)
+
+@Serializable
+data class CaseEventResult(
+    val event: CaseEvent,
+    @SerialName("case") val case: CaseSummary,
+)
+
+/**
+ * What this deployment can honestly say about itself.
+ *
+ * Every flag here is probed server-side rather than inferred from
+ * configuration, so `false` means genuinely not working rather than
+ * not-yet-attempted.
+ */
+@Serializable
+data class HealthResponse(
+    val ok: Boolean = false,
+    val capabilities: HealthCapabilities = HealthCapabilities(),
+    val notes: List<String> = emptyList(),
+)
+
+@Serializable
+data class HealthCapabilities(
+    val deterministicRules: Boolean = false,
+    val liveUrlChecks: Boolean = false,
+    /** True only when the provider actually answered a probe. */
+    val contextualAnalysis: Boolean = false,
+    val contextualProvider: String? = null,
+    val contextualHealth: String? = null,
+    val contextualReason: String? = null,
+    val reportHistory: Boolean = false,
+    /** False means the effective rate limit is higher than configured. */
+    val sharedRateLimiting: Boolean = false,
+    val rateLimitKeyedTokens: Boolean = false,
+    val rateLimitPerMinute: Int = 0,
+    val caseStorage: Boolean = false,
 )
