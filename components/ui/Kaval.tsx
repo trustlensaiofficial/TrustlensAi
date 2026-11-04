@@ -18,6 +18,8 @@ export function Kaval({ report }: { report?: Report | null }) {
   const [turns, setTurns] = useState<KavalTurn[]>([]);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
+  const [allowCloudAI, setAllowCloudAI] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const online = useOnline();
   const logRef = useRef<HTMLDivElement | null>(null);
@@ -46,13 +48,18 @@ export function Kaval({ report }: { report?: Report | null }) {
       setDraft('');
       setBusy(true);
       setError(null);
+      setNotice(null);
 
       try {
         const res = await fetch('/api/assistant', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           // Only the last few turns travel, to stay fast and cheap.
-          body: JSON.stringify({ messages: next.slice(-10), report: report ?? undefined }),
+          body: JSON.stringify({
+            messages: next.slice(-10),
+            report: report ?? undefined,
+            allowCloud: allowCloudAI,
+          }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -60,6 +67,7 @@ export function Kaval({ report }: { report?: Report | null }) {
           return;
         }
         setTurns((prev) => [...prev, { role: 'assistant', content: data.reply as string }]);
+        setNotice(typeof data.notice === 'string' ? data.notice : null);
       } catch {
         setError(
           online
@@ -71,7 +79,7 @@ export function Kaval({ report }: { report?: Report | null }) {
         inputRef.current?.focus();
       }
     },
-    [turns, busy, report, online],
+    [turns, busy, report, online, allowCloudAI],
   );
 
   return (
@@ -140,6 +148,23 @@ export function Kaval({ report }: { report?: Report | null }) {
               <p className="notice notice-high kaval-error" role="alert"><Alert /><span>{error}</span></p>
             )}
           </div>
+
+          {notice && <p className="kaval-notice" role="status">{notice}</p>}
+
+          <label className="kaval-cloud-consent">
+            <input
+              type="checkbox"
+              checked={allowCloudAI}
+              onChange={(e) => setAllowCloudAI(e.target.checked)}
+              disabled={busy}
+            />
+            <span>
+              <strong>Allow external AI for this chat (optional)</strong>
+              <span>
+                Off by default: Kaval uses its built-in safety guide. When enabled, your recent chat and the visible report context are sent to TrustLens' configured AI provider. Do not include OTPs, PINs or passwords.
+              </span>
+            </span>
+          </label>
 
           <form
             className="kaval-compose"

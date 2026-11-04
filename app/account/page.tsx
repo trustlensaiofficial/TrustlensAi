@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Shell } from '@/components/ui/Shell';
 import { ActivityList } from '@/components/ui/ActivityList';
+import { AccountHistory } from '@/components/ui/AccountHistory';
 import { PasskeyManager } from '@/components/auth/PasskeyManager';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
 import { Arrow, Check, Lock, Shield } from '@/components/ui/icons';
@@ -35,7 +36,7 @@ export default async function AccountPage() {
             <div className="card card-pad">
               <h3 className="col-head"><Check /> Signed in</h3>
               <p className="muted-xs" style={{ marginTop: 8 }}>
-                Reports you run while signed in are saved to your account as well as this device.
+                Only reports where you explicitly enabled account sync are saved to your account. Other reports remain in this browser.
               </p>
             </div>
             <div className="card card-pad">
@@ -61,6 +62,14 @@ export default async function AccountPage() {
             <p>Stored in this browser. Deleting here removes them immediately.</p>
           </div>
           <ActivityList />
+        </section>
+
+        <section className="section">
+          <div className="section-head">
+            <h2>Reports saved to your account</h2>
+            <p>Only reports you explicitly chose to sync appear here. You can open or delete each account copy.</p>
+          </div>
+          <AccountHistory />
         </section>
 
         <div className="check-actions" style={{ marginTop: 'var(--s6)' }}>

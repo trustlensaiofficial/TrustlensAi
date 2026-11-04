@@ -17,6 +17,8 @@ const Body = z.object({
   messages: z.array(Turn).min(1).max(MAX_TURNS),
   /** The report in view, so Kaval can answer about it. Optional. */
   report: z.unknown().optional(),
+  /** External model use must be explicitly enabled by the user. */
+  allowCloud: z.boolean().default(false),
 });
 
 const TIMEOUT_MS = 20_000;
@@ -51,17 +53,20 @@ export async function POST(request: Request) {
   const parsed = Body.safeParse(raw);
   if (!parsed.success) return fail('That request was not in the expected shape.', 400);
 
-  const { messages, report } = parsed.data;
+  const { messages, report, allowCloud } = parsed.data;
   const currentReport = (report as Report | undefined) ?? null;
   const lastUserMessage = [...messages].reverse().find((turn) => turn.role === 'user')?.content ?? '';
   const provider = resolveProvider();
 
-  // Deterministic fallback keeps Kaval useful without pretending cloud AI ran.
-  if (provider === 'none') {
+  // Kaval's local safety guide runs by default. The conversation and visible
+  // report are sent to a third-party model only after the user opts in.
+  if (!allowCloud || provider === 'none') {
     return NextResponse.json({
       reply: answerKavalLocally({ message: lastUserMessage, report: currentReport }),
       mode: 'local',
-      notice: 'Kaval is using its built-in safety guide; cloud AI is unavailable.',
+      notice: allowCloud
+        ? 'Kaval is using its built-in safety guide because cloud AI is unavailable.'
+        : 'External AI was not enabled. Your chat and report context were not sent to an external model provider.',
     });
   }
 

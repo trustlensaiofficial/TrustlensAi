@@ -37,6 +37,24 @@ describe('analyze', () => {
     expect(report.assessment.headline.toLowerCase()).toContain('not a guarantee');
   });
 
+  it('does not send text to cloud AI unless the user explicitly opts in', async () => {
+    process.env.AI_GATEWAY_API_KEY = 'test-placeholder-not-a-real-key';
+    try {
+      const report = await analyze({
+        text: PHISH,
+        kind: 'message',
+        liveChecks: false,
+        allowCloudAI: false,
+      });
+      expect(report.model.used).toBe(false);
+      expect(report.model.provider).toBe('none');
+      expect(report.model.reason).toContain('was not enabled');
+      expect(report.uncertainty.notChecked.join(' ')).toContain('not enabled');
+    } finally {
+      delete process.env.AI_GATEWAY_API_KEY;
+    }
+  });
+
   it('degrades honestly and says so when no AI credential exists', async () => {
     const report = await analyze({ text: PHISH, kind: 'message', liveChecks: false });
     expect(report.model.used).toBe(false);

@@ -26,6 +26,9 @@ export function CheckWorkspace() {
   const [context, setContext] = useState<InputContext>('bank_scam');
   const [text, setText] = useState('');
   const [liveChecks, setLiveChecks] = useState(false);
+  const [allowCloudAI, setAllowCloudAI] = useState(false);
+  const [saveToAccount, setSaveToAccount] = useState(false);
+  const [storageNote, setStorageNote] = useState<string | null>(null);
   const [lang, setLang] = useState<Lang>('en');
   const [phase, setPhase] = useState<Phase>('idle');
   const [report, setReport] = useState<Report | null>(null);
@@ -50,6 +53,7 @@ export function CheckWorkspace() {
           return;
         }
         setReport(data.report as Report);
+        setStorageNote(typeof data.storageNote === 'string' ? data.storageNote : null);
         setPhase('done');
         // Kept locally so history survives a reload and works offline. This is
         // the user's own device only — nothing is uploaded by saving it.
@@ -73,8 +77,15 @@ export function CheckWorkspace() {
       setError('Paste a little more of the message so the wording can be examined.');
       return;
     }
-    void run({ text, context, kind: context === 'website' ? 'url' : 'message', liveChecks: liveChecks && online });
-  }, [text, context, liveChecks, online, run]);
+    void run({
+      text,
+      context,
+      kind: context === 'website' ? 'url' : 'message',
+      liveChecks: liveChecks && online,
+      allowCloudAI,
+      saveToAccount,
+    });
+  }, [text, context, liveChecks, allowCloudAI, saveToAccount, online, run]);
 
   const busy = phase === 'running';
 
@@ -143,6 +154,28 @@ export function CheckWorkspace() {
               </span>
             </label>
 
+            <label className="switch">
+              <input type="checkbox" checked={allowCloudAI} onChange={(e) => setAllowCloudAI(e.target.checked)} />
+              <span className="switch-track" aria-hidden="true"><span className="switch-dot" /></span>
+              <span>
+                <strong>Allow optional cloud AI explanation</strong>
+                <span className="switch-note">
+                  Off by default. When enabled, the submitted text, matched warning signs and collected link evidence are sent to TrustLens' configured AI provider. Review the message first and remove OTPs, PINs, passwords and personal details.
+                </span>
+              </span>
+            </label>
+
+            <label className="switch">
+              <input type="checkbox" checked={saveToAccount} onChange={(e) => setSaveToAccount(e.target.checked)} />
+              <span className="switch-track" aria-hidden="true"><span className="switch-dot" /></span>
+              <span>
+                <strong>Save an account copy (optional)</strong>
+                <span className="switch-note">
+                  Off by default. If you are signed in, the report summary, matched excerpts and findings are saved to your TrustLens account. Without sign-in, it stays only in this browser.
+                </span>
+              </span>
+            </label>
+
             <div className="lang-pick">
               <span className="label">Explain in</span>
               <div className="seg">
@@ -171,7 +204,7 @@ export function CheckWorkspace() {
               type="button"
               className="btn btn-ghost"
               disabled={busy || (!text && phase === 'idle')}
-              onClick={() => { setText(''); setReport(null); setPhase('idle'); setError(null); }}
+              onClick={() => { setText(''); setReport(null); setStorageNote(null); setPhase('idle'); setError(null); }}
             >
               Clear
             </button>
@@ -200,7 +233,7 @@ export function CheckWorkspace() {
                     type="button"
                     className="demo"
                     disabled={busy}
-                    onClick={() => { setContext(d.context); setText(d.text); void run({ demoSlug: d.slug, liveChecks: false }); }}
+                    onClick={() => { setContext(d.context); setText(d.text); void run({ demoSlug: d.slug, liveChecks: false, allowCloudAI: false, saveToAccount: false }); }}
                   >
                     <span className="demo-label">{d.label}</span>
                     <span className="demo-why">{d.scenario}</span>
@@ -212,7 +245,7 @@ export function CheckWorkspace() {
 
           <p className="side-note">
             <Lock />
-            Your text is used to produce this report and is not used to train any model.
+            Your submitted text is sent to TrustLens for analysis. It is not sent to an external AI provider unless you enable cloud AI above. Account storage is also off unless you explicitly request it.
           </p>
         </aside>
       </div>
@@ -228,6 +261,7 @@ export function CheckWorkspace() {
         )}
         {phase === 'done' && report && (
           <div className="section">
+            {storageNote && <p className="notice notice-check" role="status">{storageNote}</p>}
             <ReportView report={report} lang={lang} />
           </div>
         )}

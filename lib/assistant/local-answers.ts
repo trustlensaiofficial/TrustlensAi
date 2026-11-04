@@ -13,7 +13,12 @@ export interface LocalAnswerInput {
  */
 export function answerKavalLocally({ message, report }: LocalAnswerInput): string {
   const q = message.toLocaleLowerCase().replace(/[’']/g, "'");
-  const moneyMoved = /they took my money|money (?:is )?gone|sent (?:the )?money|transferred|transfer(?:red)? money|paid them|payment (?:was )?sent|already paid|lost money|debit(?:ed)?/.test(q);
+  const moneyMoved =
+    /they took my money|money (?:is )?gone|sent (?:the )?money|transferred|transfer(?:red)? money|paid them|payment (?:was )?sent|already paid|lost money|debit(?:ed)?|panam (?:pochu|anupitten)|kaasu anupitten/.test(q);
+  const approvedPayment =
+    /\b(?:approved|accepted|authori[sz]ed|confirmed)\b[^.!?]{0,45}\b(?:upi|collect|payment|request|qr)\b|\b(?:upi\s*pin|pin)\b[^.!?]{0,30}\b(?:entered|typed|pott[e]?n|enter pann[e]?n|potten|panniten)\b|\b(?:approve|accept)\s+.*\b(?:upi|collect|payment)\b/.test(q);
+  const qrScannedOnly =
+    /\b(?:scanned|scan)\b[^.!?]{0,30}\b(?:qr|code)\b|\b(?:qr|code)\b[^.!?]{0,30}\b(?:scanned|scan)\b|qr scan panniten|qr code scan panniten/.test(q);
   const sharedSecret = /shared|sent|gave|told|entered|typed|submitted/.test(q) && /otp|one.?time password|pin|password|cvv|card number|bank details|upi pin|credential/.test(q);
   const installed = /installed|downloaded/.test(q) && /app|application|apk/.test(q);
   const remote = /screen.?share|remote access|anydesk|teamviewer|quick.?support|remote app/.test(q);
@@ -25,6 +30,22 @@ export function answerKavalLocally({ message, report }: LocalAnswerInput): strin
       'Act immediately. In India, call 1930 now to report the cyber-financial fraud. Then call your bank using the number on your card or its official app and ask them to block further transactions and raise a fraud dispute.',
       'Report at https://cybercrime.gov.in/. Keep the transaction ID, amount, time, UPI ID/account details and screenshots. Do not delete messages. Recovery is not guaranteed, but reporting quickly matters.',
       report ? reportContext(report) : 'I do not have a report attached to this conversation, so I cannot assess the message or transfer itself.'
+    ].filter(Boolean).join('\n\n');
+  }
+
+  if (approvedPayment) {
+    return [
+      'Treat this as a potentially authorised payment, not as a refund being received. Contact your bank or UPI/payment provider immediately through its official app or number. Ask them to check the transaction, block further unauthorised activity and raise a dispute if money was debited.',
+      'If this was induced by a scam or money has left your account, call India’s cyber-financial fraud helpline 1930 promptly and report at https://cybercrime.gov.in/. Keep the UTR/transaction ID, amount, time and recipient details. TrustLens cannot reverse the payment.',
+      report ? reportContext(report) : 'I do not have a report attached, so I cannot inspect the request or transaction details.'
+    ].join('\n\n');
+  }
+
+  if (qrScannedOnly) {
+    return [
+      'Scanning a QR code alone does not prove that money was transferred. Do not enter a UPI PIN to receive a refund or money. In your UPI app, check the payee name, amount and whether the screen is asking you to pay; cancel anything you did not initiate.',
+      'If you entered your UPI PIN, approved a collect/payment request, or see an unexpected debit, contact your bank/payment provider immediately. For suspected financial cyber fraud in India, call 1930 promptly and report at https://cybercrime.gov.in/.',
+      report ? reportContext(report) : ''
     ].filter(Boolean).join('\n\n');
   }
 

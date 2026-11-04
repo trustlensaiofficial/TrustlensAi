@@ -60,6 +60,16 @@ describe('Kaval local answers', () => {
     expect(answer).toContain('contact the bank');
   });
 
+  it('distinguishes an approved UPI payment from a QR scan alone', () => {
+    const approved = answerKavalLocally({ message: 'I approved the UPI collect request, what now?', report });
+    expect(approved).toContain('bank or UPI/payment provider immediately');
+    expect(approved).toContain('1930');
+
+    const scanned = answerKavalLocally({ message: 'I only scanned the QR code to receive a refund', report });
+    expect(scanned).toContain('Scanning a QR code alone does not prove');
+    expect(scanned).toContain('Do not enter a UPI PIN to receive');
+  });
+
   it('answers general scam-safety questions without a report', () => {
     const answer = answerKavalLocally({ message: 'How do I avoid a payment scam?' });
     expect(answer).toContain('Do not share OTPs');

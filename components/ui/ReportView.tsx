@@ -128,7 +128,7 @@ export function ReportView({ report, lang }: { report: Report; lang: Lang }) {
       {report.model.degraded && (
         <p className="notice notice-check report-degraded">
           <Help />
-          <span>{report.model.reason ?? 'The AI reading layer was unavailable. Everything below came from fixed rules and checks that did run.'}</span>
+          <span>{report.model.reason ?? 'The AI reading layer did not run. Everything below came from fixed rules and checks that did run.'}</span>
         </p>
       )}
 
