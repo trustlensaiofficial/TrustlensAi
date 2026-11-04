@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.trustlensai.android.ui.AnalysisUiState
 import com.trustlensai.android.ui.AnalysisViewModel
 import com.trustlensai.android.ui.components.QuietNote
@@ -89,8 +90,8 @@ fun HomeScreen(
                 ) { Icon(Icons.Outlined.Security,null,tint=Color(0xFF051321),modifier=Modifier.size(25.dp)) }
                 Spacer(Modifier.width(11.dp))
                 Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(1.dp)) {
-                    Text("TRUSTLENS",style=MaterialTheme.typography.titleMedium,letterSpacing=1.8.spCompat(),fontWeight=FontWeight.Black)
-                    Text("PERSONAL THREAT PROTECTION",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant,letterSpacing=1.spCompat())
+                    Text("TRUSTLENS",style=MaterialTheme.typography.titleMedium,letterSpacing=1.8.sp,fontWeight=FontWeight.Black)
+                    Text("PERSONAL THREAT PROTECTION",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant,letterSpacing=1.sp)
                 }
                 IconButton(onClick=onOpenSettings) { Icon(Icons.Outlined.Settings,contentDescription="Settings") }
             }
@@ -99,7 +100,7 @@ fun HomeScreen(
                 Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
                     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(7.dp)) {
                         Box(Modifier.size(7.dp).clip(CircleShape).background(Color(0xFF31D5EE)))
-                        Text("YOUR DIGITAL SAFETY, IN ONE PLACE",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary,letterSpacing=1.2.spCompat(),fontWeight=FontWeight.Bold)
+                        Text("YOUR DIGITAL SAFETY, IN ONE PLACE",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary,letterSpacing=1.2.sp,fontWeight=FontWeight.Bold)
                     }
                     Text("Pause. Verify.\nThen act.",style=MaterialTheme.typography.headlineLarge)
                     Text("A message feels urgent. TrustLens gives you a moment to understand what it is asking you to do — before you do it.",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
@@ -113,12 +114,12 @@ fun HomeScreen(
                                 Row(verticalAlignment=Alignment.CenterVertically) {
                                     Icon(Icons.Outlined.Security,null,tint=Color(0xFF31D5EE),modifier=Modifier.size(18.dp))
                                     Spacer(Modifier.width(7.dp))
-                                    Text("TRUSTLENS INTELLIGENCE",style=MaterialTheme.typography.labelSmall,color=Color(0xFFB5EFFF),letterSpacing=1.spCompat())
+                                    Text("TRUSTLENS INTELLIGENCE",style=MaterialTheme.typography.labelSmall,color=Color(0xFFB5EFFF),letterSpacing=1.sp)
                                     Spacer(Modifier.weight(1f))
                                     Text("READY",style=MaterialTheme.typography.labelSmall,color=Color(0xFF78D9D2),fontWeight=FontWeight.Bold)
                                 }
                                 Text("Check before you trust.",style=MaterialTheme.typography.titleLarge,color=Color.White)
-                                Text("Messages  ·  Links  ·  QR payment requests",style=MaterialTheme.typography.bodySmallCompat(),color=Color(0xFFB8C9DC))
+                                Text("Messages  ·  Links  ·  QR payment requests",style=MaterialTheme.typography.bodySmall,color=Color(0xFFB8C9DC))
                                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                                     FeaturePill("MESSAGE",Icons.Outlined.Link)
                                     FeaturePill("PAYMENT",Icons.Outlined.Security)
@@ -134,7 +135,7 @@ fun HomeScreen(
                 Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
                     Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
                         Text("Start an investigation",style=MaterialTheme.typography.titleLarge)
-                        Text("Paste the exact message or link. Nothing is checked until you choose.",style=MaterialTheme.typography.bodySmallCompat(),color=MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Paste the exact message or link. Nothing is checked until you choose.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     OutlinedTextField(
                         value=input,onValueChange={input=it},modifier=Modifier.fillMaxWidth().height(154.dp).animateContentSize(),
@@ -145,7 +146,7 @@ fun HomeScreen(
                     )
                     Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(16.dp)) {
                         Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                            Text("YOUR PRIVACY CONTROLS",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary,letterSpacing=1.spCompat(),fontWeight=FontWeight.Bold)
+                            Text("YOUR PRIVACY CONTROLS",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary,letterSpacing=1.sp,fontWeight=FontWeight.Bold)
                             ConsentRow("Remote link checks","Only if you allow a remote destination check.",consent.liveChecks,vm::setLiveChecks)
                             ConsentRow("AI explanation","Sends the text to the configured AI provider.",consent.cloudAi,vm::setCloudAi)
                             if(consent.isMinimal) Text("Both options are off. Your pasted text stays on this phone unless you initiate a check.",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
