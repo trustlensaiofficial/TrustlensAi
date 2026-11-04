@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      A bare Material 3 shell. The real palette is applied in Compose, so this
-      only has to avoid a flash of the wrong colour on launch.
+      A bare platform shell. The real palette lives in Compose, so this only
+      has to avoid a flash of the wrong colour before the first frame.
+
+      `Theme.Material.DayNight` does not exist in the framework — only
+      Material.Light and Material (dark) — so day and night are separate
+      files rather than one DayNight parent. The windowBackground in each
+      matches the Compose background for that mode, which is the whole point
+      of defining it at all.
     -->
-    <style name="Theme.TrustLens" parent="android:Theme.Material.DayNight.NoActionBar">
+    <style name="Theme.TrustLens" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>
