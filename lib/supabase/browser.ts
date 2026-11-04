@@ -15,6 +15,12 @@ let cached: ReturnType<typeof createBrowserClient> | null = null;
 export function getBrowserSupabase() {
   const config = publicSupabase();
   if (!config) return null;
-  cached ??= createBrowserClient(config.url, config.key);
+  cached ??= createBrowserClient(config.url, config.key, {
+    auth: {
+      // Supabase passkeys are experimental and silently unavailable unless
+      // explicitly enabled on every client that invokes passkey methods.
+      experimental: { passkey: true },
+    },
+  });
   return cached;
 }

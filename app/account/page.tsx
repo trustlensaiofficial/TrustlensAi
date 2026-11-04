@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Shell } from '@/components/ui/Shell';
 import { ActivityList } from '@/components/ui/ActivityList';
+import { PasskeyManager } from '@/components/auth/PasskeyManager';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
 import { Arrow, Check, Lock, Shield } from '@/components/ui/icons';
 
@@ -36,6 +37,10 @@ export default async function AccountPage() {
               <p className="muted-xs" style={{ marginTop: 8 }}>
                 Reports you run while signed in are saved to your account as well as this device.
               </p>
+            </div>
+            <div className="card card-pad">
+              <h3 className="col-head"><Lock /> Passkey security</h3>
+              <PasskeyManager />
             </div>
             <div className="card card-pad">
               <h3 className="col-head"><Lock /> Sign out</h3>
