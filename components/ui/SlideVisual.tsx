@@ -76,7 +76,7 @@ function render(id: string) {
       );
 
     /* Evidence you can inspect — a finding opened to show its matched span. */
-    case 'f1':
+    case 'evidence':
       return (
         <Card className="s-wide s-open" depth={70}>
           <Row tone="bad" w={76} tag="det" />
@@ -89,7 +89,7 @@ function render(id: string) {
       );
 
     /* Context rules — the stack changes with what you are holding. */
-    case 'f2':
+    case 'campaigns':
       return (
         <>
           <Card className="s-stack s-s3" depth={0}><Row tone="mute" w={60} /></Card>
@@ -102,7 +102,7 @@ function render(id: string) {
       );
 
     /* The investigation — four stages running in order. */
-    case 'f3':
+    case 'action':
       return (
         <Card className="s-wide s-pipe" depth={60}>
           {['rules', 'links', 'evidence', 'model'].map((s, i) => (
@@ -115,7 +115,7 @@ function render(id: string) {
       );
 
     /* Provenance — three kinds of claim, never blended. */
-    case 'f4':
+    case 'provenance':
       return (
         <>
           <Card className="s-third s-p1" depth={80}><i className="slide-tag g-det big" /></Card>
@@ -125,7 +125,7 @@ function render(id: string) {
       );
 
     /* Unknowns — checked on one side, not checked on the other. */
-    case 'f5':
+    case 'unknowns':
       return (
         <>
           <Card className="s-half s-left" depth={70}>
@@ -138,7 +138,7 @@ function render(id: string) {
       );
 
     /* The next safe move — a checklist being worked through. */
-    case 'f6':
+    case 'respond':
       return (
         <Card className="s-wide s-check" depth={70}>
           {[0, 1, 2].map((i) => (
@@ -151,7 +151,7 @@ function render(id: string) {
       );
 
     /* The report — one document you can keep. */
-    case 'f7':
+    case 'evidence_doc':
       return (
         <>
           <Card className="s-doc s-back" depth={0} />
@@ -165,7 +165,7 @@ function render(id: string) {
       );
 
     /* History — kept in your own browser. */
-    case 'f8':
+    case 'offline':
       return (
         <>
           {[0, 1, 2].map((i) => (
@@ -174,6 +174,19 @@ function render(id: string) {
             </Card>
           ))}
         </>
+      );
+
+    /* Tamil — the demand quoted as it actually arrives. */
+    case 'tamil':
+      return (
+        <Card className="s-wide s-open" depth={70}>
+          <Row tone="bad" w={70} tag="det" />
+          <span className="slide-quote">
+            <i className="slide-mark-text" style={{ width: '62%' }} />
+          </span>
+          <Row tone="warn" w={58} />
+          <Row tone="mute" w={76} />
+        </Card>
       );
 
     /* Your turn. */
