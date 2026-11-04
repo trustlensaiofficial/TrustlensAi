@@ -527,6 +527,15 @@ components:
           type: boolean
           default: false
           description: |
+        allowCloudAI:
+          type: boolean
+          default: false
+          deprecated: true
+          description: |
+            Accepted alias for `allowCloudAi`, kept because this route shipped
+            with the capitalised spelling before the contract existed. Use
+            `allowCloudAi` in new clients. If both are sent, either being true
+            enables the layer.
             Opt in to a third-party model for this request only. False means
             no private content leaves the TrustLens backend.
         language: { type: string, enum: [en, ta, hi], default: en }
