@@ -59,17 +59,29 @@ defends it in five layers, all verified present in the code:
 5. **A hard timeout and a response byte cap**, so a hostile host cannot hang the request or stream
    until memory runs out.
 
-### The residual gap, stated plainly
+### DNS rebinding — closed
 
-**This is validate-then-fetch, which is open to DNS rebinding.** The guard resolves the hostname
-and checks the addresses; `fetch` then resolves it again independently. A hostile DNS server
-answering with a short TTL can return a public address to the check and a private one to the
-fetch. Closing it properly needs connection-level pinning to the validated address — fetching by
-IP with an explicit `Host` header, or a custom agent that refuses to connect anywhere else.
+This used to be the open hole, and it was a real one. The guard resolved the hostname and checked
+the addresses, then handed the *hostname* to `fetch`, which resolved it all over again. A hostile
+nameserver answering with a one-second TTL could return a public address to the check and a private
+one to the connection, and the guard would never see it. Validate-then-fetch is not a defence when
+something else does the resolving.
 
-Why it is currently acceptable rather than urgent: live checking is **off by default** and requires
-an explicit per-analysis opt-in, so the window is narrow and user-initiated. It is recorded here as
-real work, not as a solved problem.
+`lib/analysis/pinned-fetch.ts` now replaces the connection's `lookup` with a function that ignores
+DNS entirely and returns only the addresses the guard approved, so the socket cannot go anywhere
+else. A request for any other hostname is **refused**, not resolved — falling back to real DNS
+there would reopen the hole. Each redirect hop re-validates and re-pins, so a hop never inherits
+the previous host's permission.
+
+The hostname is deliberately still used for TLS SNI and certificate verification. Rewriting the URL
+to a bare IP with the original `Host` header would also pin the address, but it would break
+certificate validation, and silently accepting a mismatched certificate is a worse hole than the
+one being closed.
+
+**Verified**: 14 tests in `tests/pinned-fetch.test.ts`, including a real-socket case where the
+hostname resolves to a server that genuinely exists while the pin points elsewhere — the request
+fails, as it must. Live checking was then confirmed still working end to end against a real HTTPS
+host, and `169.254.169.254`, `localhost` and `127.0.0.1` all still refused before any connection.
 
 ---
 
@@ -125,32 +137,33 @@ to 1930 first.
 
 Listed because an unlisted gap is the dangerous kind.
 
-1. **DNS rebinding on live URL checks.** §3. Needs address pinning.
-2. **A determined evasive scam.** Pattern rules match known wording. Unusual phrasing, an
+1. **A determined evasive scam.** Pattern rules match known wording. Unusual phrasing, an
    unsupported language, or text inside an image can pass them. The product says so in
    `uncertainty.limits` on every single report.
-3. **No measured precision or recall.** There is no labelled corpus, so the false-positive and
+2. **No measured precision or recall.** There is no labelled corpus, so the false-positive and
    false-negative rates are unknown. This is why no accuracy figure may be published —
    `PRODUCT_CHARTER.md` §6 item 7.
-4. **No sender authentication.** We do not verify phone-number reputation, SPF/DKIM/DMARC, or
+3. **No sender authentication.** We do not verify phone-number reputation, SPF/DKIM/DMARC, or
    whether an account is impersonating someone. Stated in `notChecked` on every report.
-5. **No transaction visibility.** No bank or NPCI integration. We cannot confirm money moved, and
+4. **No transaction visibility.** No bank or NPCI integration. We cannot confirm money moved, and
    `paymentAction.unknowns` always says so.
-6. **Timing side channels** on the ownership check are not equalised.
-7. **No dependency-pinning attestation** or SBOM in CI.
-8. **Platform account takeover.** A compromised Google account compromises the TrustLens account.
+5. **Timing side channels** on the ownership check are not equalised.
+6. **No dependency-pinning attestation** or SBOM in CI.
+7. **Platform account takeover.** A compromised Google account compromises the TrustLens account.
    Passkeys are offered precisely because they are phishing-resistant; Google OAuth inherits
    whatever that account's security is.
-9. **Operator access.** HMAC pseudonymisation protects against a leaked database, not against
+8. **Operator access.** HMAC pseudonymisation protects against a leaked database, not against
    whoever holds the key. This is pseudonymisation, not anonymity, and the code comment says so.
 
 ---
 
 ## 7. The next three pieces of security work, in order
 
-1. **Pin the validated address** for live URL retrieval, closing §3's rebinding gap.
-2. **Set `TRUSTLENS_HMAC_KEY`** in the canonical project, so rate-limit tokens stop being an
+1. **Set `TRUSTLENS_HMAC_KEY`** in the canonical project, so rate-limit tokens stop being an
    unkeyed hash of a 2^32 address space. *(The append-only triggers and RLS policies are now
    verified — `scripts/verify-security.mjs`, 23 checks. See `docs/DATABASE_DICTIONARY.md` §0.)*
-3. **Evaluate a commercial threat-intelligence provider.** The abstraction does not exist yet, so
+2. **Evaluate a commercial threat-intelligence provider.** The abstraction does not exist yet, so
    no URL reputation is consulted at all.
+3. **Extract bracketed IPv6 literals in link detection.** `http://[::1]/` is currently not
+   recognised as a link at all, so it is never fetched — safe, but it also means such a URL is
+   never analysed. Fail-closed, and worth fixing for completeness rather than for safety.
