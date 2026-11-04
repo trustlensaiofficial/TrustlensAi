@@ -42,7 +42,10 @@ export async function GET(request: Request) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
     const to = new URL('/login', origin);
-    to.searchParams.set('error', 'That sign-in link could not be completed. Please try again.');
+    // The provider's own wording is far more useful than a generic retry
+    // message: the usual cause is this origin missing from the Supabase
+    // redirect allow-list, and only the real text makes that diagnosable.
+    to.searchParams.set('error', `Sign-in could not be completed: ${error.message.slice(0, 140)}`);
     return NextResponse.redirect(to);
   }
 
