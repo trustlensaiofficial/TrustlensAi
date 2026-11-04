@@ -55,18 +55,22 @@ app/
   analyze/page.tsx            workspace (client component inside)
   report/[id]/page.tsx        saved report, server-rendered, noindex
   history/page.tsx            per-browser list (localStorage)
-  api/analyze/route.ts        POST — the whole pipeline
-  api/report/[id]/route.ts    GET / DELETE one report by UUID
+  api/analyze/route.ts        POST — analysis (live checks and cloud AI opt-in)
+  api/report/[id]/route.ts    GET / DELETE one report, enforcing owner when present
+  api/account/history/route.ts authenticated account-only history
   api/health/route.ts         capability report (booleans only, no secrets)
 
 lib/analysis/
   types.ts         shared vocabulary; Provenance is the key type
   normalize.ts     validation + input classification
-  detectors.ts     deterministic rules  ← most product value lives here
+  detectors.ts     deterministic rules
+  context-rules.ts scenario-specific bank/job/invoice/proposal rules
+  tanglish.ts      limited Tamil-in-Latin-script detection
   url.ts           offline URL structure + lookalike detection
   evidence.ts      SSRF-hardened network checks
-  llm.ts           contextual layer (gateway OR Anthropic OR degrade)
+  llm.ts           opt-in contextual layer (gateway OR Anthropic OR degrade)
   checklist.ts     verify-before-you-act step builder
+  response-plan.ts action-aware incident response
   orchestrator.ts  pipeline; enforces ordering
 
 lib/store.ts       Supabase persistence (service role only)
@@ -85,7 +89,7 @@ rejected.
 
 ```
 validate → classify → deterministic rules → offline URL structure
-         → live evidence (optional) → contextual model → assemble report
+         → live evidence (explicit opt-in) → cloud model (explicit opt-in) → report
 ```
 
 Rules and evidence run **first**, and only their results are handed to the
@@ -130,9 +134,23 @@ These are not aspirational; they are tested.
 - **Secrets.** Service-role and AI keys are server-only. Never `NEXT_PUBLIC_`.
   Never logged, never in errors returned to the client, never in chat or
   screenshots. `/api/health` returns booleans only.
-- **Database.** RLS enabled, no policies for `anon`/`authenticated`. Access only
-  via service role. **No list endpoint exists** — that absence is the control
-  preventing one visitor from enumerating another's scans. Do not add one.
+- **Database.** RLS is enabled with no browser-role policies. The service-role
+  key is server-only. Account writes require explicit `saveToAccount: true`,
+  a verified session user and a valid owner UUID. `saveReport` fails closed
+  when the `user_id` column is missing; never retry an account save without
+  its owner. `GET /api/account/history` requires a verified session and
+  filters every query by that user's ID. It returns minimal report metadata,
+  not an unfiltered scan list. Report reads and deletes enforce ownership
+  whenever an owner is present. Legacy guest rows remain accessible only by
+  their unguessable report URL until removed; do not create new guest rows.
+- **External AI.** Analysis API defaults `allowCloudAI` to false; Kaval defaults
+  `allowCloud` to false. The model provider must receive no submitted content
+  unless the user explicitly enabled the visible per-feature consent control.
+- **Outbound URL checks.** API and orchestrator both default live checks to
+  false. Only an explicit user choice may trigger DNS/HTTP metadata retrieval.
+- **Local history.** Regular reports are kept in browser IndexedDB. This is
+  device/browser-specific and not app-level encryption. Users can remove local
+  reports through the history UI.
 - **Logging.** Never log analysed content or stored rows. Log short error
   markers only.
 - **Input limits.** 8,000 characters, enforced server-side.
