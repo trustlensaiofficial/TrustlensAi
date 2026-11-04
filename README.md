@@ -66,13 +66,14 @@ All optional — each missing capability degrades visibly rather than silently.
 |---|---|---|
 | `AI_GATEWAY_API_KEY` | optional contextual analysis | Preferred. Used only after the user enables cloud AI. Create at <https://vercel.com/ai-gateway>. |
 | `ANTHROPIC_API_KEY` | optional contextual analysis | Used only if the gateway key is absent and the user opts in. |
-| `NEXT_PUBLIC_SUPABASE_URL` | report history | `SUPABASE_URL` also accepted. |
+`NEXT_PUBLIC_SUPABASE_URL` is used by the browser auth client. Account-synced report history additionally requires the server key, sign-in and the owner migration.
 | `SUPABASE_SERVICE_ROLE_KEY` | report history | **Server-only.** `SUPABASE_SECRET_KEY` also accepted. |
 
 Never give a server key a `NEXT_PUBLIC_` prefix, and never commit real values.
 
-Apply `supabase/migrations/0001_scans.sql` before expecting history to work. It
-is additive — it creates one table and one index and alters nothing existing.
+Apply `0001_scans.sql` to create the report table and `0003_scans_owner.sql`
+to enable account-owned reports. Until the owner column exists, account sync
+fails closed and nothing is saved to the server.
 
 ---
 
@@ -80,7 +81,7 @@ is additive — it creates one table and one index and alters nothing existing.
 
 ```
 validate → classify → deterministic rules → offline URL structure
-         → live evidence (optional) → contextual model → report
+         → live evidence (explicit opt-in) → cloud model (explicit opt-in) → report
 ```
 
 Rules and evidence run **before** the model, and only their output is given to
@@ -197,7 +198,7 @@ Applied in order from `supabase/migrations/`, through the Supabase SQL editor.
 |---|---|
 | `0001_scans.sql` | The report table. RLS on, no browser-role policies. |
 | `0002_lock_analysis_history.sql` | Owner-scopes `analysis_history`. |
-| `0003_scans_owner.sql` | Adds a **nullable** `user_id` so signed-in users own explicitly synced reports. |
+`0003_scans_owner.sql` adds the nullable `user_id` column required for account-owned reports.
 
 All are additive. `0003` adds the nullable owner column. Account-owned writes
 fail closed until it is present; the application never falls back to an
@@ -215,7 +216,7 @@ ownerless server-side save.
 | Passkey works locally but not in production | RP ID mismatch; they are separate hostnames and need separate registrations |
 | Reports not saving | `SUPABASE_SECRET_KEY` missing, or `SUPABASE_URL` holds a malformed value (the app names which) |
 | "Contextual analysis unavailable" | AI Gateway billing not enabled, or no key. Deterministic analysis is unaffected |
-| Reports save but have no owner | `0003_scans_owner.sql` not applied yet — see the server log |
+| Account sync unavailable | Apply `0003_scans_owner.sql`; saves fail closed until ownership can be enforced |
 
 ## Limitations
 
