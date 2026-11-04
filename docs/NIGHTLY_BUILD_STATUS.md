@@ -101,9 +101,61 @@ reserved `.invalid` addresses, touch no pre-existing row, and delete everything 
 
 ---
 
-## 7. The release, and why production is still behind
+## 7. The release — DEPLOYED AND VERIFIED LIVE
 
-`main` is at `054c0ae` with both GitHub Actions workflows green. Production is not on it.
+**`https://trustlens.in` is serving this release.**
+
+| | |
+|---|---|
+| Commit | `f1c5166` on `main` |
+| Deployment | `dpl_65CfaFqK75kRMvyAJw2tqBvWLXDE` |
+| URL | `trustlensai-u2r6-3l7nywr0d-void-076c.vercel.app`, promoted to production |
+| Project | `trustlensai-u2r6` (team `void-076c`) |
+
+### How it got past the build-rate limit
+
+Git-triggered builds were refused with `upgradeToPro=build-rate-limit`, and three Vercel projects
+are attached to this repository so one push costs three builds against one quota. The route around
+it was to build locally and ship the output: `vercel build --prod` then
+`vercel deploy --prebuilt --prod`, so Vercel hosts a finished build instead of running one.
+
+That produced a Ready deployment which was **not** the production alias — the same alias lag seen
+before — so `vercel promote` was needed to actually move `trustlens.in` onto it.
+
+The `NEXT_PUBLIC_*` values were confirmed to be real rather than `[SENSITIVE]` placeholders before
+building, because those are the only ones Next.js inlines at build time. The two sensitive server
+keys stayed placeholders locally and are supplied by Vercel at runtime, which is why a local build
+is safe here. The pulled env file was deleted afterwards.
+
+### Verified live on trustlens.in
+
+| Check | Result |
+|---|---|
+| `caseStorage` in `/api/health` | `true` — this release is live |
+| `/api/v1/consent`, `/api/v1/cases` | 401 — present and account-gated |
+| `/api/v1/recovery-plan`, `/api/v1/analyses` | 400 on an empty body — present |
+| Payment contradiction | `high_risk`, `enter_upi_pin` / `user_pays`, quoting "Refund of Rs 2,499 is pending." |
+| First step | "Do not enter your UPI PIN. Close the payment screen." |
+| NPCI fact | Collect path carries the 1 October 2025 P2P discontinuation |
+| Hindi detection | `high_risk` via `hi.otp_request`, `indic.account_block`, `indic.link_pressure` |
+| Safety-advice false positive | "Never share your OTP…" → `no_signals_detected` |
+| Recovery plan, unauthenticated | `immediate`, 1930 first, "Call 1930 now, before gathering documents" |
+| `trustlens.in` | HTTP 200 |
+| `www.trustlens.in` | HTTP 308 → apex |
+
+### Still true after the deploy
+
+- `rateLimitKeyedTokens: false` — `TRUSTLENS_HMAC_KEY` is confirmed absent from the production
+  environment. Rate limiting works; its tokens are an unkeyed hash.
+- `contextualHealth: billing_blocked` — the AI layer is still unavailable, and the product degrades
+  honestly without it.
+- `trustlensai.in` still has no DNS records.
+
+---
+
+## 8. Superseded: why production used to be behind
+
+`main` reached `054c0ae` with both workflows green while production stayed on the previous build.
 
 **The blocker:** every Vercel deployment returns `?upgradeToPro=build-rate-limit`. Three separate
 Vercel projects — `trustlensai`, `trustlensai-u2r6` and `trustlensaivoid` — are attached to this
