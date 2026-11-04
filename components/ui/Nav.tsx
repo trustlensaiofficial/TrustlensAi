@@ -38,8 +38,9 @@ export function Nav() {
       if (event.key === 'Tab') {
         const items = panelRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])');
         if (!items?.length) return;
-        const first = items[0];
-        const last = items[items.length - 1];
+        const first = items.item(0);
+        const last = items.item(items.length - 1);
+        if (!first || !last) return;
         if (event.shiftKey && document.activeElement === first) {
           event.preventDefault();
           last.focus();
