@@ -27,14 +27,20 @@ of them without the owner's explicit approval.
 
 ## 2. What the product is
 
-TrustLens AI helps someone decide whether a message, link or claim deserves
-their trust **before they act on it**.
+TrustLens AI is an India-first scam investigation and response assistant.
+It helps someone understand what a suspicious communication is asking them
+to do, inspect the evidence available, and choose a safer next action — before
+acting or after a suspected scam.
 
-The differentiator is not detection. Plenty of tools print a red banner. The
-differentiator is that TrustLens shows **its reasoning and the limits of that
-reasoning**: which exact words triggered a warning, which checks actually ran,
-what could not be established, and what the user should do next through a
-channel they control.
+The product addresses the **scam-to-action gap**, not caller ID or universal
+spam blocking. It connects message context, link/payment indicators, evidence,
+uncertainty and action-specific incident guidance. It complements existing
+caller-ID and spam filters rather than claiming to replace them.
+
+The current deliverable in this repository is a **web prototype**. Android
+notification monitoring, call/SMS blocking, QR image decoding, media analysis,
+live fact-checking and official financial-institution integrations are not
+implemented. The definitive capability boundary is in [`PRODUCT_SPEC.md`](./PRODUCT_SPEC.md).
 
 ### The one rule that governs every decision
 
