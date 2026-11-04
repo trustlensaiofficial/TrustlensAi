@@ -13,6 +13,8 @@ export function InstallApp() {
 
   useEffect(() => {
     const standalone = window.matchMedia('(display-mode: standalone)').matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+    // Read the browser's standalone display mode once after hydration.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInstalled(standalone);
     setIos(/iphone|ipad|ipod/i.test(navigator.userAgent));
     setVisible(true);
