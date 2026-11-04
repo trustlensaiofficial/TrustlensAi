@@ -6,7 +6,11 @@ import typescript from 'eslint-config-next/typescript';
  * directly — no FlatCompat wrapper.
  */
 const config = [
-  { ignores: ['.next/**', 'node_modules/**', 'coverage/**', 'next-env.d.ts'] },
+  { ignores: [
+    // Local `vercel build` output. Build artefacts, not project source —
+    // linting them produced 2,555 problems that were all noise.
+    '.vercel/**',
+   '.next/**', 'node_modules/**', 'coverage/**', 'next-env.d.ts'] },
   ...coreWebVitals,
   ...typescript,
 ];
