@@ -19,6 +19,7 @@ export function Kaval({ report }: { report?: Report | null }) {
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [allowCloudAI, setAllowCloudAI] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const online = useOnline();
   const logRef = useRef<HTMLDivElement | null>(null);
@@ -47,6 +48,7 @@ export function Kaval({ report }: { report?: Report | null }) {
       setDraft('');
       setBusy(true);
       setError(null);
+      setNotice(null);
 
       try {
         const res = await fetch('/api/assistant', {
@@ -65,6 +67,7 @@ export function Kaval({ report }: { report?: Report | null }) {
           return;
         }
         setTurns((prev) => [...prev, { role: 'assistant', content: data.reply as string }]);
+        setNotice(typeof data.notice === 'string' ? data.notice : null);
       } catch {
         setError(
           online
@@ -145,6 +148,8 @@ export function Kaval({ report }: { report?: Report | null }) {
               <p className="notice notice-high kaval-error" role="alert"><Alert /><span>{error}</span></p>
             )}
           </div>
+
+          {notice && <p className="kaval-notice" role="status">{notice}</p>}
 
           <label className="kaval-cloud-consent">
             <input
