@@ -160,7 +160,7 @@ export function CheckWorkspace() {
               <span>
                 <strong>Allow optional cloud AI explanation</strong>
                 <span className="switch-note">
-                  Off by default. When enabled, the submitted text, matched warning signs and collected link evidence are sent to TrustLens' configured AI provider. Review the message first and remove OTPs, PINs, passwords and personal details.
+                  Off by default. When enabled, the submitted text, matched warning signs and collected link evidence are sent to TrustLens&apos; configured AI provider. Review the message first and remove OTPs, PINs, passwords and personal details.
                 </span>
               </span>
             </label>

@@ -36,25 +36,28 @@ export function AccountHistory() {
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const reload = useCallback(async () => {
-    try {
-      const response = await fetch('/api/account/history', { cache: 'no-store' });
-      const data = await response.json();
-      if (!response.ok) {
+  useEffect(() => {
+    let active = true;
+    void fetch('/api/account/history', { cache: 'no-store' })
+      .then(async (response) => ({ response, data: await response.json() }))
+      .then(({ response, data }) => {
+        if (!active) return;
+        if (!response.ok) {
+          setRows([]);
+          setError(typeof data?.error === 'string' ? data.error : 'Account history could not be loaded.');
+          return;
+        }
+        setRows(Array.isArray(data?.reports) ? data.reports as AccountReport[] : []);
+        setNotice(typeof data?.notice === 'string' ? data.notice : null);
+        setError(null);
+      })
+      .catch(() => {
+        if (!active) return;
         setRows([]);
-        setError(typeof data?.error === 'string' ? data.error : 'Account history could not be loaded.');
-        return;
-      }
-      setRows(Array.isArray(data?.reports) ? data.reports as AccountReport[] : []);
-      setNotice(typeof data?.notice === 'string' ? data.notice : null);
-      setError(null);
-    } catch {
-      setRows([]);
-      setError('Account history could not be reached. Your device-only reports are not affected.');
-    }
+        setError('Account history could not be reached. Your device-only reports are not affected.');
+      });
+    return () => { active = false; };
   }, []);
-
-  useEffect(() => { void reload(); }, [reload]);
 
   const remove = useCallback(async (id: string) => {
     setDeleting(id);

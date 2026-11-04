@@ -190,7 +190,7 @@ function buildUncertainty(
 
 export async function analyze(options: AnalyzeOptions): Promise<Report> {
   const { text, isDemo = false } = options;
-  const liveChecks = options.liveChecks !== false;
+  const liveChecks = options.liveChecks === true;
   const context: InputContext = options.context ?? 'generic';
   const kind: InputKind =
     !options.kind || options.kind === 'auto' ? classifyInput(text) : options.kind;

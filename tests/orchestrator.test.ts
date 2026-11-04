@@ -62,7 +62,7 @@ describe('analyze', () => {
     expect(report.model.degraded).toBe(true);
     expect(report.model.reason).toBeTruthy();
     // The degradation reason must reach the user-facing uncertainty section.
-    expect(report.uncertainty.notChecked.join(' ')).toContain('No AI credential');
+    expect(report.uncertainty.notChecked.join(' ')).toContain('Cloud AI interpretation was not enabled');
   });
 
   it('labels every finding with its provenance and invents no model inference', async () => {

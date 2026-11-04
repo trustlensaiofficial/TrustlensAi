@@ -34,7 +34,9 @@ describe('report ownership', () => {
 
   it('takes the owner from the session, never the request body', () => {
     expect(analyze).toMatch(/await getCurrentUser\(\)/);
-    expect(analyze).toMatch(/saveReport\(report, user\?\.id \?\? null\)/);
+    expect(analyze).toMatch(/if \(saveToAccount\)/);
+    expect(analyze).toMatch(/saveReport\(report, user\.id\)/);
+    expect(analyze).toMatch(/saveToAccount: z\.boolean\(\)\.default\(false\)/);
     // A client-supplied owner would let anyone write into another account.
     expect(analyze).not.toMatch(/body\.userId|parsed\.data\.userId|userId:\s*z\./);
   });

@@ -161,7 +161,7 @@ export function Kaval({ report }: { report?: Report | null }) {
             <span>
               <strong>Allow external AI for this chat (optional)</strong>
               <span>
-                Off by default: Kaval uses its built-in safety guide. When enabled, your recent chat and the visible report context are sent to TrustLens' configured AI provider. Do not include OTPs, PINs or passwords.
+                Off by default: Kaval uses its built-in safety guide. When enabled, your recent chat and the visible report context are sent to TrustLens&apos; configured AI provider. Do not include OTPs, PINs or passwords.
               </span>
             </span>
           </label>

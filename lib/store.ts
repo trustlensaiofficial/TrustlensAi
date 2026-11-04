@@ -11,10 +11,11 @@ import type { AssessmentLevel, InputContext, InputKind, Report } from './analysi
  *    service-role key. That key never reaches the browser.
  *  - Row Level Security is enabled on the table with no policies granted to
  *    `anon` or `authenticated`, so a leaked publishable key still reads nothing.
- *  - A report is addressed by its UUID, which is unguessable, and there is
- *    deliberately NO endpoint that lists reports. The browser keeps its own
- *    index of ids in localStorage, so one visitor's history is never derivable
- *    from the server. That is how we avoid exposing other people's scans.
+ *  - Account report history is listed only through an authenticated server
+ *    route that filters by the verified session user_id. It returns minimal
+ *    report metadata, never an unfiltered list of scans.
+ *  - Device-only history is indexed in browser storage. Account rows are
+ *    created only after explicit user opt-in and only with an owner id.
  *
  * If the environment is not configured, every function degrades to a clear
  * "not enabled" result. The UI then states that history is unavailable rather
@@ -205,7 +206,7 @@ export async function saveReport(
   return { saved: true };
 }
 
-/** Fetches one report by its unguessable id. There is no list equivalent. */
+/** Fetches one report by its unguessable id, enforcing ownership when present. */
 export async function getReport(
   id: string,
   viewerId?: string | null,

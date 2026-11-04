@@ -1,8 +1,8 @@
 # TrustLens AI
 
-**Verify before you act.** TrustLens AI analyses a message, link or claim and
-shows you what looks wrong, what it actually checked, what it could not verify,
-and what to do next.
+**India-first scam investigation and response assistant.** TrustLens AI analyses
+messages, links and payment-related requests, explains evidence and uncertainty,
+and guides the user before acting or after a suspected scam.
 
 Team Reshiram · DEX26223 · Open Innovation
 
@@ -41,9 +41,10 @@ cp .env.example .env.local   # optional; the app runs without any keys
 npm run dev
 ```
 
-Open <http://localhost:3000>. With no environment variables the app still works:
-deterministic rules and live link checks run, and the UI states plainly that the
-contextual layer and report storage are unavailable.
+Open <http://localhost:3000>. With no environment variables the deterministic
+rules and report work. Live link checks, cloud AI interpretation and account
+storage are separate optional capabilities; cloud AI and account sync are off
+until the user explicitly enables them.
 
 ### Scripts
 
@@ -63,15 +64,16 @@ All optional — each missing capability degrades visibly rather than silently.
 
 | Variable | Needed for | Notes |
 |---|---|---|
-| `AI_GATEWAY_API_KEY` | contextual analysis | Preferred. Create at <https://vercel.com/ai-gateway>. |
-| `ANTHROPIC_API_KEY` | contextual analysis | Used only if the gateway key is absent. |
-| `NEXT_PUBLIC_SUPABASE_URL` | report history | `SUPABASE_URL` also accepted. |
-| `SUPABASE_SERVICE_ROLE_KEY` | report history | **Server-only.** `SUPABASE_SECRET_KEY` also accepted. |
+| `AI_GATEWAY_API_KEY` | optional contextual analysis | Used only after the user enables cloud AI. |
+| `ANTHROPIC_API_KEY` | optional contextual analysis | Used only if the gateway key is absent and the user opts in. |
+| `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser auth client | `SUPABASE_URL` is also accepted. |
+| `SUPABASE_SERVICE_ROLE_KEY` | account report storage | **Server-only.** `SUPABASE_SECRET_KEY` also accepted; requires sign-in and `0003_scans_owner.sql`. |
 
 Never give a server key a `NEXT_PUBLIC_` prefix, and never commit real values.
 
-Apply `supabase/migrations/0001_scans.sql` before expecting history to work. It
-is additive — it creates one table and one index and alters nothing existing.
+Apply `0001_scans.sql` to create the report table and `0003_scans_owner.sql`
+to enable account-owned reports. Until the owner column exists, account sync
+fails closed and nothing is saved to the server.
 
 ---
 
@@ -79,7 +81,7 @@ is additive — it creates one table and one index and alters nothing existing.
 
 ```
 validate → classify → deterministic rules → offline URL structure
-         → live evidence (optional) → contextual model → report
+         → live evidence (explicit opt-in) → cloud model (explicit opt-in) → report
 ```
 
 Rules and evidence run **before** the model, and only their output is given to
@@ -87,12 +89,13 @@ it. The model has no tools of its own, so it is structurally unable to claim a
 check that did not happen.
 
 - **Frontend / backend:** Next.js 16 App Router, React 19, TypeScript (strict)
-- **Model:** Claude via Vercel AI Gateway, or the Anthropic API directly
+- **Model:** Claude via Vercel AI Gateway, or the Anthropic API directly; per-analysis cloud consent is required
 - **Database:** Supabase Postgres, service-role access only
 - **Hosting:** Vercel
 
-See [`AGENTS.md`](./AGENTS.md) for the full brief and
-[`TASKS.md`](./TASKS.md) for current state, verified results and known limits.
+See [`PRODUCT_SPEC.md`](./PRODUCT_SPEC.md) for the current feature contract,
+privacy defaults, unimplemented capabilities and roadmap. See [`AGENTS.md`](./AGENTS.md)
+for engineering rules and [`TASKS.md`](./TASKS.md) for verified project state.
 
 ---
 
@@ -104,9 +107,10 @@ See [`AGENTS.md`](./AGENTS.md) for the full brief and
   extracts metadata only. Nothing is executed or downloaded.
 - **Prompt injection:** analysed content is fenced with a one-time marker and
   declared to be data. The deterministic layer is immune by construction.
-- **Database:** RLS enabled with no client policies. Reports are addressed by
-  unguessable UUID and **there is deliberately no endpoint that lists them**,
-  so one visitor cannot reach another's history.
+- **Database:** RLS is enabled without browser-role policies. Account reports
+  are saved only after explicit opt-in and verified sign-in. The authenticated
+  history endpoint filters by the session user's id; report reads/deletes check
+  ownership. A missing owner column fails closed.
 - **Secrets:** server-side only, never logged, never returned in errors.
 
 ---
@@ -127,18 +131,18 @@ cp .env.example .env.local
 npm run dev           # http://localhost:3000
 ```
 
-**What works without any credentials:** the full deterministic engine, every
-demo scenario, link structure analysis, the report, the checklist, the
-showcase and the tour. The app tells you plainly which layers are unavailable
-rather than pretending.
+**What works without optional credentials:** deterministic text rules, demo
+scenarios, offline URL structure analysis, reports, checklists, browser-local
+history, showcase and tour. Live URL evidence, cloud AI and account sync are
+separate opt-in capabilities and degrade visibly when unavailable.
 
 **What each credential unlocks:**
 
 | Variable | Unlocks | Without it |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Saved reports, sign-in | Analysis still runs; reports are not saved |
-| `SUPABASE_SECRET_KEY` | Server-side report writes | Reports are not saved |
-| `AI_GATEWAY_API_KEY` *or* `ANTHROPIC_API_KEY` | Contextual interpretation | Deterministic rules only, clearly labelled |
+| `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser auth and sign-in client | Analysis still runs without them |
+| `SUPABASE_SECRET_KEY` | Server-side account report storage | Account copies are not saved |
+| `AI_GATEWAY_API_KEY` *or* `ANTHROPIC_API_KEY` | Optional contextual interpretation after user consent | Deterministic rules only, clearly labelled |
 | `NEXT_PUBLIC_SITE_URL` | Correct OAuth redirect | Falls back to the deployment URL |
 
 Never commit `.env.local`. Never put a secret in a `NEXT_PUBLIC_` variable —
@@ -194,11 +198,11 @@ Applied in order from `supabase/migrations/`, through the Supabase SQL editor.
 |---|---|
 | `0001_scans.sql` | The report table. RLS on, no browser-role policies. |
 | `0002_lock_analysis_history.sql` | Owner-scopes `analysis_history`. |
-| `0003_scans_owner.sql` | Adds a **nullable** `user_id` so signed-in users own their reports. |
+| `0003_scans_owner.sql` | Adds nullable `user_id` required for account-owned reports. |
 
-All are additive. `0003` is safe to apply at any time: the column is nullable,
-existing guest rows keep working untouched, and the application already handles
-the column being absent.
+All are additive. `0003` adds the nullable owner column. Account-owned writes
+fail closed until it is present; the application never falls back to an
+ownerless server-side save.
 
 ---
 
@@ -210,18 +214,20 @@ the column being absent.
 | Sign-in returns to `/login` with an error | Provider not enabled, or the app's callback is not in Supabase's redirect list |
 | Passkey says "no passkey found" | None registered for this RP ID — sign in with Google and add one from `/account` |
 | Passkey works locally but not in production | RP ID mismatch; they are separate hostnames and need separate registrations |
-| Reports not saving | `SUPABASE_SECRET_KEY` missing, or `SUPABASE_URL` holds a malformed value (the app names which) |
-| "Contextual analysis unavailable" | AI Gateway billing not enabled, or no key. Deterministic analysis is unaffected |
-| Reports save but have no owner | `0003_scans_owner.sql` not applied yet — see the server log |
+| Account copy not saving | Sign in, enable account sync, configure the server key and apply `0003_scans_owner.sql` |
+| Cloud AI not available | No provider key or provider billing. Deterministic findings still run; cloud AI is optional |
+| Account sync unavailable | Apply `0003_scans_owner.sql`; saves fail closed until ownership can be enforced |
 
 ## Limitations
 
 Stated plainly because the product's argument depends on it:
 
-- Rules are English-only and pattern-based; novel phrasing can pass them.
+- Rules are pattern-based, not exhaustive. English and a limited Tanglish (Tamil written in Latin letters) rule set are present; native Tamil script and many language variants are not covered.
 - No image, audio or video analysis — a deepfake is only reachable through the
   text describing it.
 - No external fact-checking; claims are assessed on wording, not truth.
+- QR-refund text patterns are covered, but QR images are not decoded.
+- The current web prototype has no Android notification listener, SMS/call interception, contacts access, or universal blocking.
 - Rate limiting is per-instance and needs a shared store to be real.
 - The absence of warning signs is weak evidence, never a verdict of safety.
 

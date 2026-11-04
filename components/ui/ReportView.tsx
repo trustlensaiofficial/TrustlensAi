@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import type { Finding, Report, Signal, SignalSeverity } from '@/lib/analysis/types';
+import type { Finding, Report, Signal, SignalSeverity, UserActionState } from '@/lib/analysis/types';
+import { responsePlanFor } from '@/lib/analysis/response-plan';
 import { helplinesFor } from '@/lib/analysis/helplines';
 import { copy, type Lang } from '@/lib/i18n/strings';
 import { Alert, Check, Chevron, Doc, Eye, Help, Lock, Phone, Scales, Shield } from './icons';
@@ -20,6 +21,66 @@ const LEVEL_TONE = {
   some_signals: 'check',
   no_signals_detected: 'clear',
 } as const;
+
+const ACTION_CHOICES: UserActionState[] = [
+  'not_acted',
+  'opened_link',
+  'shared_credentials',
+  'installed_app',
+  'remote_access',
+  'approved_payment',
+  'sent_money',
+];
+
+const ACTION_COPY: Record<Lang, {
+  title: string;
+  description: string;
+  notActed: string;
+  choices: Record<UserActionState, string>;
+}> = {
+  en: {
+    title: 'What have you done so far?',
+    description: 'Choose the furthest step you took after receiving this. Your next steps change based on your answer.',
+    notActed: 'You said you have not acted yet. Do not click, pay or share codes; verify independently before acting.',
+    choices: {
+      not_acted: 'I only received it',
+      opened_link: 'I opened the link',
+      shared_credentials: 'I shared an OTP or account detail',
+      installed_app: 'I installed an app',
+      remote_access: 'I shared my screen or remote access',
+      approved_payment: 'I approved a payment request',
+      sent_money: 'I already sent money',
+    },
+  },
+  ta: {
+    title: 'Idhu vandhadhukku apram neenga enna pannineenga?',
+    description: 'Neenga pannina kadaisi step-ai select pannunga. Adhukku yetha maadhiri next steps maarum.',
+    notActed: 'Neenga innum edhuvum pannala-nu solreenga. Link click pannadheenga, panam anuppadheenga, code share pannadheenga. Neenga thaniya verify pannunga.',
+    choices: {
+      not_acted: 'Message mattum vandhuchu',
+      opened_link: 'Naan link open panninen',
+      shared_credentials: 'OTP illa account details share panninen',
+      installed_app: 'Oru app install panninen',
+      remote_access: 'Screen share / remote access kuduthen',
+      approved_payment: 'Payment request approve panninen',
+      sent_money: 'Naan already panam anuppitten',
+    },
+  },
+  hi: {
+    title: 'Iske baad aapne kya kiya?',
+    description: 'Aapne jo sabse aage ka step liya, use chuniye. Agle steps aapke jawab ke hisaab se badlenge.',
+    notActed: 'Aapne abhi kuch nahi kiya. Link na kholen, paise na bhejen, code share na karein. Khud official channel se verify karein.',
+    choices: {
+      not_acted: 'Sirf message mila',
+      opened_link: 'Maine link khola',
+      shared_credentials: 'OTP ya account details share ki',
+      installed_app: 'Maine app install ki',
+      remote_access: 'Screen share ya remote access diya',
+      approved_payment: 'Payment request approve ki',
+      sent_money: 'Maine paise bhej diye',
+    },
+  },
+};
 
 /**
  * Highlights the exact matched span inside the quoted text.
@@ -110,6 +171,8 @@ export function ReportView({ report, lang }: { report: Report; lang: Lang }) {
   const tone = LEVEL_TONE[report.assessment.level];
   const levelCopy = t.level[report.assessment.level];
   const helplines = helplinesFor(report);
+  const [actionState, setActionState] = useState<UserActionState>('not_acted');
+  const responsePlan = responsePlanFor(actionState);
 
   return (
     <div className="report">
@@ -131,6 +194,50 @@ export function ReportView({ report, lang }: { report: Report; lang: Lang }) {
           <span>{report.model.reason ?? 'The AI reading layer did not run. Everything below came from fixed rules and checks that did run.'}</span>
         </p>
       )}
+
+      <section className="section">
+        <div className="section-head">
+          <h2>{ACTION_COPY[lang].title}</h2>
+          <p>{ACTION_COPY[lang].description}</p>
+        </div>
+        <div className="response-state-grid" role="group" aria-label={ACTION_COPY[lang].title}>
+          {ACTION_CHOICES.map((choice) => (
+            <button
+              key={choice}
+              type="button"
+              className={`btn btn-sm ${actionState === choice ? 'btn-primary' : 'btn-ghost'}`}
+              aria-pressed={actionState === choice}
+              onClick={() => setActionState(choice)}
+            >
+              {ACTION_COPY[lang].choices[choice]}
+            </button>
+          ))}
+        </div>
+        {responsePlan ? (
+          <div className="card card-pad response-plan">
+            <div className="section-head">
+              <h3>{responsePlan.title}</h3>
+              <p>{responsePlan.summary}</p>
+            </div>
+            <ol className="steps">
+              {responsePlan.steps.map((step, index) => (
+                <li key={index} className="step">
+                  <span className="step-num">{index + 1}</span>
+                  <div>
+                    <p className="step-action">{step.action}</p>
+                    <p className="step-why">{step.why}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            {lang !== 'en' && (
+              <p className="muted-xs">Detailed incident-response steps are currently in English. The selected explanation language applies to the translated report copy.</p>
+            )}
+          </div>
+        ) : (
+          <p className="notice notice-check">{ACTION_COPY[lang].notActed}</p>
+        )}
+      </section>
 
       {/* Warning signs, worst first. */}
       <section className="section">
