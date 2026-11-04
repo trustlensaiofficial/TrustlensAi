@@ -13,3 +13,8 @@ next-env.d.ts
 
 # Supabase CLI scratch
 supabase/.temp/
+
+# Python service
+services/analysis-api/.venv/
+services/analysis-api/**/__pycache__/
+services/analysis-api/.pytest_cache/

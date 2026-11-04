@@ -13,7 +13,7 @@ export function Shell({ children, wide }: { children: React.ReactNode; wide?: bo
     <>
       <header className="site-header">
         <div className="site-header-inner">
-          <Link href="/" className="brand" aria-label="TrustLens AI — protection home">
+          <Link href="/home" className="brand" aria-label="TrustLens AI — protection home">
             <Image src="/logo-mark.png" alt="" width={564} height={472} priority className="brand-mark" />
             <span className="brand-word">TrustLens<span className="brand-ai"> AI</span></span>
           </Link>

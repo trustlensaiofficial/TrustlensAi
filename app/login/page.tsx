@@ -19,7 +19,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const params = await searchParams;
-  const next = safeNextPath(params.next, '/check');
+  const next = safeNextPath(params.next, '/home');
   // Already signed in: continue rather than showing a dead end.
   if (await getCurrentUser()) redirect(next);
 
