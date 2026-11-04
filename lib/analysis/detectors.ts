@@ -1,4 +1,5 @@
 import type { Signal, SignalCategory, SignalMatch, SignalSeverity } from './types';
+import { isNegatedCredentialInstruction } from './match-safety';
 
 /**
  * Deterministic warning-sign rules.
@@ -308,7 +309,9 @@ export function detectSignals(text: string, kind: 'message' | 'url' | 'claim'): 
   const signals: Signal[] = [];
   for (const rule of RULES) {
     if (rule.claimOnly && kind !== 'claim') continue;
-    const matches = collectMatches(text, rule.patterns);
+    const matches = collectMatches(text, rule.patterns).filter(
+      (match) => rule.category !== 'credentials' || !isNegatedCredentialInstruction(text, match.start),
+    );
     if (matches.length === 0) continue;
     signals.push({
       id: rule.id,
