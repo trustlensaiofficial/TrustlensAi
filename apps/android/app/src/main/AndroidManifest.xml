@@ -59,6 +59,23 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!--
+              Where Google sign-in comes back to.
+
+              A private scheme rather than an App Link, because an App Link
+              would need a verified domain association and this is an OAuth
+              return, not a shareable URL. PKCE is what makes the private
+              scheme safe: another app that registered the same scheme and
+              intercepted the code could do nothing with it, because the
+              verifier never leaves this process.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="trustlens" android:host="auth-callback" />
+            </intent-filter>
         </activity>
 
         <!--

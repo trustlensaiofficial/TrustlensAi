@@ -91,26 +91,32 @@ Not a feature list — a set of conditions.
 4. Consent is per-capability, versioned, and revocable, with a receipt.
 5. `GET /capabilities` reports the true per-platform state, including `unsupported_platform`.
 6. Rate limiting is shared across instances, not per-instance.
-7. A labelled benchmark corpus exists with **measured** precision and recall per language. Until
-   that number exists we publish no accuracy figure of any kind.
+7. A labelled benchmark corpus exists with **measured** precision and recall per language.
+   **Done** — `docs/DETECTION_BENCHMARK.md`, 61 cases across five languages. The figure is 100%
+   precision and 100% recall *on that corpus*, and §0 of that document explains at length why that
+   is a coverage measurement rather than an accuracy claim: the corpus and the rules were written
+   by the same process, so an independently written corpus is the next real test. The honest public
+   form is "we measure ourselves against a published corpus, here it is" — never a percentage on a
+   slide.
 8. Every claim in user-facing copy traces to something in this repository.
 
-Items 2, 3, 4, 6 and 7 are open. Item 7 gates all public accuracy messaging.
+Items 3 and 4 are open. Item 7 is measured, with its limitations stated; the figure may be cited
+only alongside the corpus it came from.
 
 ## 7. Sequence
 
 | Phase | Content | State |
 |---|---|---|
 | 0 | Audit, competitor research, charter, contract, capability matrix | **Done** |
-| 1 | Backend foundation: `/api/v1`, case schema, consent, shared rate limiting | In progress |
-| 2 | Investigation engine: payment actions, provenance, threat-intel abstraction, benchmark | Payment actions done |
-| 3 | Case and incident workflow end to end | Not started |
-| 4 | Android — permission model and contract only; **no toolchain on this machine** | Blocked, documented |
-| 5 | iOS — Share Extension, SMS filter, Call Directory | Not started |
+| 1 | Backend foundation: `/api/v1`, case schema, consent, shared rate limiting | **Done** — RLS, triggers and ownership verified behaviourally |
+| 2 | Investigation engine: payment actions, provenance, benchmark | **Done** except the threat-intel provider abstraction |
+| 3 | Case and incident workflow end to end | Endpoints built; HTTP round trips not yet exercised |
+| 4 | **Android** — real app, Kotlin + Compose, share target, QR parsing | Compiles in CI; no device testing |
+| 5 | iOS | **Out of scope.** The owner scoped this project to Android only |
 
-Phase 4's honest output here is the permission model, capability matrix and API contract the
-Android app will consume. Shipping a simulator described as a device integration would be worse
-than shipping nothing.
+Phase 4 is built but **not compiled on this machine** — there is no JDK, SDK or Gradle here, so
+GitHub Actions is the build and a green run there is the only evidence. Nothing has been tested on
+a real device, and `docs/REPOSITORY_AUDIT.md` says so rather than implying otherwise.
 
 ## 8. Division of labour
 
@@ -129,4 +135,6 @@ Neither side builds against an invented API.
 | 2026-11-04 | Notification monitoring demoted from core capability to coverage gap-filler | Google shipped OS-layer notification scam detection on 12 OEMs, 14 Oct 2026 |
 | 2026-11-04 | Positioning moved off detection accuracy and onto payment-action + incident response | `COMPETITOR_RESEARCH.md` §3 |
 | 2026-11-04 | No public accuracy figure until a labelled corpus with measured precision/recall exists | §6 item 7 |
+| 2026-11-04 | Corpus built and measured; the figure may be published only with the corpus attached and the coverage-not-accuracy caveat | `DETECTION_BENCHMARK.md` §0 |
+| 2026-11-04 | Risk threshold left at 10 rather than lowered to clear near-miss detections, because a genuine benign notice also scored 6 | `DETECTION_BENCHMARK.md` §3 |
 | 2026-11-04 | Flask service at `services/analysis-api` is a second runtime of the rule layer, not the production backend | `REPOSITORY_AUDIT.md` §5; no documented investigation justifies two backends |

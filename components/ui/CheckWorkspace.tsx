@@ -26,7 +26,7 @@ export function CheckWorkspace() {
   const [context, setContext] = useState<InputContext>('bank_scam');
   const [text, setText] = useState('');
   const [liveChecks, setLiveChecks] = useState(false);
-  const [allowCloudAI, setAllowCloudAI] = useState(false);
+  const [allowCloudAi, setAllowCloudAI] = useState(false);
   const [saveToAccount, setSaveToAccount] = useState(false);
   const [storageNote, setStorageNote] = useState<string | null>(null);
   const [lang, setLang] = useState<Lang>('en');
@@ -41,9 +41,14 @@ export function CheckWorkspace() {
       setPhase('running');
       setError(null);
       try {
-        const res = await fetch('/api/analyze', {
+        /*
+         * The versioned endpoint. `/api/analyze` is a deprecated alias onto
+         * the same handler and will be removed; a client that keeps using it
+         * is relying on a path the contract no longer documents.
+         */
+        const res = await fetch('/api/v1/analyses', {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
+          headers: { 'content-type': 'application/json', 'X-TrustLens-Platform': 'web' },
           body: JSON.stringify(body),
         });
         const data = await res.json();
@@ -82,10 +87,10 @@ export function CheckWorkspace() {
       context,
       kind: context === 'website' ? 'url' : 'message',
       liveChecks: liveChecks && online,
-      allowCloudAI,
+      allowCloudAi,
       saveToAccount,
     });
-  }, [text, context, liveChecks, allowCloudAI, saveToAccount, online, run]);
+  }, [text, context, liveChecks, allowCloudAi, saveToAccount, online, run]);
 
   const busy = phase === 'running';
 
@@ -155,7 +160,7 @@ export function CheckWorkspace() {
             </label>
 
             <label className="switch">
-              <input type="checkbox" checked={allowCloudAI} onChange={(e) => setAllowCloudAI(e.target.checked)} />
+              <input type="checkbox" checked={allowCloudAi} onChange={(e) => setAllowCloudAI(e.target.checked)} />
               <span className="switch-track" aria-hidden="true"><span className="switch-dot" /></span>
               <span>
                 <strong>Allow optional cloud AI explanation</strong>
@@ -233,7 +238,7 @@ export function CheckWorkspace() {
                     type="button"
                     className="demo"
                     disabled={busy}
-                    onClick={() => { setContext(d.context); setText(d.text); void run({ demoSlug: d.slug, liveChecks: false, allowCloudAI: false, saveToAccount: false }); }}
+                    onClick={() => { setContext(d.context); setText(d.text); void run({ demoSlug: d.slug, liveChecks: false, allowCloudAi: false, saveToAccount: false }); }}
                   >
                     <span className="demo-label">{d.label}</span>
                     <span className="demo-why">{d.scenario}</span>

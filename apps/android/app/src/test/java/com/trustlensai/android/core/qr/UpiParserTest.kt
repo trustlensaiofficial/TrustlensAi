@@ -70,6 +70,12 @@ class UpiParserTest {
         val u = UpiParser.parse("upi://pay?pa=shop@okaxis&pn=Ravi Stores&am=120")
         assertNotNull(u)
         assertEquals("shop@okaxis", u!!.payeeVpa)
+        assertEquals("Ravi Stores", u.payeeName)
+        // The amount sits AFTER the space. Asserting only the payee let a real
+        // bug through: the pattern stopped at the first space and silently
+        // dropped every later parameter, so a preview would have shown a payee
+        // with no amount.
+        assertEquals("120", u.amount)
     }
 
     @Test

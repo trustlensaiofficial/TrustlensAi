@@ -2,7 +2,9 @@ package com.trustlensai.android
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
 import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -69,10 +71,8 @@ class ShareReceiverActivity : ComponentActivity() {
         val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
 
         val uris: List<Uri> = when (intent.action) {
-            Intent.ACTION_SEND ->
-                listOfNotNull(intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java))
-            Intent.ACTION_SEND_MULTIPLE ->
-                intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java) ?: emptyList()
+            Intent.ACTION_SEND -> listOfNotNull(intent.parcelable(Intent.EXTRA_STREAM, Uri::class.java))
+            Intent.ACTION_SEND_MULTIPLE -> intent.parcelableList(Intent.EXTRA_STREAM, Uri::class.java)
             else -> emptyList()
         }
 
@@ -84,6 +84,35 @@ class ShareReceiverActivity : ComponentActivity() {
             sizeOf = { raw -> sizeOf(Uri.parse(raw)) },
         )
     }
+
+    /*
+     * The typed getParcelableExtra overloads are API 33+. minSdk here is 26,
+     * so calling them unguarded is a NoSuchMethodError on Android 8 through
+     * 12 — which is to say, a crash the moment someone shares a message on a
+     * large share of the handsets this product is for. Android Lint caught it;
+     * the compiler could not, because the method exists in the SDK being
+     * compiled against.
+     *
+     * The pre-33 overloads are deprecated rather than absent, so the
+     * suppression is scoped to these two helpers instead of being sprinkled
+     * at each call site.
+     */
+    @Suppress("DEPRECATION")
+    private fun <T : Parcelable> Intent.parcelable(key: String, clazz: Class<T>): T? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getParcelableExtra(key, clazz)
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            getParcelableExtra(key) as? T
+        }
+
+    @Suppress("DEPRECATION")
+    private fun <T : Parcelable> Intent.parcelableList(key: String, clazz: Class<T>): List<T> =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getParcelableArrayListExtra(key, clazz) ?: emptyList()
+        } else {
+            getParcelableArrayListExtra<T>(key) ?: emptyList()
+        }
 
     /** Size in bytes, or null when the provider does not report one. */
     private fun sizeOf(uri: Uri): Long? = runCatching {

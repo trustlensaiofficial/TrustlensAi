@@ -27,17 +27,37 @@ and was read from the actual Maven repository rather than recalled.
 
 | Tool | Version | Why |
 |---|---|---|
-| Android Gradle Plugin | 8.13.2 | Newest of the mature 8.x line. Supports compileSdk up to 36.1; API 36 needs ≥ 8.9.1 |
-| Gradle | 8.14.6 | AGP 8.13.2 requires ≥ 8.13 |
-| JDK | 17 | AGP 8.13.2 requires ≥ 17 |
-| Kotlin | 2.2.0 | Compose compiler ships with Kotlin since 2.0, so the Compose plugin tracks this exactly |
-| compileSdk / targetSdk | 36 | **Mandatory.** Since 31 August 2026 Google Play requires new apps and updates for phones, tablets and foldables to target Android 16 (API 36) |
+| Android Gradle Plugin | 9.5.0 | Forced, not chosen — see below |
+| Gradle | 9.8.2 | AGP 9.5.0 requires ≥ 9.1.0 |
+| JDK | 17 | AGP 9 requires ≥ 17 |
+| Kotlin | 2.2.10 | AGP 9.5 carries KGP 2.2.10 for built-in Kotlin; the Compose and serialization compiler plugins must match the Kotlin that AGP uses |
+| compileSdk | 37 | Newest AndroidX refuses to resolve against anything lower |
+| targetSdk | 36 | **Mandatory.** Since 31 August 2026 Play requires new apps and updates for phones, tablets and foldables to target Android 16 (API 36) |
 | minSdk | 26 | Wide reach without legacy workarounds. Every dependency supports it |
 
-**AGP 9.x is deliberately not used.** 9.5.0 is current, but it carries breaking
-build-DSL changes and this project cannot be compiled where it was written.
-Pinning the proven line is the responsible choice until a real build has run;
-moving to 9.x should be its own change with a green build behind it.
+### Why AGP 9, after starting on AGP 8
+
+This began pinned to AGP 8.13.2 on the reasoning that the mature line is safer
+when you cannot compile locally. CI disproved it. `core-ktx` 1.19.1, Compose
+1.12.1, `lifecycle` 2.11.0 and `navigation` 2.10.2 each refuse to resolve under
+AGP 8 — 32 AAR-metadata errors, every one demanding *"Android Gradle plugin
+9.1.0 or higher"* and compileSdk 37. AGP 9 is the mainstream; the cautious
+choice had quietly become the broken one.
+
+`compileSdk 37` with `targetSdk 36` is deliberate and Play-compliant: compiling
+against a newer SDK than you target is ordinary, and 36 is what Play requires.
+
+AGP 9 also brings **built-in Kotlin**, so there is no `kotlin-android` plugin
+anywhere in this project — it is incompatible with AGP 9's new DSL. Kotlin
+compiler options live in a top-level `kotlin {}` block, and `jvmTarget` is not
+set at all because it defaults to `compileOptions.targetCompatibility`.
+
+### A note on where versions came from
+
+Every version was read from Maven **repository metadata**, not the Maven Central
+search API. That API is stale: it reported Kotlin's newest release as 2.2.0
+while the repository held 2.4.21, and was wrong about OkHttp, coroutines,
+kotlinx-serialization, Ktor, MockK and the Supabase SDK too.
 
 ---
 

@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.trustlensai.android.core.consent.ConsentStore
+import com.trustlensai.android.core.session.SessionState
 import com.trustlensai.android.ui.AnalysisViewModel
 import com.trustlensai.android.ui.components.BulletList
 import com.trustlensai.android.ui.components.SectionCard
@@ -43,9 +44,14 @@ import com.trustlensai.android.ui.components.SectionCard
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(vm: AnalysisViewModel, onBack: () -> Unit) {
+fun SettingsScreen(
+    vm: AnalysisViewModel,
+    onBack: () -> Unit,
+    onOpenSignIn: () -> Unit,
+) {
     val consent by vm.consent.collectAsState()
     val capabilities by vm.capabilities.collectAsState()
+    val session by vm.session.collectAsState()
 
     LaunchedEffect(Unit) { vm.loadCapabilities() }
 
@@ -69,6 +75,42 @@ fun SettingsScreen(vm: AnalysisViewModel, onBack: () -> Unit) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            // The account section leads, because it is the only thing on this
+            // screen whose state someone might not already know.
+            SectionCard("Account") {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    when (val s = session) {
+                        is SessionState.SignedIn -> {
+                            Text(
+                                s.email?.let { "Signed in as $it" } ?: "Signed in",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                "Your saved cases follow this account. Signing out leaves them on the server and removes them from this phone.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            OutlinedButton(onClick = vm::signOut, modifier = Modifier.fillMaxWidth()) {
+                                Text("Sign out")
+                            }
+                        }
+                        SessionState.Unconfigured -> Text(
+                            "Sign-in is not available in this build. Everything else works.",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        else -> {
+                            Text(
+                                "You are using TrustLens without an account, which is fine — checking a message, reading a payment code and the recovery plan all work this way.",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            OutlinedButton(onClick = onOpenSignIn, modifier = Modifier.fillMaxWidth()) {
+                                Text("Sign in to save cases")
+                            }
+                        }
+                    }
+                }
+            }
+
             SectionCard("What may leave this phone") {
                 Column {
                     Toggle(

@@ -1,4 +1,5 @@
 import { lookup } from 'node:dns/promises';
+import { fetchPinned, type PinnedAddress } from './pinned-fetch';
 import type { EvidenceRecord } from './types';
 import { parseUrl, type ParsedUrl } from './url';
 
@@ -18,11 +19,12 @@ import { parseUrl, type ParsedUrl } from './url';
  *  5. We only ever read metadata (status, headers, <title>, description).
  *     Nothing is executed, downloaded to disk, or rendered.
  *
- * Known limitation, stated in the report rather than hidden: we validate the
- * resolved addresses and then connect by hostname, so a DNS record that changes
- * between the check and the request (DNS rebinding) is not fully prevented.
- * Closing that needs connection-level IP pinning, which the platform fetch
- * does not expose.
+ *  6. The connection is pinned to the addresses that were validated, so DNS
+ *     rebinding cannot redirect it. This used to be an open hole: we checked
+ *     the resolved addresses and then handed the hostname to fetch, which
+ *     resolved it again — a nameserver answering with a short TTL could give
+ *     a public address to the check and a private one to the connection. See
+ *     `lib/analysis/pinned-fetch.ts`.
  */
 
 const REQUEST_TIMEOUT_MS = 6_000;
@@ -88,7 +90,7 @@ export function isBlockedAddress(address: string, family: number): boolean {
 interface GuardResult {
   ok: boolean;
   reason?: string;
-  addresses?: string[];
+  addresses?: PinnedAddress[];
 }
 
 async function guardHost(parsed: ParsedUrl): Promise<GuardResult> {
@@ -102,7 +104,7 @@ async function guardHost(parsed: ParsedUrl): Promise<GuardResult> {
     if (isBlockedAddress(bare, family)) {
       return { ok: false, reason: 'address is in a private or reserved range' };
     }
-    return { ok: true, addresses: [bare] };
+    return { ok: true, addresses: [{ address: bare, family }] };
   }
 
   let resolved: Array<{ address: string; family: number }>;
@@ -119,7 +121,7 @@ async function guardHost(parsed: ParsedUrl): Promise<GuardResult> {
       return { ok: false, reason: 'hostname resolves into a private or reserved range' };
     }
   }
-  return { ok: true, addresses: resolved.map((r) => r.address) };
+  return { ok: true, addresses: resolved.map((r) => ({ address: r.address, family: r.family })) };
 }
 
 function decodeEntities(s: string): string {
@@ -234,20 +236,42 @@ export async function collectUrlEvidence(rawUrl: string): Promise<EvidenceRecord
     retrievedAt: now(),
   });
 
+  /*
+   * Each hop pins its own connection, so each hop's agent has to be released.
+   * Collected here and drained in the finally below: the loop returns from
+   * several places, and a socket leaked per redirect would accumulate.
+   *
+   * A plain try/finally rather than a helper function, deliberately — moving
+   * the loop into a closure loses the narrowing that proved `parsed` non-null
+   * above, and re-proving it inside would be noise.
+   */
+  const release: Array<() => Promise<void>> = [];
+  try {
+
   // Walk redirects manually, re-validating every hop.
   let current = parsed;
+  // The addresses approved for `current`. Replaced, never extended, on each
+  // hop — a redirect must not inherit the previous host's permission.
+  let hopAddresses: PinnedAddress[] = guard.addresses ?? [];
   const hops: string[] = [];
   for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop += 1) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     let res: Response;
     try {
-      res = await fetch(current.href, {
+      /*
+       * Pinned to the addresses this hop's own guard check approved. Each
+       * redirect re-validates and re-pins, so a hop cannot inherit the
+       * previous host's permission.
+       */
+      const pinned = await fetchPinned(current, hopAddresses, {
         method: 'GET',
         redirect: 'manual',
         signal: controller.signal,
         headers: { 'User-Agent': USER_AGENT, Accept: 'text/html,*/*;q=0.5' },
       });
+      res = pinned.response;
+      release.push(pinned.dispose);
     } catch (err) {
       clearTimeout(timer);
       const aborted = (err as Error).name === 'AbortError';
@@ -305,6 +329,7 @@ export async function collectUrlEvidence(rawUrl: string): Promise<EvidenceRecord
         return records;
       }
       current = next;
+      hopAddresses = nextGuard.addresses ?? [];
       continue;
     }
 
@@ -348,6 +373,10 @@ export async function collectUrlEvidence(rawUrl: string): Promise<EvidenceRecord
   }
 
   return records;
+
+  } finally {
+    for (const dispose of release) await dispose();
+  }
 }
 
 /** Evidence placeholder used when live checking is disabled or not applicable. */

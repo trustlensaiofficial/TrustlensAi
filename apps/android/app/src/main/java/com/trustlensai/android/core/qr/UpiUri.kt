@@ -43,8 +43,30 @@ data class UpiUri(
 
 object UpiParser {
 
-    private val PATTERN = Regex(
+    /**
+     * Matches a URI embedded in surrounding text.
+     *
+     * Terminated at whitespace so prose after the link is not swallowed into
+     * the note. That cuts a URI containing unencoded spaces short, which is
+     * why `WHOLE` exists below.
+     */
+    private val EMBEDDED = Regex(
         """\bupi://(pay|collect|mandate)\?([^\s"'<>]+)""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /**
+     * Matches a payload that is *entirely* a URI — the QR case.
+     *
+     * A scanned code contains no surrounding prose, so the whole string is the
+     * instruction and spaces inside it belong to it. Terminating at the first
+     * space here would drop every parameter after an unencoded space in the
+     * payee name, which in practice means losing the amount while still
+     * showing a confident preview. Half a payment instruction is worse than
+     * none, because the reader acts on what they are shown.
+     */
+    private val WHOLE = Regex(
+        """^upi://(pay|collect|mandate)\?([^"'<>\n\r]+)$""",
         RegexOption.IGNORE_CASE,
     )
 
@@ -57,7 +79,10 @@ object UpiParser {
      */
     fun parse(payload: String?): UpiUri? {
         if (payload.isNullOrBlank()) return null
-        val match = PATTERN.find(payload) ?: return null
+        val trimmed = payload.trim()
+        // A payload that is nothing but a URI is read whole; one embedded in a
+        // message stops at whitespace.
+        val match = WHOLE.find(trimmed) ?: EMBEDDED.find(trimmed) ?: return null
         val mode = match.groupValues.getOrNull(1)?.lowercase() ?: return null
         val query = match.groupValues.getOrNull(2) ?: return null
 

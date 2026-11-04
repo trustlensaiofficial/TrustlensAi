@@ -67,6 +67,7 @@ fun HomeScreen(
     onOpenReport: () -> Unit,
     onOpenIncident: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenQr: () -> Unit,
 ) {
     val state by vm.state.collectAsState()
     val consent by vm.consent.collectAsState()
@@ -173,10 +174,20 @@ fun HomeScreen(
             }
 
             AnimatedVisibility(visible=entered,enter=fadeIn(tween(700,delayMillis=180))+slideInVertically(tween(700,delayMillis=180)){it/8}) {
-                OutlinedButton(onClick=onOpenIncident,modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) {
-                    Icon(Icons.Outlined.WarningAmber,null,tint=MaterialTheme.colorScheme.error)
-                    Spacer(Modifier.width(8.dp))
-                    Text("I already shared money or information")
+                Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+                    // The scanner reads the code on this phone; the image never
+                    // leaves it. Separate from the paste field because someone
+                    // holding a printed QR has nothing to paste.
+                    OutlinedButton(onClick=onOpenQr,modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) {
+                        Icon(Icons.Outlined.QrCodeScanner,null,tint=MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Scan a payment code")
+                    }
+                    OutlinedButton(onClick=onOpenIncident,modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(16.dp)) {
+                        Icon(Icons.Outlined.WarningAmber,null,tint=MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(8.dp))
+                        Text("I already shared money or information")
+                    }
                 }
             }
             Spacer(Modifier.height(20.dp))

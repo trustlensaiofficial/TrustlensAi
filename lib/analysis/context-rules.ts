@@ -1,5 +1,5 @@
 import type { InputContext, Signal, SignalCategory, SignalMatch, SignalSeverity } from './types';
-import { isNegatedCredentialInstruction } from './match-safety';
+import { isNegatedCredentialInstruction, isProtectiveSecrecyAdvice } from './match-safety';
 
 /**
  * Context-specific warning-sign rules.
@@ -331,7 +331,12 @@ export function detectContextSignals(text: string, context: InputContext): Signa
   const out: Signal[] = [];
   for (const rule of BY_CONTEXT[context] ?? []) {
     const matches = collect(text, rule.patterns).filter(
-      (match) => rule.category !== 'credentials' || !isNegatedCredentialInstruction(text, match.start),
+      (match) => {
+        // Protective advice must never be read as the thing it warns about.
+        if (rule.category === 'credentials' && isNegatedCredentialInstruction(text, match.start)) return false;
+        if (rule.category === 'secrecy' && isProtectiveSecrecyAdvice(match.text)) return false;
+        return true;
+      },
     );
     if (matches.length === 0) continue;
     out.push({
