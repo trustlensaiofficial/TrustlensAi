@@ -173,14 +173,39 @@ function brandSignals(p: ParsedUrl): Signal[] {
     // registrable domain belongs to someone else.
     const inSubdomain = p.subdomains.some((s) => skeleton(s).includes(brand));
     const inPath = p.pathname.toLowerCase().includes(brand);
-    if (inSubdomain || inPath) {
+
+    /*
+     * Case 1b: a *misspelled* brand in a subdomain, which `includes` cannot
+     * see. "netfIix-billing.example.com" lowercases to "netfiix", and since a
+     * capital I and a lowercase l are the same glyph in most fonts the reader
+     * sees "netflix". The case is lost before the URL reaches us, and mapping
+     * every i to l in the skeleton would wreck ordinary words — so the
+     * subdomain is split on separators and each token checked for a near miss
+     * instead.
+     *
+     * The benchmark found this: a Netflix billing-failure phish scored only 6
+     * because nothing recognised the brand at all.
+     */
+    const nearMissToken = p.subdomains
+      .flatMap((sub) => sub.split(/[-_.]+/))
+      .map((token) => skeleton(token))
+      .find((token) => {
+        if (token.length < 4 || token === brand) return false;
+        const d = levenshtein(token, brand);
+        return d > 0 && d <= (brand.length >= 8 ? 2 : 1);
+      });
+
+    if (inSubdomain || inPath || nearMissToken) {
       out.push({
         id: `url.brand_mismatch.${brand}`,
-        title: `"${brand}" appears in the address, but the domain is ${p.registrableDomain}`,
+        title: nearMissToken
+          ? `"${nearMissToken}" imitates "${brand}", and the domain is ${p.registrableDomain}`
+          : `"${brand}" appears in the address, but the domain is ${p.registrableDomain}`,
         category: 'domain',
         severity: 'critical',
-        explanation:
-          `Only the registrable domain decides who controls a site. Here that is "${p.registrableDomain}", not ${brand}. Anyone can put a brand name in a subdomain or path.`,
+        explanation: nearMissToken
+          ? `"${nearMissToken}" is not "${brand}" — it differs by a character chosen to be misread. And only the registrable domain decides who controls a site: here that is "${p.registrableDomain}", not ${brand}.`
+          : `Only the registrable domain decides who controls a site. Here that is "${p.registrableDomain}", not ${brand}. Anyone can put a brand name in a subdomain or path.`,
         matches: [{ text: fullHost, start: 0, end: fullHost.length, note: `registrable domain: ${p.registrableDomain}` }],
       });
       continue;

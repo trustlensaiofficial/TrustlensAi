@@ -100,7 +100,22 @@ const ALWAYS_UNKNOWN = [
  * payment instruction is worse than none, because the reader would act on it.
  */
 export function parseUpiUri(raw: string): UpiInstruction | null {
-  const match = raw.match(/\bupi:\/\/(pay|collect|mandate)\?([^\s"'<>]+)/i);
+  const trimmed = raw.trim();
+  /*
+   * Two patterns, because where the URI ends depends on what it is in.
+   *
+   * A scanned QR payload is nothing but the instruction, so spaces inside it
+   * belong to it — stopping at the first space drops every parameter after an
+   * unencoded payee name, which in practice means losing the amount while
+   * still rendering a confident preview. Half a payment instruction is worse
+   * than none, because the reader acts on what they are shown.
+   *
+   * A URI inside a message is followed by prose, so there the first space is
+   * exactly the right place to stop.
+   */
+  const match =
+    trimmed.match(/^upi:\/\/(pay|collect|mandate)\?([^"'<>\n\r]+)$/i) ??
+    raw.match(/\bupi:\/\/(pay|collect|mandate)\?([^\s"'<>]+)/i);
   // Both groups are guarded: strict indexed access treats a capture as
   // possibly undefined, and a half-read payment instruction is worse than
   // none because the reader would act on it.

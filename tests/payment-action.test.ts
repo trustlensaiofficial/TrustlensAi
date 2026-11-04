@@ -133,3 +133,31 @@ describe('labels', () => {
     expect(paymentActionLabel(detectPaymentAction('hello'))).toMatch(/No payment action/);
   });
 });
+
+describe('where the URI ends depends on what it is in', () => {
+  it('reads a whole QR payload, spaces and all', () => {
+    // A scanned code is nothing but the instruction, so an unencoded space in
+    // the payee name must not truncate it. Stopping at the first space dropped
+    // the amount while still producing a confident preview — half a payment
+    // instruction, which is worse than none.
+    const u = parseUpiUri('upi://pay?pa=shop@okaxis&pn=Ravi Stores&am=120&cu=INR');
+    expect(u).not.toBeNull();
+    expect(u!.payeeVpa).toBe('shop@okaxis');
+    expect(u!.payeeName).toBe('Ravi Stores');
+    expect(u!.amount).toBe('120');
+  });
+
+  it('still stops at whitespace for a URI embedded in prose', () => {
+    // Here the space really is the end of the link, and swallowing the prose
+    // after it would put "Reply STOP to opt out" in the payment note.
+    const u = parseUpiUri('Pay here upi://pay?pa=a@b&am=50 Reply STOP to opt out');
+    expect(u!.payeeVpa).toBe('a@b');
+    expect(u!.amount).toBe('50');
+    expect(u!.note).toBeNull();
+  });
+
+  it('keeps a parameter that follows a stray percent', () => {
+    const u = parseUpiUri('upi://pay?pa=a@b&tn=100%25 off&am=10');
+    expect(u!.amount).toBe('10');
+  });
+});

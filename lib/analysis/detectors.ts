@@ -1,5 +1,5 @@
 import type { Signal, SignalCategory, SignalMatch, SignalSeverity } from './types';
-import { isNegatedCredentialInstruction } from './match-safety';
+import { isNegatedCredentialInstruction, isProtectiveSecrecyAdvice } from './match-safety';
 
 /**
  * Deterministic warning-sign rules.
@@ -24,6 +24,74 @@ interface Rule {
 
 const RULES: Rule[] = [
   {
+    id: 'investment.guaranteed_return',
+    title: 'Promises a guaranteed or risk-free return',
+    category: 'lure',
+    severity: 'high',
+    explanation:
+      'No genuine investment guarantees a return, and none is risk-free. In India a scheme promising assured profits is also making a claim its regulator does not permit, so the promise itself is the warning sign.',
+    patterns: [
+      /\b(guaranteed|assured|fixed|100%|hundred\s+percent)\s+(returns?|profits?|income|gains?|interest)\b/gi,
+      /\b(returns?|profits?)\s+of\s+\d{1,3}\s*%\s*(per|a|every)\s+(day|week|month)\b/gi,
+      /\b(zero|no|without)\s+(risk|loss)\b/gi,
+      /\bdouble\s+your\s+(money|investment|capital)\b/gi,
+      /\brisk[-\s]?free\s+(investment|returns?|profits?|scheme)\b/gi,
+    ],
+  },
+  {
+    id: 'utility.disconnection_threat',
+    title: 'Threatens to cut off a utility or service',
+    category: 'threat',
+    severity: 'high',
+    explanation:
+      'Electricity boards, gas companies and telecom operators do not cut off a connection the same night over a message, and they do not route you to a personal mobile number. Check your account in the provider’s own app or on your paper bill instead.',
+    patterns: [
+      /\b(electricity|power|gas|water|broadband|internet|sim|mobile)\s*(connection|service|card|number)?\b[^.!?]{0,60}?\b(will\s+be\s+)?(disconnect|deactivat|terminat|cut\s*off|suspend)\w*\b/gi,
+      /\b(disconnect|deactivat|terminat)\w*\b[^.!?]{0,40}?\b(tonight|today|within\s+\d+\s*(minutes?|hours?))\b/gi,
+      /\b(meter|bill)\b[^.!?]{0,40}?\bnot\s+(updated|paid)\b[^.!?]{0,40}?\b(disconnect|cut)\w*\b/gi,
+    ],
+  },
+  {
+    id: 'channel.supplied_number',
+    title: 'Gives you a number to call instead of an official one',
+    category: 'channel',
+    severity: 'medium',
+    explanation:
+      'A number inside the message is the sender’s number, whoever they claim to be. Use the number printed on your card, your bill, or inside the provider’s own app — that is the one thing a scammer cannot change.',
+    patterns: [
+      /\b(call|contact|dial|whatsapp|reach)\s+(us|our|the)?\s*(customer\s*care|officer|executive|helpline|support|agent|team)?\s*(on|at|number)?\s*[+(]?\d[\d\s()-]{7,}/gi,
+      /\b(call|contact|dial)\s+(me|us)\s+(immediately|urgently|now)\b/gi,
+    ],
+  },
+  {
+    id: 'impersonation.new_number',
+    title: 'Claims to be someone you know, from a new number',
+    category: 'impersonation',
+    severity: 'high',
+    explanation:
+      'A relative who has genuinely changed number will not mind being called back on the old one, or recognised by a question only they could answer. "This is my new number" paired with an urgent money request is one of the most common frauds there is.',
+    patterns: [
+      /\b(this\s+is\s+my\s+new\s+number|new\s+number\s*,?\s*(save|note)\s+it|i\s+(lost|changed)\s+my\s+(phone|number|sim))\b/gi,
+      /\b(this\s+is\s+(your|my)\s+(uncle|aunt|mother|father|son|daughter|brother|sister|cousin|friend|boss|manager))\b[^.!?]{0,80}?\b(need|send|transfer|urgent)\w*/gi,
+    ],
+  },
+  {
+    id: 'job.no_screening',
+    title: 'Offers a job with no interview or screening',
+    category: 'lure',
+    severity: 'high',
+    explanation:
+      'No employer hires without speaking to you. "No interview required" exists to move you quickly to the part where you pay a fee or send your documents.',
+    patterns: [
+      /\b(no|without\s+any?)\s+(interview|screening|experience|qualification)s?\s*(required|needed|necessary)?\b/gi,
+      /\b(direct|instant|immediate)\s+(joining|selection|appointment)\b/gi,
+      // Hindi and Tamil transliteration of the same claim.
+      /\b(koi|kisi)\s+interview\s+nahi\b/gi,
+      /\binterview\s+(illa|illai|illaye|kidaiyadhu)\b/gi,
+      /(?:बिना|कोई)\s*इंटरव्यू\s*(?:नहीं)?/gi,
+    ],
+  },
+  {
     id: 'urgency.deadline',
     title: 'Artificial time pressure',
     category: 'urgency',
@@ -36,6 +104,12 @@ const RULES: Rule[] = [
       /\b(expires?|expiring|ends)\s+(today|tonight|in\s+\d+\s*\w+)\b/gi,
       /\b(immediate|urgent|time[-\s]?sensitive)\s+(action|attention|response|payment)\s+(is\s+)?(required|needed)\b/gi,
       /\b(last|final)\s+(warning|notice|reminder|chance)\b/gi,
+      // Urgency with the adverb first, which is how most of these are written:
+      // "Immediately contact our officer".
+      /\b(immediately|urgently|right\s+now|at\s+once)\s+(contact|call|reply|respond|pay|transfer|verify|visit)\b/gi,
+      // An urgent money demand. Requires the money verb, so an ordinary
+      // "no hurry, send it whenever" cannot match.
+      /\b(need|send|transfer|pay|deposit)\b[^.!?]{0,30}?\b(urgently|immediately|right\s+away|at\s+once)\b/gi,
     ],
   },
   {
@@ -310,7 +384,12 @@ export function detectSignals(text: string, kind: 'message' | 'url' | 'claim'): 
   for (const rule of RULES) {
     if (rule.claimOnly && kind !== 'claim') continue;
     const matches = collectMatches(text, rule.patterns).filter(
-      (match) => rule.category !== 'credentials' || !isNegatedCredentialInstruction(text, match.start),
+      (match) => {
+        // Protective advice must never be read as the thing it warns about.
+        if (rule.category === 'credentials' && isNegatedCredentialInstruction(text, match.start)) return false;
+        if (rule.category === 'secrecy' && isProtectiveSecrecyAdvice(match.text)) return false;
+        return true;
+      },
     );
     if (matches.length === 0) continue;
     signals.push({

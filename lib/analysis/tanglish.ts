@@ -1,5 +1,5 @@
 import type { Signal, SignalMatch } from './types';
-import { isNegatedCredentialInstruction } from './match-safety';
+import { isNegatedCredentialInstruction, isProtectiveSecrecyAdvice } from './match-safety';
 
 /**
  * Tamil-language scam patterns, written in Latin script.
@@ -47,6 +47,10 @@ const RULES: TanglishRule[] = [
       new RegExp(`\\b(otp|pin|cvv|password)\\b[^.!?]{0,40}?\\b(?:${GIVE}|share\\s*${DO}|${SAY})`, 'gi'),
       new RegExp(`\\b(otp|pin|cvv)[\\s-]*(?:ah|a|ai|va)?\\b[^.!?]{0,30}?\\b(?:${GIVE}|share)`, 'gi'),
       /\b(otp|pin)\b[^.!?]{0,30}?\b(sollunga|solunga|sollu)\b/gi,
+      // Mixed: an English verb with a Tamil imperative ending, which is how
+      // most of these are actually written.
+      new RegExp(`\\b(otp|upi\\s*pin|pin|cvv)\\b[^.!?]{0,30}?\\b(?:enter|type|put|send|share)\\s*${DO}`, 'gi'),
+      new RegExp(`\\b(?:enter|type|put)\\s*${DO}[^.!?]{0,30}?\\b(otp|upi\\s*pin|pin|cvv)\\b`, 'gi'),
       /\bverify\s*(pannunga|panunga|pannuga)\b[^.!?]{0,40}?\b(otp|pin)\b/gi,
     ],
   },
@@ -60,7 +64,10 @@ const RULES: TanglishRule[] = [
     patterns: [
       /\b(account|akkaun[dt]|kanakku)\b[^.!?]{0,40}?\b(block|blaak|close|freeze|nirutha|niruthi)\w*\b/gi,
       /\b(block|close)\s*(aagidum|aagum|agiduum|aayidum|pannidu\w*)\b/gi,
-      /\b(kyc)\b[^.!?]{0,40}?\b(update|expire|mudinj\w*|mudiy\w*)\b/gi,
+      // Requires a Tamil marker. Bare English "KYC update" is an ordinary
+      // bank notice, and matching it here made a genuine one score 6.
+      /\b(kyc)\b[^.!?]{0,40}?\b(mudinj\w*|mudiy\w*|aagala|aagalai|aagville|pannala|illana|illaina)\b/gi,
+      /\b(kyc)\b[^.!?]{0,30}?\bupdate\b[^.!?]{0,30}?\b(aagala|aagalai|pannunga|panunga|illana|illaina|seekiram)\b/gi,
       /\b(indha|indhu|inniku|innaiku|today)\b[^.!?]{0,30}?\b(block|close)\w*\b/gi,
     ],
   },
@@ -163,7 +170,12 @@ export function detectTanglishSignals(text: string): Signal[] {
   const out: Signal[] = [];
   for (const rule of RULES) {
     const matches = collect(text, rule.patterns).filter(
-      (match) => rule.category !== 'credentials' || !isNegatedCredentialInstruction(text, match.start),
+      (match) => {
+        // Protective advice must never be read as the thing it warns about.
+        if (rule.category === 'credentials' && isNegatedCredentialInstruction(text, match.start)) return false;
+        if (rule.category === 'secrecy' && isProtectiveSecrecyAdvice(match.text)) return false;
+        return true;
+      },
     );
     if (matches.length === 0) continue;
     out.push({

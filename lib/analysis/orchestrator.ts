@@ -3,6 +3,7 @@ import { buildChecklist } from './checklist';
 import { CONTEXT_LABEL, contextRuleCount, detectContextSignals } from './context-rules';
 import { detectSignals, ruleCount } from './detectors';
 import { detectTanglishSignals, TANGLISH_RULE_COUNT } from './tanglish';
+import { detectIndicSignals, INDIC_RULE_COUNT } from './indic';
 import { buildCompleteness, buildPositives, buildQuestions } from './insights';
 import { collectUrlEvidence, notCheckedEvidence } from './evidence';
 import {
@@ -239,7 +240,7 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
   const context: InputContext = options.context ?? 'generic';
   const kind: InputKind =
     !options.kind || options.kind === 'auto' ? classifyInput(text) : options.kind;
-  const totalRules = ruleCount(kind) + contextRuleCount(context) + TANGLISH_RULE_COUNT;
+  const totalRules = ruleCount(kind) + contextRuleCount(context) + TANGLISH_RULE_COUNT + INDIC_RULE_COUNT;
 
   // 1. Deterministic text rules — generic first, then any that apply only to
   //    the context the user selected.
@@ -253,6 +254,13 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
   //    norm — so gating this on a detected language would miss most of them.
   for (const taSignal of detectTanglishSignals(text)) {
     if (!signals.some((s) => s.id === taSignal.id)) signals.push(taSignal);
+  }
+
+  //    Hindi, Devanagari and Tamil script. Also unconditional: a real message
+  //    mixes scripts freely, and the benchmark measured 0% recall on native
+  //    script before these existed.
+  for (const indicSignal of detectIndicSignals(text)) {
+    if (!signals.some((s) => s.id === indicSignal.id)) signals.push(indicSignal);
   }
 
   // 2. What is this asking the reader to do with money? This runs before the
