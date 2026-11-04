@@ -38,7 +38,7 @@ export function answerKavalLocally({ message, report }: LocalAnswerInput): strin
       'Treat this as a potentially authorised payment, not as a refund being received. Contact your bank or UPI/payment provider immediately through its official app or number. Ask them to check the transaction, block further unauthorised activity and raise a dispute if money was debited.',
       'If this was induced by a scam or money has left your account, call India’s cyber-financial fraud helpline 1930 promptly and report at https://cybercrime.gov.in/. Keep the UTR/transaction ID, amount, time and recipient details. TrustLens cannot reverse the payment.',
       report ? reportContext(report) : 'I do not have a report attached, so I cannot inspect the request or transaction details.'
-    ].join('\\n\\n');
+    ].join('\n\n');
   }
 
   if (qrScannedOnly) {
@@ -46,7 +46,7 @@ export function answerKavalLocally({ message, report }: LocalAnswerInput): strin
       'Scanning a QR code alone does not prove that money was transferred. Do not enter a UPI PIN to receive a refund or money. In your UPI app, check the payee name, amount and whether the screen is asking you to pay; cancel anything you did not initiate.',
       'If you entered your UPI PIN, approved a collect/payment request, or see an unexpected debit, contact your bank/payment provider immediately. For suspected financial cyber fraud in India, call 1930 promptly and report at https://cybercrime.gov.in/.',
       report ? reportContext(report) : ''
-    ].filter(Boolean).join('\\n\\n');
+    ].filter(Boolean).join('\n\n');
   }
 
   if (sharedSecret) {
