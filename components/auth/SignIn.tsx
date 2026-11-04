@@ -24,7 +24,7 @@ export function SignIn({ next, initialError }: { next: string; initialError?: st
   const [error, setError] = useState<string | null>(initialError ?? null);
 
   const supabase = getBrowserSupabase();
-  const target = safeNextPath(next, '/check');
+  const target = safeNextPath(next, '/home');
 
   const withGoogle = useCallback(async () => {
     if (!supabase) {

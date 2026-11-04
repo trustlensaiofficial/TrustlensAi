@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Bell, Lens, Lock, Play, Shield, Users } from './icons';
 
 const ITEMS = [
-  { href: '/', label: 'Protection', icon: <Shield /> },
+  { href: '/home', label: 'Protection', icon: <Shield /> },
   { href: '/check', label: 'Check', icon: <Lens /> },
   { href: '/story', label: 'How it works', icon: <Play /> },
   { href: '/alerts', label: 'Scam alerts', icon: <Users /> },
@@ -23,7 +23,7 @@ export function Nav() {
   return (
     <nav className="nav" aria-label="Primary">
       {ITEMS.map((item) => {
-        const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (
           <Link key={item.href} href={item.href} className="nav-link" aria-current={active ? 'page' : undefined}>
             <span aria-hidden="true">{item.icon}</span>

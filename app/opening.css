@@ -1,0 +1,68 @@
+/* ==========================================================================
+   The opening
+   --------------------------------------------------------------------------
+   Timeline: the mark arrives, the name writes itself beneath it, one line of
+   explanation, then the button. Every step is a CSS delay — one timeline,
+   with no JS clock that could drift or leak a timer.
+   ========================================================================== */
+
+.op {
+  min-height: calc(100dvh - 62px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  text-align: center;
+  padding: var(--s6) 0 var(--s8);
+}
+
+.op-mark { position: relative; width: clamp(96px, 13vw, 128px); display: grid; place-items: center; }
+.op-mark img { width: 100%; height: auto; animation: op-in 1.4s cubic-bezier(.19,1,.22,1) both; }
+
+@keyframes op-in {
+  0%   { opacity: 0; transform: scale(.68) translateY(18px); filter: blur(12px); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* A halo that blooms once as the mark lands, then settles to a slow breath. */
+.op-halo {
+  position: absolute; inset: -34%; border-radius: 50%; z-index: -1;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 34%, transparent), transparent 62%);
+  filter: blur(26px);
+  animation: op-halo-in 1.4s cubic-bezier(.19,1,.22,1) both, op-breathe 5.5s ease-in-out 1.4s infinite;
+}
+@keyframes op-halo-in { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes op-breathe { 0%,100% { opacity: .8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+
+.op-word {
+  margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 0 .24em;
+  font-size: clamp(2.4rem, 8vw, 4.4rem); font-weight: 720; letter-spacing: -.045em; line-height: 1;
+}
+.op-word span { display: inline-block; opacity: 0; animation: op-word .85s cubic-bezier(.19,1,.22,1) both; animation-delay: var(--d); }
+@keyframes op-word {
+  from { opacity: 0; transform: translateY(26px) rotateX(-50deg); filter: blur(7px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+.op-ai { color: var(--accent); }
+
+.op-step { opacity: 0; animation: op-rise .85s var(--ease) both; animation-delay: var(--d); }
+@keyframes op-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+.op-tagline { max-width: 42ch; color: var(--text-dim); font-size: clamp(.98rem, 2.2vw, 1.14rem); line-height: 1.6; }
+
+/* The button keeps breathing after it arrives, so the screen never looks
+   frozen while it waits for a click. */
+.op-start { animation: op-float 4.2s ease-in-out 3.4s infinite; }
+@keyframes op-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+.op-skip { color: var(--text-faint); font-size: .83rem; }
+.op-skip a { color: var(--accent); font-weight: 620; text-decoration: none; }
+.op-skip a:hover { text-decoration: underline; }
+
+@media (prefers-reduced-motion: reduce) {
+  .op-mark img, .op-halo, .op-word span, .op-step, .op-start {
+    animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important;
+  }
+}
