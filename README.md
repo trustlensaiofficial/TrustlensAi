@@ -220,10 +220,12 @@ the column being absent.
 
 Stated plainly because the product's argument depends on it:
 
-- Rules are English-only and pattern-based; novel phrasing can pass them.
+- Rules are pattern-based, not exhaustive. English and a limited Tanglish (Tamil written in Latin letters) rule set are present; native Tamil script and many language variants are not covered.
 - No image, audio or video analysis — a deepfake is only reachable through the
   text describing it.
 - No external fact-checking; claims are assessed on wording, not truth.
+- QR-refund text patterns are covered, but QR images are not decoded.
+- The current web prototype has no Android notification listener, SMS/call interception, contacts access, or universal blocking.
 - Rate limiting is per-instance and needs a shared store to be real.
 - The absence of warning signs is weak evidence, never a verdict of safety.
 
