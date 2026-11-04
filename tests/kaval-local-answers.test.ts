@@ -57,7 +57,7 @@ describe('Kaval local answers', () => {
   it('gives credential-compromise guidance for shared OTPs', () => {
     const answer = answerKavalLocally({ message: 'I shared my OTP with them', report });
     expect(answer).toContain('Treat the shared detail as compromised');
-    expect(answer).toContain('contact the bank');
+    expect(answer).toContain('Call your bank');
   });
 
   it('distinguishes an approved UPI payment from a QR scan alone', () => {
