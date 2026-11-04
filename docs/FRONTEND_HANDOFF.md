@@ -209,11 +209,24 @@ English for now.
 
 ## 11. Open items owned by the backend
 
-1. `/api/v1` routes — in progress
-2. `cases`, `artifacts`, `consent`, `events` tables — migrations pending
-3. Shared rate limiting — currently per-instance (see `docs/REPOSITORY_AUDIT.md` B1)
-4. Threat-intelligence provider abstraction — not started
-5. Typed client package — planned at `packages/contracts`
+| # | Item | State |
+|---|---|---|
+| 1 | `POST /api/v1/analyses` | **Live.** `/api/analyze` is now a deprecated alias onto the same handler and returns `Deprecation: true` plus a `Link` header naming the successor |
+| 2 | `GET /api/v1/capabilities` | **Live.** Declare your platform with `X-TrustLens-Platform: web\|android\|ios`; it defaults to `web` and never guesses native from a user agent. Each entry now also carries `mechanism` and `limits` — render both |
+| 3 | Shared rate limiting | **Done in code**, migration not yet applied. Read `X-RateLimit-Scope` on a response: `instance` means the shared counter was unreachable and the real ceiling is higher than the configured one |
+| 4 | `cases`, `case_artifacts`, `case_events`, `consent_receipts` tables | Migration written, not yet applied. Case endpoints not built |
+| 5 | Threat-intelligence provider abstraction | Not started |
+| 6 | Typed client package at `packages/contracts` | Not started |
+
+### Rendering `paymentAction`, now that it is live
+
+`POST /api/v1/analyses` returns `report.paymentAction` for real. Two things to build against:
+
+- `claimContradiction: true` also raises a **critical** signal with id
+  `payment.claim_contradiction`, whose `matches[0]` quotes the whole promise —
+  `"Refund of Rs 2,499 is pending."` — not the bare word that matched. Render the quote.
+- The checklist already leads with the refusal when a payment prompt is open (a PIN pad, a collect
+  request, a QR scanner) and places it second otherwise. **Do not reorder the checklist.**
 
 Ping the backend owner before building against any of these; the shapes in `openapi.yaml` are the
 design intent and may tighten during implementation.

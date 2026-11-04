@@ -31,7 +31,10 @@ describe('the contradiction reaches the report', () => {
     // The span is the evidence. A contradiction asserted without it is just
     // another opinion, so it must be present and must be real.
     const match = signal!.matches[0]!;
-    expect(match.text.toLowerCase()).toContain('refund');
+    // The whole promise, not the bare word that matched: "Refund" alone is
+    // poor evidence, "Refund of Rs 2,499 is pending." is the claim itself.
+    expect(match.text).toBe('Refund of Rs 2,499 is pending.');
+    // And the offsets must still address exactly those characters.
     expect(REFUND_COLLECT.slice(match.start, match.end)).toBe(match.text);
   });
 

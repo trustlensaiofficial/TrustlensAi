@@ -193,6 +193,37 @@ function explainQr(claimsRefund: boolean): string {
     : mechanism;
 }
 
+/**
+ * Grows a one-word match out to the phrase around it.
+ *
+ * The bare match is often a single word — "Refund" — and quoting that alone is
+ * poor evidence. "Refund of Rs 2,499 is pending" is the sentence that actually
+ * made the promise, and it is what persuades a reader that the contradiction
+ * is real. The offsets stay exact, so this widens the quote without inventing
+ * any part of it.
+ */
+function widenToPhrase(
+  text: string,
+  index: number,
+  length: number,
+): { text: string; start: number; end: number } {
+  const MAX = 140;
+  const BOUNDARY = /[.!?\n]/;
+
+  let start = index;
+  while (start > 0 && index - start < MAX && !BOUNDARY.test(text[start - 1] ?? '')) start -= 1;
+
+  let end = index + length;
+  while (end < text.length && end - index < MAX && !BOUNDARY.test(text[end] ?? '')) end += 1;
+  // Keep the terminator, so the quote reads as a complete sentence.
+  if (end < text.length && BOUNDARY.test(text[end] ?? '') && text[end] !== '\n') end += 1;
+
+  const slice = text.slice(start, end).trim();
+  // Realign after trimming so the offsets still address the quoted characters.
+  const offset = text.slice(start, end).indexOf(slice);
+  return { text: slice, start: start + offset, end: start + offset + slice.length };
+}
+
 /* ---------------------------------------------------------------- detect */
 
 /**
@@ -256,10 +287,7 @@ export function detectPaymentAction(text: string, qrPayload?: string | null): Pa
     unknowns.push('The amount, which is not fixed in this instruction — it would be set when the payment is opened.');
   }
 
-  const claimSpan =
-    claimContradiction && inbound
-      ? { text: inbound[0], start: inbound.index, end: inbound.index + inbound[0].length }
-      : null;
+  const claimSpan = claimContradiction && inbound ? widenToPhrase(text, inbound.index, inbound[0].length) : null;
 
   return { detected: true, kind, direction, upi, explanation, unknowns, claimContradiction, claimSpan };
 }

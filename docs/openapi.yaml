@@ -746,4 +746,22 @@ components:
           type: string
           nullable: true
           description: Required whenever state is not `available`.
+        mechanism:
+          type: string
+          nullable: true
+          description: |
+            The exact platform API this rests on — `NotificationListenerService`,
+            `ILMessageFilterExtension`, `CXCallDirectoryExtension` — or null
+            where the platform provides none. Named so a claim can be checked
+            against the OS documentation rather than taken on trust. A
+            capability reported `available` always names one.
+        limits:
+          type: array
+          items: { type: string }
+          description: |
+            What this specifically cannot see. Non-empty wherever the limit is
+            the important part: that Android hands over notifications from
+            every app and the app filter is ours, that iOS SMS filtering never
+            sees iMessage or a saved contact, that call screening must answer
+            in about five seconds and so runs no network lookup.
         lastCheckedAt: { type: string, format: date-time }
