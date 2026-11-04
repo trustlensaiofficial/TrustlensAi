@@ -215,7 +215,7 @@ const BANK_SCAM_RULES: ContextRule[] = [
     patterns: [
       /\b(otp|one[-\s]?time\s+(password|pin|code))\b[^.!?]{0,40}?\b(share|send|tell|give|provide|read|confirm|enter|forward)\b/gi,
       /\b(share|send|tell|give|provide|read\s+out|forward|confirm)\b[^.!?]{0,30}?\b(otp|upi\s*pin|atm\s*pin|mpin|cvv|net\s*banking\s+password|card\s+pin)\b/gi,
-      /\b(enter|type)\s+(your\s+)?(pin|otp|password)\b/gi,
+      /\b(enter|type)\s+(your\s+)?(upi\s*pin|pin|otp|password)\b/gi,
     ],
   },
   {
