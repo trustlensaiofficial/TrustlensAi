@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, Lens, Lock, Shield, Users } from './icons';
+import { Bell, Lens, Lock, Play, Shield, Users } from './icons';
 
 const ITEMS = [
   { href: '/', label: 'Protection', icon: <Shield /> },
   { href: '/check', label: 'Check', icon: <Lens /> },
+  { href: '/story', label: 'How it works', icon: <Play /> },
   { href: '/alerts', label: 'Scam alerts', icon: <Users /> },
   { href: '/activity', label: 'Activity', icon: <Bell /> },
   { href: '/privacy', label: 'Privacy', icon: <Lock /> },
