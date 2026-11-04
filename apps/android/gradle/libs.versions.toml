@@ -18,10 +18,13 @@
 
 [versions]
 agp = "9.5.0"
-# AGP 9.5 carries KGP 2.2.10 for built-in Kotlin. The Compose and
-# serialization compiler plugins must match the Kotlin version AGP uses, so
-# this tracks that rather than the newest Kotlin release.
-kotlin = "2.2.10"
+# AGP 9.5 defaults to KGP 2.2.10, which is a floor rather than a ceiling, and
+# 2.2.10 is too low here: Supabase 3.9.0 requires kotlin-stdlib 2.4.21, and
+# kotlinx-serialization 1.12.0 carries 2.4.0 metadata. A 2.2 compiler reads
+# metadata only up to 2.3.0, so the whole build failed on "compiled with an
+# incompatible version of Kotlin". The compiler has to match what the
+# dependencies were built with, so the root build file raises KGP to this.
+kotlin = "2.4.21"
 
 # Android SDK levels.
 # targetSdk 36 is mandatory: since 31 August 2026 Google Play requires new apps
