@@ -85,6 +85,9 @@ export async function listLocalReports(): Promise<StoredReport[]> {
 
 export async function getLocalReport(id: string): Promise<StoredReport | null> {
   const one = await tx<StoredReport>('readonly', (s) => s.get(id) as IDBRequest<StoredReport>);
+  // Rows written before the payment-action field existed lack the key; filling
+  // it keeps every report the same shape regardless of when it was saved.
+  if (one?.report) one.report.paymentAction = one.report.paymentAction ?? null;
   return one ?? null;
 }
 

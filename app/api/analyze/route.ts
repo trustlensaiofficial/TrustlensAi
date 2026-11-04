@@ -20,6 +20,12 @@ const Body = z.object({
   /** Both cloud AI and account sync are opt-in. */
   allowCloudAI: z.boolean().default(false),
   saveToAccount: z.boolean().default(false),
+  /**
+   * A QR payload the client decoded on-device. Capped well above a real UPI
+   * URI: the image is never uploaded, only the string it encoded, and this is
+   * attacker-influenced text so it gets a bound like any other input.
+   */
+  qrPayload: z.string().max(2_048).optional(),
   demoSlug: z.string().max(64).optional(),
 });
 
@@ -50,7 +56,7 @@ export async function POST(request: Request) {
     return fail('The request body did not match the expected shape.', 400);
   }
 
-  const { kind, liveChecks, allowCloudAI, saveToAccount, demoSlug } = parsed.data;
+  const { kind, liveChecks, allowCloudAI, saveToAccount, demoSlug, qrPayload } = parsed.data;
   let context = parsed.data.context;
 
   // A demo slug loads server-side canned text so the UI cannot pass off
@@ -79,6 +85,8 @@ export async function POST(request: Request) {
       context,
       liveChecks,
       allowCloudAI,
+      // A curated example never carries a caller-supplied QR payload.
+      qrPayload: isDemo ? null : (qrPayload ?? null),
       isDemo,
     });
 

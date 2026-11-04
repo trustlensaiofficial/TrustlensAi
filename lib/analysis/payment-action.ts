@@ -66,6 +66,12 @@ export interface PaymentAction {
    * promise attached to a debit. The highest-value signal in the module.
    */
   claimContradiction: boolean;
+  /**
+   * The exact words that promised money coming in, with offsets into the
+   * original text. A contradiction finding shown without the span it rests on
+   * is just another assertion, so this is what the report quotes.
+   */
+  claimSpan: { text: string; start: number; end: number } | null;
 }
 
 const NOT_DETECTED: PaymentAction = {
@@ -76,6 +82,7 @@ const NOT_DETECTED: PaymentAction = {
   explanation: '',
   unknowns: [],
   claimContradiction: false,
+  claimSpan: null,
 };
 
 /** Shown whenever any payment action is found. */
@@ -145,7 +152,7 @@ const PIN_ENTRY =
 const SCAN_QR = /\b(scan|point\s+your\s+camera\s+at)\b[^.!?]{0,30}?\b(qr|barcode|code)\b/i;
 
 const SEND_MONEY =
-  /\b(send|transfer|pay|remit|deposit|wire)\b[^.!?]{0,30}?\b(rs\.?|inr|₹|\d{3,}|money|amount|fee|charge)\b/i;
+  /\b(send|transfer|pay|remit|deposit|wire|move)\b[^.!?]{0,30}?\b(rs\.?|inr|₹|\d{3,}|money|amount|fee|charge|balance|funds?|savings|salary)\b/i;
 
 const SHARE_CREDENTIALS =
   /\b(share|send|provide|enter|confirm|tell|forward)\b[^.!?]{0,30}?\b(otp|one[-\s]?time|cvv|card\s+number|password|net\s*banking)\b/i;
@@ -197,7 +204,8 @@ function explainQr(claimsRefund: boolean): string {
 export function detectPaymentAction(text: string, qrPayload?: string | null): PaymentAction {
   const haystack = qrPayload ? `${text}\n${qrPayload}` : text;
   const upi = parseUpiUri(haystack);
-  const claimsRefund = CLAIMS_INBOUND.test(text);
+  const inbound = CLAIMS_INBOUND.exec(text);
+  const claimsRefund = inbound !== null;
 
   /*
    * Order is by consequence, not by how clearly each is worded. Entering a
@@ -248,7 +256,12 @@ export function detectPaymentAction(text: string, qrPayload?: string | null): Pa
     unknowns.push('The amount, which is not fixed in this instruction — it would be set when the payment is opened.');
   }
 
-  return { detected: true, kind, direction, upi, explanation, unknowns, claimContradiction };
+  const claimSpan =
+    claimContradiction && inbound
+      ? { text: inbound[0], start: inbound.index, end: inbound.index + inbound[0].length }
+      : null;
+
+  return { detected: true, kind, direction, upi, explanation, unknowns, claimContradiction, claimSpan };
 }
 
 /** Short label for a report heading. */
@@ -262,4 +275,70 @@ export function paymentActionLabel(action: PaymentAction): string {
     case 'install_app':       return 'You are being asked to install an app';
     default:                  return 'No payment action identified';
   }
+}
+
+/**
+ * The single action that prevents the loss, for the top of the checklist.
+ *
+ * One entry per mechanism, and every `why` states what refusing costs the
+ * reader — which is nothing. People comply with these demands under pressure
+ * because refusing feels risky, so saying plainly that it is not is the part
+ * that actually changes the outcome.
+ */
+const PREVENTIVE: Record<PaymentActionKind, { id: string; action: string; why: string } | null> = {
+  enter_upi_pin: {
+    id: 'chk.pay.no_pin',
+    action: 'Do not enter your UPI PIN. Close the payment screen.',
+    why: 'A UPI PIN authorises money leaving your account. It is never needed to receive money, so refusing it cannot cost you anything.',
+  },
+  approve_collect: {
+    id: 'chk.pay.decline_collect',
+    action: 'Decline the payment request instead of approving it.',
+    why: 'Approving a collect request pays whoever sent it. Declining cannot cost you anything, and a genuine refund needs no approval at all.',
+  },
+  scan_qr: {
+    id: 'chk.pay.no_scan',
+    action: 'Do not scan the code.',
+    why: 'A QR code can only open a payment for you to make. No code can pull money into your account, so there is nothing to gain by scanning it.',
+  },
+  send_money: {
+    id: 'chk.pay.no_transfer',
+    action: 'Do not transfer the money while this is unresolved.',
+    why: 'A UPI or bank transfer is effectively irreversible once made. Waiting costs you nothing if the request turns out to be genuine.',
+  },
+  share_credentials: {
+    id: 'chk.pay.no_code',
+    action: 'Do not share the code, CVV or card number — not even with someone claiming to be your bank.',
+    why: 'Anyone holding those can move money without you approving anything. No genuine bank employee will ever ask for them.',
+  },
+  install_app: {
+    id: 'chk.pay.no_install',
+    action: 'Do not install the app, and uninstall it if you already did.',
+    why: 'A remote-access or support app can see your screen, including your balance and any one-time code that arrives.',
+  },
+  none: null,
+};
+
+/** The preventive step for a detected action, or null when none applies. */
+export function paymentActionStep(
+  action: PaymentAction,
+): { id: string; action: string; why: string } | null {
+  return PREVENTIVE[action.kind];
+}
+
+/**
+ * True when a payment prompt is already in front of the reader.
+ *
+ * Only these three displace a context step. If someone has a PIN pad or a QR
+ * scanner open, refusing it is the whole of the advice. For a transfer they
+ * have been talked into, or an app they have been told to install, hanging up
+ * and calling the bank back resolves the situation and the refusal with it —
+ * so that step still leads, and the refusal sits directly beneath it.
+ */
+export function isImmediatePaymentPrompt(action: PaymentAction): boolean {
+  return (
+    action.kind === 'enter_upi_pin' ||
+    action.kind === 'approve_collect' ||
+    action.kind === 'scan_qr'
+  );
 }
