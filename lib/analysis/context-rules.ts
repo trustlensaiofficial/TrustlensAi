@@ -1,4 +1,5 @@
 import type { InputContext, Signal, SignalCategory, SignalMatch, SignalSeverity } from './types';
+import { isNegatedCredentialInstruction } from './match-safety';
 
 /**
  * Context-specific warning-sign rules.
@@ -214,7 +215,6 @@ const BANK_SCAM_RULES: ContextRule[] = [
     patterns: [
       /\b(otp|one[-\s]?time\s+(password|pin|code))\b[^.!?]{0,40}?\b(share|send|tell|give|provide|read|confirm|enter|forward)\b/gi,
       /\b(share|send|tell|give|provide|read\s+out|forward|confirm)\b[^.!?]{0,30}?\b(otp|upi\s*pin|atm\s*pin|mpin|cvv|net\s*banking\s+password|card\s+pin)\b/gi,
-      /\b(upi\s*pin|mpin|atm\s*pin|card\s*pin|cvv)\b/gi,
       /\b(enter|type)\s+(your\s+)?(pin|otp|password)\b/gi,
     ],
   },
@@ -272,6 +272,19 @@ const BANK_SCAM_RULES: ContextRule[] = [
     ],
   },
   {
+    id: 'bank.qr_receive_money',
+    title: 'QR code presented as a way to receive money',
+    category: 'payment',
+    severity: 'critical',
+    explanation:
+      'A QR code can be used to initiate a payment. Scanning it alone does not prove money moved, but entering a UPI PIN or approving a collect/payment request authorises a debit — it is not how you receive a refund. Check the payee and amount in your UPI app and cancel anything you did not initiate.',
+    patterns: [
+      /\b(scan|scanning)\b[^.!?]{0,45}\b(qr|code)\b[^.!?]{0,65}\b(receive|refund|cashback|credit|payment)\b/gi,
+      /\b(receive|refund|cashback|credit)\b[^.!?]{0,65}\b(scan|scanning)\b[^.!?]{0,25}\b(qr|code)\b/gi,
+      /\b(qr\s+code)\b[^.!?]{0,60}\b(upi\s*pin|pin)\b[^.!?]{0,30}\b(receive|refund|cashback|credit)\b/gi,
+    ],
+  },
+  {
     id: 'bank.fake_support_number',
     title: 'Customer-care number supplied inside the message',
     category: 'impersonation',
@@ -317,7 +330,9 @@ function collect(text: string, patterns: RegExp[]): SignalMatch[] {
 export function detectContextSignals(text: string, context: InputContext): Signal[] {
   const out: Signal[] = [];
   for (const rule of BY_CONTEXT[context] ?? []) {
-    const matches = collect(text, rule.patterns);
+    const matches = collect(text, rule.patterns).filter(
+      (match) => rule.category !== 'credentials' || !isNegatedCredentialInstruction(text, match.start),
+    );
     if (matches.length === 0) continue;
     out.push({
       id: rule.id,
