@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
@@ -34,6 +35,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -73,6 +76,7 @@ fun HomeScreen(
     val consent by vm.consent.collectAsState()
     var input by remember { mutableStateOf("") }
     var entered by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { entered = true }
     LaunchedEffect(state) { if (state is AnalysisUiState.Loaded) onOpenReport() }
@@ -94,7 +98,31 @@ fun HomeScreen(
                     Text("TRUSTLENS",style=MaterialTheme.typography.titleMedium,letterSpacing=1.8.sp,fontWeight=FontWeight.Black)
                     Text("PERSONAL THREAT PROTECTION",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant,letterSpacing=1.sp)
                 }
-                IconButton(onClick=onOpenSettings) { Icon(Icons.Outlined.Settings,contentDescription="Settings") }
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(Icons.Outlined.Menu, contentDescription = "Open navigation menu")
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Scan a payment code") },
+                            leadingIcon = { Icon(Icons.Outlined.QrCodeScanner, contentDescription = null) },
+                            onClick = { menuExpanded = false; onOpenQr() },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("I already shared money or information") },
+                            leadingIcon = { Icon(Icons.Outlined.WarningAmber, contentDescription = null) },
+                            onClick = { menuExpanded = false; onOpenIncident() },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Privacy & settings") },
+                            leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+                            onClick = { menuExpanded = false; onOpenSettings() },
+                        )
+                    }
+                }
             }
 
             AnimatedVisibility(visible=entered,enter=fadeIn(tween(520))+slideInVertically(tween(520, easing=FastOutSlowInEasing)){it/5}) {
@@ -154,7 +182,7 @@ fun HomeScreen(
                         }
                     }
                     Button(
-                        onClick={vm.analyse(input)},enabled=input.isNotBlank()&&state !is AnalysisUiState.Loading,
+                        onClick={ { vm.analyse(input) } },enabled=input.isNotBlank()&&state !is AnalysisUiState.Loading,
                         modifier=Modifier.fillMaxWidth().height(54.dp),
                         shape=RoundedCornerShape(16.dp),
                         colors=ButtonDefaults.buttonColors(containerColor=MaterialTheme.colorScheme.primary,contentColor=MaterialTheme.colorScheme.onPrimary),
