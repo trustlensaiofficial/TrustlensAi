@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Nav } from './Nav';
 import { OnlineBadge } from './OnlineBadge';
 import { ThemeToggle } from './ThemeToggle';
+import { AccountLink } from '../auth/AccountLink';
 
 /**
  * The one page template. Every route renders through it, so the product reads
@@ -20,6 +21,7 @@ export function Shell({ children, wide }: { children: React.ReactNode; wide?: bo
           <Nav />
           <div className="header-end">
             <OnlineBadge />
+            <AccountLink />
             <ThemeToggle />
           </div>
         </div>
