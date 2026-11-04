@@ -64,10 +64,10 @@ All optional — each missing capability degrades visibly rather than silently.
 
 | Variable | Needed for | Notes |
 |---|---|---|
-| `AI_GATEWAY_API_KEY` | optional contextual analysis | Preferred. Used only after the user enables cloud AI. Create at <https://vercel.com/ai-gateway>. |
+| `AI_GATEWAY_API_KEY` | optional contextual analysis | Used only after the user enables cloud AI. |
 | `ANTHROPIC_API_KEY` | optional contextual analysis | Used only if the gateway key is absent and the user opts in. |
-`NEXT_PUBLIC_SUPABASE_URL` is used by the browser auth client. Account-synced report history additionally requires the server key, sign-in and the owner migration.
-| `SUPABASE_SERVICE_ROLE_KEY` | report history | **Server-only.** `SUPABASE_SECRET_KEY` also accepted. |
+| `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser auth client | `SUPABASE_URL` is also accepted. |
+| `SUPABASE_SERVICE_ROLE_KEY` | account report storage | **Server-only.** `SUPABASE_SECRET_KEY` also accepted; requires sign-in and `0003_scans_owner.sql`. |
 
 Never give a server key a `NEXT_PUBLIC_` prefix, and never commit real values.
 
