@@ -1,128 +1,34 @@
-/* ==========================================================================
-   TrustLens AI — design tokens
-   --------------------------------------------------------------------------
-   One source of truth for colour, type, space, depth and motion. Both themes
-   are first-class: every token below is redefined for dark, so no surface can
-   be "mostly themed". Severity colours are semantic, never decorative — they
-   are the fastest thing a worried person reads on the screen.
-   ========================================================================== */
-
+/* TrustLens AI — shared brand tokens. Keep Android Theme.kt aligned. */
 :root {
-  /* --- brand ------------------------------------------------------------ */
-  --tl-cyan: #0E86C8;
-  --tl-blue: #1F63D6;
-  --tl-deep: #0B2E6B;
-
-  /* --- ground and surfaces (light) -------------------------------------- */
-  --bg: #F5F8FD;
-  --bg-sunk: #EBF1FA;
-  --surface: #FFFFFF;
-  --surface-2: #F3F7FC;
-  --surface-3: #E8F0F9;
-  --border: #D6E2F0;
-  --border-strong: #B4C8DF;
-
-  /* --- type ------------------------------------------------------------- */
-  --text: #0A1A2F;
-  --text-dim: #44607F;
-  --text-faint: #74899F;
-
-  /* --- accent ----------------------------------------------------------- */
-  --accent: #0E6FBF;
-  --accent-ink: #FFFFFF;
-  --accent-soft: #E3F0FD;
-  --accent-line: #A8CDEE;
-
-  /* --- severity --------------------------------------------------------- */
-  --sev-high: #C02619;
-  --sev-high-soft: #FDECEA;
-  --sev-high-line: #F2B6AF;
-  --sev-check: #9A5B00;
-  --sev-check-soft: #FEF4E4;
-  --sev-check-line: #EFCF95;
-  --sev-clear: #136F63;
-  --sev-clear-soft: #E4F4F1;
-  --sev-clear-line: #A4D6CD;
-
-  /* --- provenance ------------------------------------------------------- */
-  --prov-rule: #0B5E8C;
-  --prov-found: #0D6E78;
-  --prov-ai: #5B46A8;
-
-  /* --- shape ------------------------------------------------------------ */
-  --r-xs: 8px;
-  --r-sm: 11px;
-  --r-md: 15px;
-  --r-lg: 20px;
-  --r-xl: 28px;
-  --r-pill: 999px;
-
-  /* --- depth ------------------------------------------------------------ */
-  --sh-1: 0 1px 2px rgba(10, 26, 47, .07), 0 1px 3px rgba(10, 26, 47, .05);
-  --sh-2: 0 4px 14px rgba(10, 26, 47, .08), 0 1px 3px rgba(10, 26, 47, .05);
-  --sh-3: 0 14px 38px rgba(10, 26, 47, .12), 0 3px 9px rgba(10, 26, 47, .06);
-  --sh-glass-top: rgba(255, 255, 255, .85);
-  --glass: rgba(255, 255, 255, .72);
-
-  /* --- type scale ------------------------------------------------------- */
-  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-
-  /* --- space ------------------------------------------------------------ */
-  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
-  --s5: 22px; --s6: 30px; --s7: 42px; --s8: 60px;
-
-  /* --- motion ----------------------------------------------------------- */
-  --t-fast: .16s;
-  --t-base: .26s;
-  --t-slow: .42s;
-  --ease: cubic-bezier(.22, .61, .36, 1);
-  --spring: cubic-bezier(.34, 1.4, .54, 1);
-
-  /* --- layout ----------------------------------------------------------- */
-  --shell: min(1140px, calc(100% - 36px));
-  --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
-
-  color-scheme: light;
+  --tl-cyan:#16D8F2; --tl-blue:#3986FF; --tl-violet:#8B72FF; --tl-deep:#071629;
+  --bg:#F4F8FC; --bg-sunk:#EAF1F8; --surface:#FFFFFF; --surface-2:#F0F5FA; --surface-3:#E5EEF7;
+  --border:#D7E3EF; --border-strong:#B5C9DC;
+  --text:#10243A; --text-dim:#526A83; --text-faint:#8295A9;
+  --accent:#087F9B; --accent-ink:#FFFFFF; --accent-soft:#E0F7FB; --accent-line:#A6E5EF;
+  --sev-high:#C42E42; --sev-high-soft:#FCECEF; --sev-high-line:#F2BCC5;
+  --sev-check:#9A650A; --sev-check-soft:#FFF5E2; --sev-check-line:#F0D7A8;
+  --sev-clear:#53677C; --sev-clear-soft:#EDF2F6; --sev-clear-line:#CBD7E2;
+  --prov-rule:#087C9B; --prov-found:#167D77; --prov-ai:#7053B8;
+  --r-xs:9px; --r-sm:13px; --r-md:17px; --r-lg:23px; --r-xl:30px; --r-pill:999px;
+  --sh-1:0 2px 5px rgba(12,36,60,.05); --sh-2:0 8px 24px rgba(12,36,60,.08); --sh-3:0 22px 56px rgba(12,36,60,.12);
+  --sh-glass-top:rgba(255,255,255,.84); --glass:rgba(255,255,255,.76);
+  --font:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:22px;--s6:30px;--s7:42px;--s8:60px;
+  --t-fast:.16s;--t-base:.26s;--t-slow:.48s;--ease:cubic-bezier(.22,.61,.36,1);--spring:cubic-bezier(.2,1.35,.4,1);
+  --shell:min(1180px,calc(100% - 40px));--focus:0 0 0 2px var(--bg),0 0 0 4px var(--accent);
+  color-scheme:light;
 }
-
 :root[data-theme='dark'] {
-  --bg: #060A12;
-  --bg-sunk: #040710;
-  --surface: #0E141F;
-  --surface-2: #141C29;
-  --surface-3: #1C2636;
-  --border: #223049;
-  --border-strong: #35486A;
-
-  --text: #EAF2FD;
-  --text-dim: #9BB0C9;
-  --text-faint: #6C819B;
-
-  --accent: #4FB3F0;
-  --accent-ink: #042033;
-  --accent-soft: #0B2436;
-  --accent-line: #245878;
-
-  --sev-high: #FF8C80;
-  --sev-high-soft: #2B1211;
-  --sev-high-line: #5E2924;
-  --sev-check: #F4C77A;
-  --sev-check-soft: #281D0C;
-  --sev-check-line: #543F1B;
-  --sev-clear: #68D6C2;
-  --sev-clear-soft: #0A2420;
-  --sev-clear-line: #1E4F47;
-
-  --prov-rule: #72C2EE;
-  --prov-found: #5BD6DE;
-  --prov-ai: #B3A1F0;
-
-  --sh-1: 0 1px 2px rgba(0, 0, 0, .5);
-  --sh-2: 0 6px 20px rgba(0, 0, 0, .45);
-  --sh-3: 0 20px 52px rgba(0, 0, 0, .55);
-  --sh-glass-top: rgba(255, 255, 255, .14);
-  --glass: rgba(16, 24, 38, .62);
-
-  color-scheme: dark;
+  --bg:#050B16;--bg-sunk:#030812;--surface:#0B1728;--surface-2:#101F33;--surface-3:#172A42;
+  --border:#203650;--border-strong:#34536F;
+  --text:#EAF5FF;--text-dim:#A4BCD2;--text-faint:#6F8AA4;
+  --accent:#31D5EE;--accent-ink:#03202B;--accent-soft:#0C2C3C;--accent-line:#205A70;
+  --sev-high:#FF8794;--sev-high-soft:#32151E;--sev-high-line:#713040;
+  --sev-check:#F4C979;--sev-check-soft:#30240F;--sev-check-line:#695021;
+  --sev-clear:#A8BBCD;--sev-clear-soft:#17283A;--sev-clear-line:#334B62;
+  --prov-rule:#58DDF2;--prov-found:#69D9C7;--prov-ai:#B9A4FF;
+  --sh-1:0 2px 8px rgba(0,0,0,.28);--sh-2:0 10px 28px rgba(0,0,0,.34);--sh-3:0 24px 64px rgba(0,0,0,.48);
+  --sh-glass-top:rgba(255,255,255,.09);--glass:rgba(7,17,31,.78);
+  color-scheme:dark;
 }

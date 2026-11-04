@@ -15,64 +15,47 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 
-/**
- * Severity colours are defined once, here, and are the only place a verdict
- * acquires a colour.
- *
- * Deliberately no green anywhere. There is no "safe" assessment level, so
- * there is no colour for one — a green badge is the single most misleading
- * thing this interface could show, and omitting the colour makes it
- * impossible to add by accident.
- */
-private val Ink = Color(0xFF0B1221)
-private val Paper = Color(0xFFF7F8FB)
-private val Accent = Color(0xFF3C6FD4)
-private val AccentDark = Color(0xFF6AA6FF)
+// Shared TrustLens brand palette. Keep app/tokens.css in sync with these values.
+private val Midnight = Color(0xFF050B16)
+private val DeepNavy = Color(0xFF0B1728)
+private val PanelNavy = Color(0xFF101F33)
+private val Paper = Color(0xFFF4F8FC)
+private val Ink = Color(0xFF10243A)
+private val Cyan = Color(0xFF31D5EE)
+private val Teal = Color(0xFF087F9B)
+private val Violet = Color(0xFF8B72FF)
 
-val SeverityCritical = Color(0xFFB3261E)
-val SeverityHigh = Color(0xFFC2410C)
-val SeverityMedium = Color(0xFF9A6700)
-val SeverityLow = Color(0xFF5B6478)
-/** For "no signals matched" — neutral, never reassuring. */
-val SeverityNone = Color(0xFF5B6478)
+val SeverityCritical = Color(0xFFFF8794)
+val SeverityHigh = Color(0xFFC42E42)
+val SeverityMedium = Color(0xFFF4C979)
+val SeverityLow = Color(0xFF8295A9)
+val SeverityNone = Color(0xFF8295A9)
 
 private val LightColors = lightColorScheme(
-    primary = Accent,
-    onPrimary = Color.White,
-    background = Paper,
-    onBackground = Ink,
-    surface = Color.White,
-    onSurface = Ink,
-    surfaceVariant = Color(0xFFE9ECF3),
-    onSurfaceVariant = Color(0xFF414B60),
-    error = SeverityCritical,
+    primary = Teal, onPrimary = Color.White, secondary = Color(0xFF6555B8),
+    tertiary = Color(0xFF087F9B), background = Paper, onBackground = Ink,
+    surface = Color.White, onSurface = Ink, surfaceVariant = Color(0xFFEAF1F8),
+    onSurfaceVariant = Color(0xFF526A83), outline = Color(0xFFD7E3EF),
+    error = Color(0xFFC42E42),
 )
-
 private val DarkColors = darkColorScheme(
-    primary = AccentDark,
-    onPrimary = Ink,
-    background = Ink,
-    onBackground = Color(0xFFE8EBF2),
-    surface = Color(0xFF141C2E),
-    onSurface = Color(0xFFE8EBF2),
-    surfaceVariant = Color(0xFF1E2941),
-    onSurfaceVariant = Color(0xFFB4BECF),
-    error = Color(0xFFFF8A80),
+    primary = Cyan, onPrimary = Midnight, secondary = Violet, tertiary = Cyan,
+    background = Midnight, onBackground = Color(0xFFEAF5FF),
+    surface = DeepNavy, onSurface = Color(0xFFEAF5FF),
+    surfaceVariant = PanelNavy, onSurfaceVariant = Color(0xFFA4BCD2),
+    outline = Color(0xFF203650), error = Color(0xFFFF8794),
 )
-
 private val TrustLensTypography = Typography(
-    // The verdict. Large because it is read under stress, and the one thing
-    // someone must be able to take in at a glance.
-    headlineLarge = TextStyle(fontSize = 28.sp, lineHeight = 34.sp, fontWeight = FontWeight.SemiBold),
-    headlineSmall = TextStyle(fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.SemiBold),
-    titleMedium = TextStyle(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold),
-    bodyLarge = TextStyle(fontSize = 16.sp, lineHeight = 24.sp),
-    bodyMedium = TextStyle(fontSize = 14.sp, lineHeight = 21.sp),
-    labelLarge = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium),
-    labelSmall = TextStyle(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium),
+    headlineLarge = TextStyle(fontSize = 32.sp,lineHeight = 38.sp,fontWeight = FontWeight.Bold,letterSpacing = (-1.2).sp),
+    headlineSmall = TextStyle(fontSize = 23.sp,lineHeight = 29.sp,fontWeight = FontWeight.SemiBold,letterSpacing = (-.5).sp),
+    titleLarge = TextStyle(fontSize = 20.sp,lineHeight = 26.sp,fontWeight = FontWeight.Bold),
+    titleMedium = TextStyle(fontSize = 16.sp,lineHeight = 22.sp,fontWeight = FontWeight.SemiBold),
+    bodyLarge = TextStyle(fontSize = 16.sp,lineHeight = 24.sp),
+    bodyMedium = TextStyle(fontSize = 14.sp,lineHeight = 21.sp),
+    labelLarge = TextStyle(fontSize = 14.sp,lineHeight = 20.sp,fontWeight = FontWeight.SemiBold),
+    labelSmall = TextStyle(fontSize = 12.sp,lineHeight = 16.sp,fontWeight = FontWeight.Medium,letterSpacing = .2.sp),
 )
 
-/** The colour for a severity word from the API. Unknown values stay neutral. */
 fun severityColor(severity: String?): Color = when (severity?.lowercase()) {
     "critical" -> SeverityCritical
     "high" -> SeverityHigh
@@ -80,34 +63,24 @@ fun severityColor(severity: String?): Color = when (severity?.lowercase()) {
     "low" -> SeverityLow
     else -> SeverityNone
 }
-
-/**
- * The colour for an assessment level.
- *
- * `no_signals_detected` is neutral grey, never green: our checks not matching
- * is not a verification, and the colour must not say otherwise.
- */
 fun levelColor(level: String?): Color = when (level?.lowercase()) {
-    "high_risk" -> SeverityCritical
-    "elevated_risk" -> SeverityHigh
-    "some_signals" -> SeverityMedium
+    "high_risk" -> Color(0xFFFF8794)
+    "elevated_risk" -> Color(0xFFC42E42)
+    "some_signals" -> Color(0xFFF4C979)
     else -> SeverityNone
 }
 
 @Composable
-fun TrustLensTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit,
-) {
+fun TrustLensTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val colors = if (darkTheme) DarkColors else LightColors
-    val view = LocalContext.current
-
-    if (view is Activity) {
+    val context = LocalContext.current
+    if (context is Activity) {
         SideEffect {
-            WindowCompat.getInsetsController(view.window, view.window.decorView)
+            WindowCompat.getInsetsController(context.window,context.window.decorView)
                 .isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(context.window,context.window.decorView)
+                .isAppearanceLightNavigationBars = !darkTheme
         }
     }
-
-    MaterialTheme(colorScheme = colors, typography = TrustLensTypography, content = content)
+    MaterialTheme(colorScheme = colors,typography = TrustLensTypography,content = content)
 }
