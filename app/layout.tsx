@@ -1,28 +1,41 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import './globals.css';
+import { RegisterSW } from '@/components/ui/RegisterSW';
+
+export const metadata: Metadata = {
+  title: { default: 'TrustLens AI — Pause. Verify. Then act.', template: '%s · TrustLens AI' },
+  description:
+    'Personal financial threat protection. Check a message, link or payment request for warning signs, see the evidence behind every finding, and get the right next step.',
+  applicationName: 'TrustLens AI',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, title: 'TrustLens AI', statusBarStyle: 'black-translucent' },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F5F8FD' },
+    { media: '(prefers-color-scheme: dark)', color: '#060A12' },
+  ],
+};
 
 /**
- * Root layout.
- *
- * Kept deliberately bare. The UI layer was removed so the product could be
- * rebuilt on top of the existing engine, and this file is the one piece the
- * App Router requires even when the app serves only API routes. It carries
- * no stylesheet, no chrome and no theme bootstrap — whatever comes next owns
- * all of that.
+ * Stamps the saved appearance before first paint so there is no flash of the
+ * wrong theme. Kept as a tiny inline script because any React approach
+ * necessarily runs after hydration. Defaults to the OS preference.
  */
-export const metadata: Metadata = {
-  title: {
-    default: 'TrustLens AI',
-    template: '%s · TrustLens AI',
-  },
-  description:
-    'Analyse a message, link or claim for warning signs, see the evidence behind each finding, understand what could not be verified, and get concrete steps to check it safely.',
-  applicationName: 'TrustLens AI',
-};
+const THEME = `try{var t=localStorage.getItem('trustlens.theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme='light'}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: THEME }} /></head>
+      <body>
+        <RegisterSW />
+        {children}
+      </body>
     </html>
   );
 }

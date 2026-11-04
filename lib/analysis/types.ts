@@ -15,6 +15,8 @@ export type UserActionState =
   | 'not_acted'
   | 'opened_link'
   | 'shared_credentials'
+  | 'installed_app'
+  | 'remote_access'
   | 'approved_payment'
   | 'sent_money';
 
