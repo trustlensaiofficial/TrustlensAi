@@ -108,15 +108,15 @@ only alongside the corpus it came from.
 | Phase | Content | State |
 |---|---|---|
 | 0 | Audit, competitor research, charter, contract, capability matrix | **Done** |
-| 1 | Backend foundation: `/api/v1`, case schema, consent, shared rate limiting | In progress |
-| 2 | Investigation engine: payment actions, provenance, threat-intel abstraction, benchmark | Payment actions done |
-| 3 | Case and incident workflow end to end | Not started |
-| 4 | Android — permission model and contract only; **no toolchain on this machine** | Blocked, documented |
-| 5 | iOS — Share Extension, SMS filter, Call Directory | Not started |
+| 1 | Backend foundation: `/api/v1`, case schema, consent, shared rate limiting | **Done** — RLS, triggers and ownership verified behaviourally |
+| 2 | Investigation engine: payment actions, provenance, benchmark | **Done** except the threat-intel provider abstraction |
+| 3 | Case and incident workflow end to end | Endpoints built; HTTP round trips not yet exercised |
+| 4 | **Android** — real app, Kotlin + Compose, share target, QR parsing | Compiles in CI; no device testing |
+| 5 | iOS | **Out of scope.** The owner scoped this project to Android only |
 
-Phase 4's honest output here is the permission model, capability matrix and API contract the
-Android app will consume. Shipping a simulator described as a device integration would be worse
-than shipping nothing.
+Phase 4 is built but **not compiled on this machine** — there is no JDK, SDK or Gradle here, so
+GitHub Actions is the build and a green run there is the only evidence. Nothing has been tested on
+a real device, and `docs/REPOSITORY_AUDIT.md` says so rather than implying otherwise.
 
 ## 8. Division of labour
 
