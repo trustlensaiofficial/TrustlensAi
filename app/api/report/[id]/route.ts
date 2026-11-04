@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { checkRateLimit, clientKeyFromHeaders } from '@/lib/ratelimit';
+import { clientKeyFromHeaders, consumeRateLimit } from '@/lib/ratelimit';
 import { deleteReport, getReport } from '@/lib/store';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
 
@@ -23,7 +23,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
 }
 
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
-  const limit = checkRateLimit(`delete:${clientKeyFromHeaders(request.headers)}`);
+  const limit = await consumeRateLimit(`delete:${clientKeyFromHeaders(request.headers)}`);
   if (!limit.allowed) {
     return NextResponse.json(
       { error: `Too many requests. Try again in ${limit.retryAfterSeconds} seconds.` },

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { analyze } from '@/lib/analysis/orchestrator';
 import { MAX_INPUT_LENGTH, validateInput } from '@/lib/analysis/normalize';
-import { checkRateLimit, clientKeyFromHeaders } from '@/lib/ratelimit';
+import { clientKeyFromHeaders, consumeRateLimit } from '@/lib/ratelimit';
 import { saveReport, storeStatus } from '@/lib/store';
 import { findDemoCase } from '@/lib/demo/cases';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
@@ -34,7 +34,7 @@ function fail(message: string, status: number, extra: Record<string, unknown> = 
 }
 
 export async function POST(request: Request) {
-  const limit = checkRateLimit(clientKeyFromHeaders(request.headers));
+  const limit = await consumeRateLimit(clientKeyFromHeaders(request.headers));
   if (!limit.allowed) {
     return NextResponse.json(
       {
@@ -115,7 +115,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       { report, storageNote },
-      { headers: { 'Cache-Control': 'no-store', 'X-RateLimit-Remaining': String(limit.remaining) } },
+      {
+        headers: {
+          'Cache-Control': 'no-store',
+          'X-RateLimit-Remaining': String(limit.remaining),
+          // 'instance' means the shared counter was unreachable and the real
+          // ceiling is higher than the configured one. Reported, not hidden.
+          'X-RateLimit-Scope': limit.scope,
+        },
+      },
     );
   } catch (err) {
     // Log a short, non-sensitive marker. Never log the analysed content.

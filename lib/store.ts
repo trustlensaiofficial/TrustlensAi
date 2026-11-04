@@ -116,6 +116,17 @@ function getClient(): SupabaseClient | null {
   return cached;
 }
 
+/**
+ * The service-role client, for other server-side modules that need it.
+ *
+ * Shared rather than duplicated because the env resolution above is not
+ * trivial — it tolerates two naming conventions and an invalid URL shadowing a
+ * valid one, which is a misconfiguration this project has actually hit.
+ */
+export function getServiceClient(): SupabaseClient | null {
+  return getClient();
+}
+
 /** Row shape written to `public.scans`. Keep in sync with the migration. */
 interface ScanRow {
   id: string;
