@@ -1,7 +1,29 @@
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import './polish.css';
 import { RegisterSW } from '@/components/ui/RegisterSW';
+
+/**
+ * Inter, self-hosted by Next at build time.
+ *
+ * The token stack has named Inter since the design system landed, but nothing
+ * ever loaded it — so every surface was quietly rendering in system-ui and the
+ * typography was never the one that was designed. Serving it through
+ * `next/font` self-hosts the file, so there is no third-party request and no
+ * flash of a fallback face.
+ *
+ * `display: swap` with an adjusted fallback keeps text visible during load and
+ * holds the metrics close enough that the swap does not shift layout.
+ */
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+  // Only the weights the type scale actually uses.
+  weight: ['400', '500', '600', '700'],
+  adjustFontFallback: true,
+});
 
 export const metadata: Metadata = {
   title: { default: 'TrustLens AI — Pause. Verify. Then act.', template: '%s · TrustLens AI' },
@@ -31,7 +53,7 @@ const THEME = `try{var t=localStorage.getItem('trustlens.theme');if(t!=='light'&
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: THEME }} /></head>
       <body>
         <RegisterSW />
