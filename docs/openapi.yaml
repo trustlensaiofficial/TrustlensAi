@@ -432,6 +432,101 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
 
   # ------------------------------------------------------------------ system
+  /consent:
+    get:
+      summary: The current consent position for every capability
+      operationId: getConsent
+      description: |
+        Every capability is listed, including ones never answered — those come
+        back `granted: false` with a null `decidedAt`, so a client can tell
+        "declined" from "never asked". Those need different interfaces.
+
+        `stale: true` means the newest grant was given against a different
+        disclosure version from the one in force, and the client must ask
+        again. Agreement to wording someone never read is not consent. Only a
+        grant can go stale; a refusal stands until the person changes it.
+      tags: [consent]
+      responses:
+        '200':
+          description: Current state.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  policyVersion: { type: string }
+                  capabilities:
+                    type: array
+                    items: { $ref: '#/components/schemas/ConsentState' }
+                  note: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/Unavailable' }
+    post:
+      summary: Record a grant or a revocation
+      operationId: recordConsent
+      description: |
+        Always an insert, never an edit — the table refuses UPDATE by trigger,
+        for every role including the service role. A revocation is a new row
+        with `granted: false`, because "turned this on in March and off in
+        June" is a different fact from "this is off", and only one of them
+        survives an update.
+
+        Re-granting something already granted is not an error: it is a fresh
+        receipt, which is exactly what re-consenting to new wording is.
+      tags: [consent]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [capability, granted]
+              properties:
+                capability: { $ref: '#/components/schemas/CapabilityKey' }
+                granted: { type: boolean }
+                policyVersion:
+                  type: string
+                  description: |
+                    The wording the person saw. Defaults to the current
+                    version — a client that omits it is asserting it showed
+                    the current text, which is safe because a mismatch only
+                    ever makes a grant stale rather than extending it.
+      responses:
+        '201':
+          description: The receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receipt: { $ref: '#/components/schemas/ConsentReceipt' }
+        '400':
+          description: Unrecognised capability; `validValues` lists the accepted keys.
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/Unavailable' }
+
+  /consent/history:
+    get:
+      summary: The full consent history, newest first
+      operationId: getConsentHistory
+      description: |
+        Append-only, so this is the whole record rather than a current state.
+        A person asking for their data is entitled to the history, not a
+        snapshot.
+      tags: [consent]
+      responses:
+        '200':
+          description: Receipts, newest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receipts:
+                    type: array
+                    items: { $ref: '#/components/schemas/ConsentReceipt' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
   /capabilities:
     get:
       tags: [System]
@@ -796,6 +891,48 @@ components:
         headline: { type: string }
         preview: { type: string }
         caseId: { type: string, format: uuid, nullable: true }
+
+    CapabilityKey:
+      type: string
+      enum:
+        - deterministic_rules
+        - live_url_checks
+        - cloud_ai
+        - qr_parsing
+        - account_sync
+        - notification_monitoring
+        - call_screening
+        - sms_filtering
+
+    ConsentState:
+      type: object
+      required: [capability, granted, stale]
+      properties:
+        capability: { $ref: '#/components/schemas/CapabilityKey' }
+        granted:
+          type: boolean
+          description: Absent means not granted. Everything that sends data anywhere is off until turned on.
+        policyVersion: { type: string, nullable: true }
+        decidedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Null when the person has never been asked, which is distinct from having declined.
+        stale:
+          type: boolean
+          description: |
+            True when the grant was given against different disclosure wording
+            from the version in force. Ask again.
+
+    ConsentReceipt:
+      type: object
+      required: [id, capability, granted, policyVersion, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        capability: { $ref: '#/components/schemas/CapabilityKey' }
+        granted: { type: boolean }
+        policyVersion: { type: string }
+        createdAt: { type: string, format: date-time }
 
     Capability:
       type: object

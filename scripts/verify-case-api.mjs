@@ -238,6 +238,65 @@ try {
   const { data: leftovers } = await admin.from('case_artifacts').select('id').eq('case_id', caseId);
   check('its artifacts cascaded away', (leftovers?.length ?? 0) === 0, `${leftovers?.length} left`);
 
+  /* 4b. Consent receipts, which are append-only by table trigger. */
+  section('4b. Consent');
+  const consentInitial = await api('GET', '/api/v1/consent', aliceToken);
+  check('GET /consent returns 200', consentInitial.status === 200, `got ${consentInitial.status}`);
+  check('it lists all eight capabilities',
+    consentInitial.json?.capabilities?.length === 8, `${consentInitial.json?.capabilities?.length}`);
+  check('everything starts not granted',
+    (consentInitial.json?.capabilities ?? []).every((c) => c.granted === false));
+  check('and never-asked is distinguishable from declined',
+    (consentInitial.json?.capabilities ?? []).every((c) => c.decidedAt === null));
+
+  const grant = await api('POST', '/api/v1/consent', aliceToken, {
+    capability: 'cloud_ai', granted: true,
+  });
+  check('POST /consent records a grant', grant.status === 201, `got ${grant.status}`);
+  check('the receipt carries the policy version', Boolean(grant.json?.receipt?.policyVersion));
+
+  const afterGrant = await api('GET', '/api/v1/consent', aliceToken);
+  const cloudAi = (afterGrant.json?.capabilities ?? []).find((c) => c.capability === 'cloud_ai');
+  check('the grant is reflected', cloudAi?.granted === true);
+  check('it is not stale against the current wording', cloudAi?.stale === false);
+  check('other capabilities are unaffected',
+    (afterGrant.json?.capabilities ?? []).filter((c) => c.granted).length === 1);
+
+  const revoke = await api('POST', '/api/v1/consent', aliceToken, {
+    capability: 'cloud_ai', granted: false,
+  });
+  check('a revocation is accepted', revoke.status === 201, `got ${revoke.status}`);
+  const afterRevoke = await api('GET', '/api/v1/consent', aliceToken);
+  check('and it wins, being newer',
+    (afterRevoke.json?.capabilities ?? []).find((c) => c.capability === 'cloud_ai')?.granted === false);
+
+  const history = await api('GET', '/api/v1/consent/history', aliceToken);
+  // Append-only: the grant must still be there after the revocation.
+  check('the history keeps both decisions',
+    (history.json?.receipts ?? []).filter((r) => r.capability === 'cloud_ai').length === 2,
+    `${(history.json?.receipts ?? []).filter((r) => r.capability === 'cloud_ai').length} receipts`);
+
+  const staleGrant = await api('POST', '/api/v1/consent', aliceToken, {
+    capability: 'live_url_checks', granted: true, policyVersion: '1999-01-01',
+  });
+  check('a grant against old wording is recorded', staleGrant.status === 201);
+  const afterStale = await api('GET', '/api/v1/consent', aliceToken);
+  check('and reported stale, so the client asks again',
+    (afterStale.json?.capabilities ?? []).find((c) => c.capability === 'live_url_checks')?.stale === true);
+
+  const badCap = await api('POST', '/api/v1/consent', aliceToken, {
+    capability: 'read_my_whatsapp', granted: true,
+  });
+  check('an unrecognised capability is refused', badCap.status === 400, `got ${badCap.status}`);
+  check('and the refusal lists the valid ones',
+    (badCap.json?.validValues ?? []).length === 8);
+
+  const bobConsent = await api('GET', '/api/v1/consent', bobToken);
+  check('another user sees their own empty state, not Alice\u2019s',
+    bobConsent.status === 200 && (bobConsent.json?.capabilities ?? []).every((c) => c.granted === false));
+
+  check('consent needs an account', (await api('GET', '/api/v1/consent', null)).status === 401);
+
   /* 5. A malformed id must not look like a server error. */
   section('5. Malformed input');
   const badId = await api('GET', '/api/v1/cases/not-a-uuid', aliceToken);
