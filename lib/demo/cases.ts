@@ -182,6 +182,15 @@ To receive the amount, please approve the payment request sent to your UPI app a
 If the request expires, the refund will be cancelled and cannot be claimed again.`,
   },
   {
+    slug: 'upi-qr-refund',
+    label: 'QR code presented as a refund',
+    kind: 'message',
+    context: 'bank_scam',
+    scenario: 'A message says to scan a QR code and enter a UPI PIN to receive a refund.',
+    expectation: 'Should explain that a QR scan alone does not prove a debit, but entering a UPI PIN authorises a payment rather than receiving money.',
+    text: `Your refund of Rs 2,400 is ready. Scan this QR code to receive the refund and enter your UPI PIN to confirm the credit. If you do not complete it now, the refund will expire.`,
+  },
+  {
     slug: 'benign-bank-notice',
     label: 'Genuine bank notification (control)',
     kind: 'message',
