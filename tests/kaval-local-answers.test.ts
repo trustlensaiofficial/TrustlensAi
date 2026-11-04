@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Report } from '@/lib/analysis/types';
-import { answerKavalLocally } from '@/lib/assistant/local-answers';
+import type { Report } from '../lib/analysis/types';
+import { answerKavalLocally } from '../lib/assistant/local-answers';
 
 const report: Report = {
   id: 'demo-report',
