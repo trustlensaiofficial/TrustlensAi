@@ -206,7 +206,7 @@ export function ReportView({ report, lang }: { report: Report; lang: Lang }) {
               key={choice}
               type="button"
               className={`btn btn-sm ${actionState === choice ? 'btn-primary' : 'btn-ghost'}`}
-              aria-pressed={actionState === choice.value}
+              aria-pressed={actionState === choice}
               onClick={() => setActionState(choice)}
             >
               {ACTION_COPY[lang].choices[choice]}
