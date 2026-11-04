@@ -324,3 +324,42 @@ four are connected to this repository.
       sources, with URLs, for the deck.
 - [ ] Replace the text wordmark when the official logo arrives
       (`components/SiteHeader.tsx`, `Brand`).
+
+
+---
+
+## 2026-11-04 — privacy-consent and incident-guidance hardening
+
+**Working branch:** `fix/privacy-consent-and-incident-guidance`  
+**State:** Code and documentation changes committed on this branch. Not merged or deployed. CI must run before any merge. No local test/build command has been run by the connected coding agent, so no passing status is claimed here.
+
+### Changes made on this branch
+
+| Area | Change |
+|---|---|
+| Cloud AI consent | Analysis model is disabled by default. Only an explicit `allowCloudAI: true` permits a third-party model request. |
+| Kaval consent | Local safety guide is the default. Chat and visible report context are sent to a model provider only with explicit `allowCloud: true`. UI now shows whether external AI was used or deliberately not enabled. |
+| URL network checks | API and analysis engine both default live DNS/HTTP checks to off. User must explicitly switch them on. |
+| Account storage | `saveToAccount` defaults false. Anonymous scans are not written to Supabase. Account save requires a verified session and owner UUID. |
+| Database ownership | Removed ownerless retry when `scans.user_id` is missing. Account writes fail closed until `0003_scans_owner.sql` is applied. |
+| Account history | Added authenticated `GET /api/account/history` with a strict current-user filter and account-page list/delete UI. |
+| UPI/QR context | Added a QR-refund wording rule and synthetic demo. Guidance distinguishes scanning a QR from entering a UPI PIN or approving a payment. |
+| False positives | Added a shared negation filter for protective warnings such as “Never share your OTP”; removed broad rule that flagged mention of a UPI PIN alone. |
+| Tests | Added regression cases for cloud-AI opt-in, benign protective warnings, direct credential requests, QR refund wording and Kaval incident guidance. Tests are committed but not yet run by this agent. |
+| Documentation | Added `PRODUCT_SPEC.md`, updated README and this engineering/task log with current functionality and non-implemented capabilities. |
+
+### Important acceptance checks still required
+
+- [ ] GitHub Actions: install, typecheck, lint, all Vitest tests and production build.
+- [ ] Review compile/test failures and fix them before merge.
+- [ ] Preview deployment: test the normal web scan with cloud AI OFF, live URL checks OFF and account sync OFF.
+- [ ] Verify enabling cloud AI makes a provider request only after explicit consent; verify disabled Kaval uses local mode.
+- [ ] Verify account copy cannot be saved when signed out or when `user_id` migration is absent.
+- [ ] Apply `0003_scans_owner.sql` only with owner approval, then verify save/list/open/delete as one authenticated user and denial for another.
+- [ ] Test QR demo and benign warnings manually; confirm “Never share OTP/UPI PIN” is not flagged as credential theft.
+- [ ] Run unauthenticated requests against `/api/account/history`; they must return 401.
+- [ ] Verify canonical production only after PR review and owner-approved merge/deployment.
+
+### Not delivered by these code changes
+
+This branch does **not** create a native Android app or notification-listener service. It does not add contacts access, SMS/Call Log access, call blocking, WhatsApp database access, QR-image decoding, OCR, audio/video/deepfake analysis, live external fact-checking, verified caller identity, a real community-intelligence network, or bank/police integrations. These remain future work and must not be presented as working demo capabilities.
