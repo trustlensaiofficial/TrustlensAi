@@ -22,11 +22,16 @@ export function Nav() {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLElement>(null);
 
-  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    // Reset transient navigation state when the active route changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
+    const trigger = triggerRef.current;
     document.body.style.overflow = 'hidden';
     panelRef.current?.querySelector<HTMLAnchorElement>('a')?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
@@ -54,7 +59,7 @@ export function Nav() {
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = previousOverflow;
-      triggerRef.current?.focus();
+      trigger?.focus();
     };
   }, [open]);
 
