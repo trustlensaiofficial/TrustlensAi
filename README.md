@@ -105,9 +105,10 @@ for engineering rules and [`TASKS.md`](./TASKS.md) for verified project state.
   extracts metadata only. Nothing is executed or downloaded.
 - **Prompt injection:** analysed content is fenced with a one-time marker and
   declared to be data. The deterministic layer is immune by construction.
-- **Database:** RLS enabled with no client policies. Reports are addressed by
-  unguessable UUID and **there is deliberately no endpoint that lists them**,
-  so one visitor cannot reach another's history.
+- **Database:** RLS is enabled without browser-role policies. Account reports
+  are saved only after explicit opt-in and verified sign-in. The authenticated
+  history endpoint filters by the session user's id; report reads/deletes check
+  ownership. A missing owner column fails closed.
 - **Secrets:** server-side only, never logged, never returned in errors.
 
 ---
