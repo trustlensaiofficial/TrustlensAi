@@ -127,10 +127,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     debugImplementation(libs.okhttp.logging)
 
-    implementation(platform(libs.supabase.bom))
-    implementation(libs.supabase.auth)
-    implementation(libs.ktor.client.okhttp)
-
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)

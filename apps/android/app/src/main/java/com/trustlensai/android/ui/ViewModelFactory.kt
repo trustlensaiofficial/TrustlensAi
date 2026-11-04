@@ -11,6 +11,6 @@ class AnalysisViewModelFactory(private val app: TrustLensApplication) : ViewMode
         require(modelClass.isAssignableFrom(AnalysisViewModel::class.java)) {
             "Unknown ViewModel: ${modelClass.name}"
         }
-        return AnalysisViewModel(app.api, app.consent) as T
+        return AnalysisViewModel(app.api, app.consent, app.session) as T
     }
 }

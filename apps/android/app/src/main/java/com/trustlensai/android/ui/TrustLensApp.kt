@@ -12,6 +12,7 @@ import com.trustlensai.android.ui.screens.OnboardingScreen
 import com.trustlensai.android.ui.screens.QrScanScreen
 import com.trustlensai.android.ui.screens.ReportScreen
 import com.trustlensai.android.ui.screens.SettingsScreen
+import com.trustlensai.android.ui.screens.SignInScreen
 
 object Routes {
     const val ONBOARDING = "onboarding"
@@ -20,6 +21,7 @@ object Routes {
     const val INCIDENT = "incident"
     const val SETTINGS = "settings"
     const val QR = "qr"
+    const val SIGN_IN = "sign-in"
 }
 
 @Composable
@@ -70,7 +72,25 @@ fun TrustLensApp(vm: AnalysisViewModel) {
             )
         }
         composable(Routes.SETTINGS) {
-            SettingsScreen(vm = vm, onBack = { nav.popBackStack() })
+            SettingsScreen(
+                vm = vm,
+                onBack = { nav.popBackStack() },
+                onOpenSignIn = { nav.navigate(Routes.SIGN_IN) },
+            )
+        }
+        composable(Routes.SIGN_IN) {
+            val busy by vm.authBusy.collectAsState()
+            val error by vm.authError.collectAsState()
+            SignInScreen(
+                configured = vm.signInConfigured,
+                busy = busy,
+                error = error,
+                authorizeUrl = vm::authorizeUrl,
+                onContinueWithoutAccount = {
+                    vm.clearAuthError()
+                    nav.popBackStack()
+                },
+            )
         }
     }
 }

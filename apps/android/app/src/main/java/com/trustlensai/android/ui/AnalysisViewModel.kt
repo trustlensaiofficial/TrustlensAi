@@ -14,6 +14,8 @@ import com.trustlensai.android.core.net.TrustLensApi
 import com.trustlensai.android.core.net.toApiResult
 import com.trustlensai.android.core.qr.UpiParser
 import com.trustlensai.android.core.qr.UpiUri
+import com.trustlensai.android.core.session.SessionManager
+import com.trustlensai.android.core.session.SessionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +44,7 @@ sealed interface AnalysisUiState {
 class AnalysisViewModel(
     private val api: TrustLensApi,
     private val consentStore: ConsentStore,
+    private val sessionManager: SessionManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<AnalysisUiState>(AnalysisUiState.Idle)
@@ -60,10 +63,63 @@ class AnalysisViewModel(
     private val _scanned = MutableStateFlow<UpiUri?>(null)
     val scanned: StateFlow<UpiUri?> = _scanned.asStateFlow()
 
+    /** Mirrors the session so screens can observe it without a second VM. */
+    val session: StateFlow<SessionState> = sessionManager.state
+
+    private val _authBusy = MutableStateFlow(false)
+    val authBusy: StateFlow<Boolean> = _authBusy.asStateFlow()
+
+    private val _authError = MutableStateFlow<String?>(null)
+    val authError: StateFlow<String?> = _authError.asStateFlow()
+
+    val signInConfigured: Boolean get() = sessionManager.configured
+
     init {
         viewModelScope.launch {
             consentStore.all.collect { _consent.value = it }
         }
+    }
+
+    /* ------------------------------------------------------------- session */
+
+    fun authorizeUrl(): String? = sessionManager.buildAuthorizeUrl()
+
+    /**
+     * Finishes sign-in with the code from the deep link.
+     *
+     * Called from the activity rather than a screen, because the redirect can
+     * arrive while no screen is composed.
+     */
+    fun completeSignIn(code: String) {
+        _authBusy.value = true
+        _authError.value = null
+        viewModelScope.launch {
+            val result = sessionManager.completeSignIn(code)
+            _authBusy.value = false
+            _authError.value = result.exceptionOrNull()?.let {
+                it.message ?: "Sign-in could not be completed."
+            }
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            sessionManager.signOut()
+            // Consent lives on the device and is not an account setting, so it
+            // is deliberately not cleared here — signing out is not a
+            // withdrawal of consent, and conflating them would silently
+            // re-enable nothing but would silently forget a refusal.
+        }
+    }
+
+    fun clearAuthError() {
+        _authError.value = null
+    }
+
+    /** Surfaces a failure the provider reported on the redirect itself. */
+    fun reportAuthError(message: String) {
+        _authBusy.value = false
+        _authError.value = message
     }
 
     fun setLiveChecks(value: Boolean) = viewModelScope.launch { consentStore.setLiveChecks(value) }
