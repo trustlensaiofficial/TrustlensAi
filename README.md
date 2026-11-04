@@ -1,8 +1,8 @@
 # TrustLens AI
 
-**Verify before you act.** TrustLens AI analyses a message, link or claim and
-shows you what looks wrong, what it actually checked, what it could not verify,
-and what to do next.
+**India-first scam investigation and response assistant.** TrustLens AI analyses
+messages, links and payment-related requests, explains evidence and uncertainty,
+and guides the user before acting or after a suspected scam.
 
 Team Reshiram · DEX26223 · Open Innovation
 
