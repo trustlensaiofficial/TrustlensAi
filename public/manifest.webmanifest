@@ -1,41 +1,28 @@
 {
   "name": "TrustLens AI",
-  "short_name": "TrustLens",
-  "description": "Pause, verify and protect what matters.",
+  "short_name": "TrustLens AI",
+  "description": "Check a message, link or payment request before you act on it. See the evidence behind every finding.",
   "id": "/",
-  "start_url": "/",
+  "start_url": "/home?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
-  "background_color": "#050A16",
-  "theme_color": "#050A16",
-  "categories": [
-    "security",
-    "finance",
-    "utilities"
-  ],
+  "background_color": "#060D1C",
+  "theme_color": "#060D1C",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": ["security", "finance", "utilities"],
   "icons": [
-    {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    }
+    { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "shortcuts": [
-    {
-      "name": "Check a message",
-      "url": "/check"
-    },
-    {
-      "name": "I think I have been scammed",
-      "url": "/respond"
-    }
+    { "name": "Check a message", "short_name": "Check", "url": "/check?context=generic" },
+    { "name": "Check a link", "short_name": "Link", "url": "/check?context=website" },
+    { "name": "Something already happened", "short_name": "Get help", "url": "/respond" }
   ]
 }

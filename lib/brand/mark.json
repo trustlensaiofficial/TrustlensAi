@@ -1,0 +1,180 @@
+{
+  "_comment": "TrustLens AI brandmark geometry \u2014 the single source of truth. components/brand/LogoMark.tsx renders it in the app; scripts/build-brand.mjs emits app/icon.svg, the maskable variant and every PNG size from the same numbers, so the installed icon can never drift from the one on screen. Coordinates are on a 64 grid.",
+  "viewBox": "0 0 64 64",
+  "plate": {
+    "fill": "#060D1C",
+    "radius": 14
+  },
+  "gradients": {
+    "sweep": {
+      "type": "linear",
+      "x1": 4,
+      "y1": 4,
+      "x2": 48,
+      "y2": 52,
+      "stops": [
+        [
+          0,
+          "#22D3EE",
+          1
+        ],
+        [
+          0.46,
+          "#3B82F6",
+          1
+        ],
+        [
+          1,
+          "#7C3AED",
+          1
+        ]
+      ]
+    },
+    "rim": {
+      "type": "linear",
+      "x1": 13,
+      "y1": 17,
+      "x2": 40,
+      "y2": 36,
+      "stops": [
+        [
+          0,
+          "#E4F7FF",
+          1
+        ],
+        [
+          1,
+          "#6FBCE4",
+          1
+        ]
+      ]
+    },
+    "globe": {
+      "type": "radial",
+      "cx": 0.33,
+      "cy": 0.27,
+      "r": 0.95,
+      "stops": [
+        [
+          0,
+          "#6FDCFC",
+          1
+        ],
+        [
+          0.52,
+          "#2B88DF",
+          1
+        ],
+        [
+          1,
+          "#0E3A86",
+          1
+        ]
+      ]
+    },
+    "land": {
+      "type": "linear",
+      "x1": 21,
+      "y1": 20,
+      "x2": 34,
+      "y2": 33,
+      "stops": [
+        [
+          0,
+          "#0A2A63",
+          1
+        ],
+        [
+          1,
+          "#07204F",
+          1
+        ]
+      ]
+    },
+    "gloss": {
+      "type": "linear",
+      "x1": 22,
+      "y1": 19,
+      "x2": 30,
+      "y2": 29,
+      "stops": [
+        [
+          0,
+          "#FFFFFF",
+          0.5
+        ],
+        [
+          1,
+          "#FFFFFF",
+          0
+        ]
+      ]
+    }
+  },
+  "globe": {
+    "cx": 27.5,
+    "cy": 26.5,
+    "r": 6.3
+  },
+  "shield": {
+    "d": "M27.5 6 48.5 13.3v12.9c0 12.1-8 21.9-21 25.9-13-4-21-13.8-21-25.9V13.3L27.5 6Z",
+    "width": 4.2
+  },
+  "eye": {
+    "d": "M13 26.5c4.2-6.9 9-10.3 14.5-10.3s10.3 3.4 14.5 10.3c-4.2 6.9-9 10.3-14.5 10.3S17.2 33.4 13 26.5Z",
+    "fill": "#06101F",
+    "width": 2.2
+  },
+  "handle": {
+    "d": "M34.6 32.2 41.6 39.2",
+    "width": 5.0
+  },
+  "land": [
+    {
+      "d": "M23.3 21.6c1.1-.3 1.9.6 1.8 1.6-.1 1-1 1.5-1.2 2.4-.2 1 .5 2 0 2.9-.5.8-1.8.8-2.3 0-.6-1-.2-2.3-.5-3.4-.3-1-1-2 .2-2.9.5-.4 1.3-.5 2-.6Z",
+      "opacity": 1
+    },
+    {
+      "d": "M28.6 20.8c1.8-.2 3.4.9 4 2.5.4 1.1.1 2.5-.9 3.1-.9.6-2.2.4-3 1.1-.8.7-.8 2-1.7 2.6-1 .6-2.4-.1-2.6-1.3-.2-1.1.5-2.1.7-3.2.2-1.2-.2-2.6.6-3.6.6-.8 1.7-1.1 2.9-1.2Z",
+      "opacity": 1
+    },
+    {
+      "d": "M29.4 30.8c1-.2 2.1.4 2.3 1.3.1.5-.3 1-.8 1.1-1 .2-2.1-.2-2.6-1-.3-.5 0-1.2.6-1.3Z",
+      "opacity": 0.85
+    }
+  ],
+  "specular": {
+    "cx": 30.2,
+    "cy": 22.8,
+    "r": 1.1,
+    "opacity": 0.72
+  },
+  "globeEdge": {
+    "stroke": "#DCF3FF",
+    "width": 0.95,
+    "opacity": 0.9
+  },
+  "motes": [
+    {
+      "x": 51.8,
+      "y": 6.2,
+      "size": 6.6,
+      "radius": 1.6,
+      "opacity": 1
+    },
+    {
+      "x": 55.6,
+      "y": 15.0,
+      "size": 4.6,
+      "radius": 1.2,
+      "opacity": 0.82
+    },
+    {
+      "x": 51.6,
+      "y": 21.0,
+      "size": 3.2,
+      "radius": 0.85,
+      "opacity": 0.6
+    }
+  ]
+}

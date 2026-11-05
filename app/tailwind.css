@@ -13,6 +13,7 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import './globals.css' layer(legacy);
 @import './polish.css' layer(legacy);
+@import './design.css' layer(components);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
 /* Class scanning. Named rather than inferred, because the automatic walk

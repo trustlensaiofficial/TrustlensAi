@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { LogoMark } from '../brand/LogoMark';
 
 /**
  * The visual for one story scene.
@@ -54,7 +54,7 @@ function render(id: string) {
       return (
         <>
           <div className="slide-orb">
-            <Image src="/logo-mark.png" alt="" width={564} height={472} className="slide-mark" />
+            <LogoMark size={72} className="slide-mark" title={null} />
           </div>
           <Card className="s-float s-tl" depth={60}><Row tone="ok" w={64} /></Card>
           <Card className="s-float s-br" depth={90}><Row tone="warn" w={72} /></Card>
@@ -193,7 +193,7 @@ function render(id: string) {
     default:
       return (
         <div className="slide-orb">
-          <Image src="/logo-mark.png" alt="" width={564} height={472} className="slide-mark" />
+          <LogoMark size={72} className="slide-mark" title={null} />
         </div>
       );
   }

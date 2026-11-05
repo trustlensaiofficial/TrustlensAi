@@ -1,0 +1,178 @@
+/* ==========================================================================
+   TrustLens AI — the design system.
+   --------------------------------------------------------------------------
+   Sits in the `components` layer: above the older stylesheet, below Tailwind's
+   utilities. So a rule here beats an inherited legacy rule, and a utility in
+   the markup still beats this. That ordering is what lets screens move onto
+   the new system one at a time.
+
+   Everything is built from the tokens in tokens.css. No literal colour below
+   this line except inside the brand lockup, where the gradient *is* the brand.
+   ========================================================================== */
+
+/* ------------------------------------------------------------------- brand */
+
+.tl-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--logo-size, 34px) * 0.3);
+  text-decoration: none;
+  color: inherit;
+  line-height: 1;
+}
+
+.tl-logo svg { display: block; flex: none; }
+
+.tl-wordmark {
+  font-size: calc(var(--logo-size, 34px) * 0.52);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.022em;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* "AI" takes the brand sweep. The solid colour is declared first so that a
+   browser without background-clip still renders a visible word rather than
+   transparent text — the failure mode of writing it the other way round. */
+.tl-wordmark-ai {
+  margin-left: 0.22em;
+  color: var(--accent);
+  background: linear-gradient(104deg, var(--tl-cyan), var(--tl-blue) 52%, var(--tl-violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .tl-wordmark-ai { background: none; -webkit-text-fill-color: currentColor; }
+}
+
+/* The light theme's gradient needs more weight than the dark theme's: the
+   same cyan that glows on near-black is washed out on near-white. */
+:root:not([data-theme='dark']) .tl-wordmark-ai {
+  background: linear-gradient(104deg, #0E8FB8, #2563EB 52%, #6D28D9);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* -------------------------------------------------------------- the ground
+ *
+ * The atmosphere the whole product floats on.
+ *
+ * Fixed and non-interactive, drawn once behind everything. Three wide radial
+ * washes plus a fine grid: enough to give the glass something to refract, far
+ * too little to look at. It does not move — a moving background is a
+ * background people watch, and this one sits behind a product someone opens
+ * when they are frightened.
+ */
+
+.tl-ground {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 12% 4%, color-mix(in oklab, var(--tl-cyan) 16%, transparent), transparent 70%),
+    radial-gradient(55% 48% at 88% 10%, color-mix(in oklab, var(--tl-violet) 15%, transparent), transparent 72%),
+    radial-gradient(70% 55% at 50% 102%, color-mix(in oklab, var(--tl-blue) 13%, transparent), transparent 74%),
+    var(--bg);
+}
+
+/* The grid reads as depth rather than decoration, so it is faint enough that
+   you notice it only when it is removed. */
+.tl-ground::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--text) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--text) 5%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(130% 95% at 50% 0%, #000 12%, transparent 72%);
+  -webkit-mask-image: radial-gradient(130% 95% at 50% 0%, #000 12%, transparent 72%);
+}
+
+:root[data-theme='dark'] .tl-ground::before {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--tl-cyan) 9%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--tl-cyan) 9%, transparent) 1px, transparent 1px);
+}
+
+/* ------------------------------------------------------------------ glass
+ *
+ * One recipe, two weights. `backdrop-filter` is the whole effect, so where it
+ * is unsupported the fallback is an opaque surface — never a transparent box
+ * with unreadable text over the page behind it.
+ */
+
+.tl-glass {
+  position: relative;
+  background: var(--glass);
+  backdrop-filter: blur(16px) saturate(165%);
+  -webkit-backdrop-filter: blur(16px) saturate(165%);
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-2);
+  /* Contains the light layers so a blend mode cannot leak onto the page. */
+  isolation: isolate;
+}
+
+/* The polished top edge. One hairline, catching the single light source. */
+.tl-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 var(--sh-glass-top);
+}
+
+.tl-glass-strong {
+  background: color-mix(in oklab, var(--glass) 88%, var(--surface));
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: var(--sh-3);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tl-glass, .tl-glass-strong { background: var(--surface); }
+}
+
+/* ------------------------------------------------------------------ motion
+ *
+ * Two shared behaviours, so lift and entrance are the same everywhere rather
+ * than re-invented per screen.
+ */
+
+.tl-lift {
+  transition:
+    transform var(--t-base) var(--ease),
+    box-shadow var(--t-base) var(--ease),
+    border-color var(--t-base) var(--ease);
+}
+
+/* Hover lift only where there is a real pointer. On a touch screen :hover
+   sticks after a tap, which leaves a card looking permanently picked up. */
+@media (hover: hover) and (pointer: fine) {
+  .tl-lift:hover { transform: translateY(-4px); box-shadow: var(--sh-3); }
+}
+
+/* Touch gets the opposite gesture: press down. */
+.tl-lift:active { transform: translateY(0) scale(0.985); }
+
+@keyframes tl-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Children enter in sequence. `--i` is set per item in the markup. */
+.tl-stagger > * {
+  animation: tl-rise 0.52s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-stagger > * { animation: none; }
+  .tl-lift { transition: none; }
+  .tl-lift:hover, .tl-lift:active { transform: none; }
+}

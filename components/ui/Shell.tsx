@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { FloatingUtilityPanel } from './FloatingUtilityPanel';
+import { Logo } from '../brand/Logo';
 
 /** Shared product shell: quiet brand header, focused content and compact utilities. */
 export function Shell({ children, wide, showUtilities = true }: { children: React.ReactNode; wide?: boolean; showUtilities?: boolean }) {
@@ -8,9 +8,8 @@ export function Shell({ children, wide, showUtilities = true }: { children: Reac
     <>
       <header className="site-header product-header">
         <div className="site-header-inner product-header-inner">
-          <Link href="/home" className="brand" aria-label="TrustLens AI home">
-            <Image src="/logo-mark.png" alt="" width={564} height={472} priority className="brand-mark" />
-            <span className="brand-word">TrustLens<span className="brand-ai"> AI</span></span>
+          <Link href="/home" aria-label="TrustLens AI home">
+            <Logo size={30} />
           </Link>
           <span className="product-header-status"><span /> Your digital safety space</span>
         </div>
