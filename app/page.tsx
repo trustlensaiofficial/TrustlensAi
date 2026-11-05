@@ -14,7 +14,7 @@ const T = { word: 1150, tagline: 2050, start: 2500, skip: 2900 } as const;
 
 export default function Opening() {
   return (
-    <Shell>
+    <Shell showUtilities={false}>
       <main className="op" aria-labelledby="op-title">
         <div className="op-scene" aria-hidden="true">
           <div className="op-scene-grid" />
