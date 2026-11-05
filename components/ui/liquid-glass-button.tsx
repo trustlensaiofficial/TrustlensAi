@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
+import { Slot, Slottable } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/lib/hooks/use-capability"
 
 const buttonVariants = cva(
   "inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -121,9 +122,26 @@ function LiquidButton({
           style={{ backdropFilter: 'url("#container-glass")' }}
         />
 
-        <div className="pointer-events-none z-10 ">
-          {children}
-        </div>
+        {/*
+          `asChild` needs Slottable here.
+
+          Slot accepts exactly one element child, and this button has four:
+          the two decorative layers, the content, and the filter. Passing all
+          four made `asChild` throw "Slot failed to slot onto its children"
+          every time — so as supplied it could only ever be a <button>, which
+          is wrong for Start: a button with an onClick that pushes a route
+          cannot be opened in a new tab, shows no destination on hover, and is
+          invisible to anything that enumerates links.
+
+          Slottable marks which child is the real one. Slot clones that
+          element, and the decorative layers become its children — so the
+          rendered node is a genuine <a href>, wearing the glass.
+        */}
+        {asChild ? (
+          <Slottable>{children}</Slottable>
+        ) : (
+          <div className="pointer-events-none z-10 ">{children}</div>
+        )}
         <GlassFilter />
       </Comp>
     </>
@@ -314,11 +332,9 @@ export const MetalButton = React.forwardRef<
 >(({ children, className, variant = "default", ...props }, ref) => {
   const [isPressed, setIsPressed] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
-  const [isTouchDevice, setIsTouchDevice] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0);
-  }, []);
+  // Read during render rather than set from an effect, which rendered the
+  // button once as a mouse device and again as a touch device on every mount.
+  const isTouchDevice = useTouchDevice();
 
   const buttonText = children || "Button";
   const variants = metalButtonVariants(

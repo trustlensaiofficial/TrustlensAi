@@ -53,8 +53,16 @@ const THEME = `try{var t=localStorage.getItem('trustlens.theme');if(t!=='light'&
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: THEME }} /></head>
       <body>
+        {/*
+          Runs before anything paints, so the saved theme is on <html> by the
+          time the first rule is evaluated and there is no flash of the wrong
+          one. It sits here rather than in <head> because React 19 does not
+          execute a <script> rendered inside a component on the client, and
+          warns about it — in the body it is part of the initial HTML, parsed
+          and run in document order. It only has to stamp the attribute once.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: THEME }} />
         <RegisterSW />
         {children}
       </body>

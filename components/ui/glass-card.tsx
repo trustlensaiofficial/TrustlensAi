@@ -7,10 +7,9 @@ import {
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
   useCallback,
-  useEffect,
   useId,
-  useState,
 } from "react";
+import { useFinePointer, useProbe } from "@/lib/hooks/use-capability";
 
 const DEFAULT_BLUR = 11;
 const DEFAULT_RADIUS = 26;
@@ -18,7 +17,6 @@ const DEFAULT_REFRACTION = 24;
 const DEFAULT_RIM_WIDTH = 12;
 const DEFAULT_TINT = "oklch(1 0 0 / 0.1)";
 
-const HOVER_QUERY = "(hover: hover) and (pointer: fine)";
 const SPECULAR_SIZE = 260;
 const SPECULAR_BASE_X = 0.3;
 const SPECULAR_BASE_Y = 0.28;
@@ -115,8 +113,7 @@ export default function GlassCard({
   const shouldReduceMotion = useReducedMotion();
   const rawId = useId();
   const filterId = `glass-refraction-${rawId.replace(/:/g, "")}`;
-  const [isHoverDevice, setIsHoverDevice] = useState(false);
-  const [canDisplace, setCanDisplace] = useState(false);
+  const isHoverDevice = useFinePointer();
 
   const specularX = useSpring(0, SPRING);
   const specularY = useSpring(0, SPRING);
@@ -126,31 +123,24 @@ export default function GlassCard({
 
   const tracksPointer = interactive && isHoverDevice && !shouldReduceMotion;
 
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) {
-      return;
-    }
-    const query = window.matchMedia(HOVER_QUERY);
-    setIsHoverDevice(query.matches);
-    const onChange = (event: MediaQueryListEvent) =>
-      setIsHoverDevice(event.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
-
-  // Only Chromium composites an SVG displacement inside `backdrop-filter`.
-  // Everywhere else the rim keeps its blur and drops the bend instead of
-  // invalidating the whole declaration.
-  useEffect(() => {
-    if (typeof CSS === "undefined" || typeof CSS.supports !== "function") {
-      return;
-    }
-    const probe = `url(#${filterId}) blur(2px)`;
-    setCanDisplace(
+  /*
+   * Only Chromium composites an SVG displacement inside `backdrop-filter`.
+   * Everywhere else the rim keeps its blur and drops the bend, rather than
+   * the whole declaration being thrown out as invalid.
+   *
+   * Asked during render rather than in an effect: the previous shape mounted
+   * the card without the rim and rebuilt it a frame later, which is a wasted
+   * layer promotion on exactly the devices the fallback is protecting.
+   */
+  const probe = `url(#${filterId}) blur(2px)`;
+  const readDisplace = useCallback(() => {
+    if (typeof CSS === "undefined" || typeof CSS.supports !== "function") return false;
+    return (
       CSS.supports("backdrop-filter", probe) ||
-        CSS.supports("-webkit-backdrop-filter", probe),
+      CSS.supports("-webkit-backdrop-filter", probe)
     );
-  }, [filterId]);
+  }, [probe]);
+  const canDisplace = useProbe(readDisplace, false);
 
   const handlePointerMove = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
