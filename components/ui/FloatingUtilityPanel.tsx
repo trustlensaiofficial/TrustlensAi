@@ -31,7 +31,7 @@ export function FloatingUtilityPanel() {
               <span><span className="utility-kicker">TRUSTLENS AI</span><strong>Quick tools</strong></span>
               <button className="utility-close" type="button" aria-label="Close quick tools" onClick={() => setOpen(false)}><Close /></button>
             </div>
-            <button className="utility-item utility-assistant" type="button" onClick={() => { window.dispatchEvent(new Event('trustlens:open-kaval')); setOpen(false); }}>
+            <button className="utility-item utility-assistant" type="button" onClick={() => { if (window.location.pathname === '/home' || window.location.pathname === '/check') window.dispatchEvent(new Event('trustlens:open-kaval')); else window.location.href = '/home?assistant=1'; setOpen(false); }}>
               <span className="utility-icon"><Spark /></span><span><strong>Ask Kaval</strong><small>Understand a finding or next step</small></span>
             </button>
             <Link className="utility-item" href="/account">
