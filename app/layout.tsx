@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import './globals.css';
-import './polish.css';
+import './tailwind.css';
 import { RegisterSW } from '@/components/ui/RegisterSW';
 
 /**

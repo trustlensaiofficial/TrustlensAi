@@ -1,0 +1,82 @@
+/*
+ * The stylesheet entry point.
+ *
+ * Tailwind v4 arrives without its preflight reset: the product still renders
+ * a large hand-written stylesheet, and dropping a reset underneath it would
+ * flatten every screen at once. Instead the two are ordered explicitly —
+ * the older CSS sits in a `legacy` layer below Tailwind's utilities, so a
+ * utility written on a new surface wins over an inherited element rule, and
+ * screens can move across one at a time instead of in one risky sweep.
+ */
+@layer theme, base, legacy, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import './globals.css' layer(legacy);
+@import './polish.css' layer(legacy);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* Class scanning. Named rather than inferred, because the automatic walk
+ * starts from this file and we would rather be explicit than have it guess
+ * at the repository root. */
+@source '../app';
+@source '../components';
+@source '../lib';
+
+/*
+ * Dark mode follows `data-theme`, not the OS query.
+ *
+ * The theme is a stored user choice stamped on <html> before first paint;
+ * Tailwind's default `dark:` variant reads `prefers-color-scheme`, which
+ * would disagree with every other surface the moment someone overrides the
+ * system setting.
+ */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * The shadcn colour contract, mapped onto the tokens that already exist.
+ *
+ * `inline` matters: it emits `var(--accent)` into the utility rather than
+ * resolving the value at build time, so a utility written once follows the
+ * light/dark swap for free.
+ */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-surface: var(--surface);
+
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-ink);
+
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: var(--text);
+
+  --color-muted: var(--surface-3);
+  --color-muted-foreground: var(--text-dim);
+
+  --color-accent: var(--accent-soft);
+  --color-accent-foreground: var(--text);
+
+  --color-destructive: var(--sev-high);
+  --color-destructive-foreground: #fff;
+
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-ring: var(--accent);
+
+  --color-brand-cyan: var(--tl-cyan);
+  --color-brand-blue: var(--tl-blue);
+  --color-brand-violet: var(--tl-violet);
+  --color-brand-deep: var(--tl-deep);
+
+  --radius-xs: var(--r-xs);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+
+  --font-sans: var(--font);
+  --font-mono: var(--mono);
+
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.2, 1.35, 0.4, 1);
+}
