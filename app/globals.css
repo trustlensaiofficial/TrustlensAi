@@ -964,3 +964,14 @@ a { color: inherit; }
 @media (max-width: 560px) {
   .response-state-grid { grid-template-columns: 1fr; }
 }
+
+
+/* TrustLens product chrome: minimal header, floating utilities, app-first layout. */
+.product-header{background:color-mix(in srgb,var(--bg) 78%,transparent);border-bottom:1px solid var(--border)}
+.product-header-inner{min-height:66px;padding-right:150px}
+.product-header .brand-mark{width:34px;filter:brightness(.78) saturate(1.15) drop-shadow(0 3px 12px color-mix(in srgb,var(--accent) 25%,transparent))}
+.product-header .brand-word{font-size:18px;letter-spacing:-.04em}
+.product-header-status{display:inline-flex;align-items:center;gap:8px;margin-left:14px;color:var(--text-faint);font-size:11px;font-weight:650;letter-spacing:.02em}
+.product-header-status>span{width:6px;height:6px;border-radius:50%;background:var(--sev-clear);box-shadow:0 0 0 4px color-mix(in srgb,var(--sev-clear) 13%,transparent)}
+.product-footer{margin-top:clamp(36px,6vw,72px);padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+@media(max-width:620px){.product-header-inner{min-height:58px;padding-right:118px}.product-header-status{display:none}.product-header .brand-mark{width:30px}.product-header .brand-word{font-size:16px}}
