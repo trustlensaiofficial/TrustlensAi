@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { FloatingUtilityPanel } from './FloatingUtilityPanel';
-import { Kaval } from './Kaval';
 
 /** Shared product shell: quiet brand header, focused content and compact utilities. */
 export function Shell({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
@@ -18,7 +17,6 @@ export function Shell({ children, wide }: { children: React.ReactNode; wide?: bo
       </header>
       <FloatingUtilityPanel />
       <main className={wide ? '' : 'shell'}>{children}</main>
-      <Kaval />
       <footer className="site-footer product-footer">
         <div className="shell site-footer-inner">
           <span>TrustLens AI · Pause. Verify. Then act.</span>
