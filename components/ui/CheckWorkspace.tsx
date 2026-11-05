@@ -22,8 +22,8 @@ const CONTEXTS: Array<{ id: InputContext; label: string; hint: string; icon: Rea
 
 type Phase = 'idle' | 'running' | 'done' | 'error';
 
-export function CheckWorkspace() {
-  const [context, setContext] = useState<InputContext>('bank_scam');
+export function CheckWorkspace({ defaultContext = 'bank_scam' }: { defaultContext?: InputContext }) {
+  const [context, setContext] = useState<InputContext>(defaultContext);
   const [text, setText] = useState('');
   const [liveChecks, setLiveChecks] = useState(false);
   const [allowCloudAi, setAllowCloudAI] = useState(false);
