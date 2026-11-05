@@ -58,3 +58,14 @@
 @media(max-width:900px){.dash-orb-scene{right:-5%;opacity:.65}.dash-tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-lower-grid{grid-template-columns:1fr}}
 @media(max-width:620px){.dashboard{padding:18px 0 28px}.dash-welcome{min-height:0;padding:27px 22px;border-radius:23px}.dash-welcome-copy{max-width:100%}.dash-welcome h1{font-size:clamp(37px,10vw,49px)}.dash-welcome-copy>p{max-width:36ch;font-size:14px}.dash-orb-scene{width:170px;height:170px;right:-42px;top:5px;transform:none;opacity:.24}.dash-orb{inset:36px}.dash-orb-front svg{width:55px;height:55px}.dash-orbit{inset:12px 0}.dash-orbit-two{inset:0 25px}.dash-primary-actions{gap:9px}.dash-primary,.dash-secondary{min-height:45px;padding:0 13px;font-size:12px}.dash-tools-section{margin-top:34px}.dash-section-heading{align-items:flex-start;flex-direction:column;gap:5px}.dash-section-note{font-size:12px}.dash-tools-grid{grid-template-columns:1fr;gap:12px}.dash-tool-card{min-height:174px;padding:19px;border-radius:19px}.dash-tool-icon{width:43px;height:43px;margin-bottom:13px}.dash-tool-content strong{font-size:16px}.dash-tool-content>span{font-size:12px}.dash-lower-grid{margin-top:26px;gap:12px}.dash-history-panel,.dash-safety-card{padding:18px;border-radius:19px}.dash-history-panel .dash-section-heading{flex-direction:row;align-items:flex-end}.dash-history-panel .dash-section-heading h2{font-size:20px}.dash-trust-note{align-items:flex-start;font-size:10px;line-height:1.5}}
 @media(prefers-reduced-motion:reduce){.dash-orb-front,.dash-orb-back,.dash-tool-card{animation:none!important;transition:none!important}.dash-tool-card:hover{transform:none}}
+
+
+/* Refined feature tiles: category, index and depth create an app-like tool grid. */
+.dash-tool-card{min-height:236px;padding:21px 22px;border-color:color-mix(in srgb,var(--accent) 13%,var(--border));background:linear-gradient(148deg,color-mix(in srgb,var(--surface) 94%,white 3%),color-mix(in srgb,var(--surface-2) 76%,var(--bg)))}
+.dash-tool-topline{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;color:var(--text-faint);font-size:9px;font-weight:850;letter-spacing:.13em;text-transform:uppercase}
+.dash-tool-number{color:color-mix(in srgb,var(--accent) 65%,var(--text-faint));font-variant-numeric:tabular-nums;font-size:11px;letter-spacing:.06em}
+.dash-tool-icon{width:46px;height:46px;margin-bottom:15px;border-radius:15px}
+.dash-tool-content>span{max-width:38ch}
+.dash-tool-action{padding-top:16px}
+.dash-tool-card:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+@media(max-width:620px){.dash-tool-card{min-height:190px;padding:17px 18px}.dash-tool-topline{margin-bottom:11px}.dash-tool-icon{margin-bottom:11px}.dash-tool-content>span{max-width:42ch}}
