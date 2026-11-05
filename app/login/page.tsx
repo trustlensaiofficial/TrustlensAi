@@ -24,7 +24,7 @@ export default async function LoginPage({
   if (await getCurrentUser()) redirect(next);
 
   return (
-    <Shell>
+    <Shell showUtilities={false}>
       <div className="page signin-page">
         <SignIn next={next} initialError={params.error?.slice(0, 180)} />
       </div>
