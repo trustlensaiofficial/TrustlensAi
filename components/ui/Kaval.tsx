@@ -30,6 +30,17 @@ export function Kaval({ report }: { report?: Report | null }) {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' });
   }, [turns, busy]);
 
+  /* The quick-tools dock can open Kaval without navigating away from a report. */
+  useEffect(() => {
+    const openFromDock = () => setOpen(true);
+    window.addEventListener('trustlens:open-kaval', openFromDock);
+    if (window.location.search.includes('assistant=1')) {
+      setOpen(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    return () => window.removeEventListener('trustlens:open-kaval', openFromDock);
+  }, []);
+
   /* Escape closes, which is the behaviour people already expect of a panel. */
   useEffect(() => {
     if (!open) return;
