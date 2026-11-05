@@ -131,11 +131,28 @@ export function EvidenceReport({ id }: { id: string }) {
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             <button type="button" className="btn btn-secondary btn-sm" onClick={() => {
               const content = shareSummary(report);
-              if (navigator.share) void navigator.share({ title: 'TrustLens AI safety summary', text: content }).catch(() => undefined);
-              else void navigator.clipboard?.writeText(content);
+              if (navigator.share) {
+                void navigator.share({ title: 'TrustLens AI safety summary', text: content })
+                  .then(() => setShareStatus('Share sheet opened. Choose a recipient only after reviewing the summary.'))
+                  .catch(() => setShareStatus('Sharing was cancelled or is unavailable. Your report remains on this device.'));
+                return;
+              }
+              if (!navigator.clipboard?.writeText) {
+                setShareStatus('System sharing and clipboard are unavailable. Choose WhatsApp, Telegram, Email or SMS below.');
+                return;
+              }
+              void navigator.clipboard.writeText(content)
+                .then(() => setShareStatus('Summary copied. Review it before sending.'))
+                .catch(() => setShareStatus('Could not copy the summary. Choose an app below.'));
             }}>Share</button>
             <button type="button" className="btn btn-secondary btn-sm" onClick={() => {
-              void navigator.clipboard?.writeText(shareSummary(report)).then(() => setShareStatus('Summary copied. Review it before sending.')).catch(() => setShareStatus('Copy is unavailable in this browser. Use Share or choose an app below.'));
+              if (!navigator.clipboard?.writeText) {
+                setShareStatus('Clipboard access is unavailable in this browser. Choose an app below.');
+                return;
+              }
+              void navigator.clipboard.writeText(shareSummary(report))
+                .then(() => setShareStatus('Summary copied. Review it before sending.'))
+                .catch(() => setShareStatus('Copy is unavailable in this browser. Use Share or choose an app below.'));
             }}>Copy summary</button>
             <a className="btn btn-secondary btn-sm" href={`https://wa.me/?text=${encodeURIComponent(shareSummary(report))}`} target="_blank" rel="noreferrer">WhatsApp</a>
             <a className="btn btn-secondary btn-sm" href={`https://t.me/share/url?url=${encodeURIComponent('https://trustlensai-u2r6.vercel.app')}&text=${encodeURIComponent(shareSummary(report))}`} target="_blank" rel="noreferrer">Telegram</a>
