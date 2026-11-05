@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Help, Settings, Shield, Users, Spark, Close } from './icons';
+import { ThemeToggle } from './ThemeToggle';
 import './FloatingUtilityPanel.css';
 
 /** A compact, thumb-friendly utility dock; primary tools stay on the dashboard. */
@@ -41,6 +42,7 @@ export function FloatingUtilityPanel() {
             <Link className="utility-item" href="/account">
               <span className="utility-icon"><Users /></span><span><strong>Profile & account</strong><small>Sign-in and passkey controls</small></span>
             </Link>
+            <div className="utility-theme-row"><span><strong>Appearance</strong><small>Switch light or dark mode</small></span><ThemeToggle /></div>
             <Link className="utility-item" href="/privacy">
               <span className="utility-icon"><Settings /></span><span><strong>Settings & privacy</strong><small>Data, permissions and choices</small></span>
             </Link>
@@ -51,7 +53,7 @@ export function FloatingUtilityPanel() {
           </section>
         </>
       )}
-      <button className={'utility-trigger' + (open ? ' is-open' : '')} type="button" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(value => !value)}>
+      <button className={'utility-trigger' + (open ? ' is-open' : '')} type="button" aria-expanded={open} onClick={() => setOpen(value => !value)}>
         {open ? <Close /> : <Settings />}<span>{open ? 'Close' : 'Quick tools'}</span>
       </button>
     </div>
