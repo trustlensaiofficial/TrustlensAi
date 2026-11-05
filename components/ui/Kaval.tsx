@@ -35,6 +35,7 @@ export function Kaval({ report }: { report?: Report | null }) {
     const openFromDock = () => setOpen(true);
     window.addEventListener('trustlens:open-kaval', openFromDock);
     if (window.location.search.includes('assistant=1')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(true);
       window.history.replaceState({}, '', window.location.pathname);
     }
