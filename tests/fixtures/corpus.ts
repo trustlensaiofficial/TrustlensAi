@@ -122,7 +122,12 @@ const EN_SCAM: CorpusCase[] = [
   },
   {
     id: 'en.s.electricity',
-    text: 'Dear consumer, your electricity connection will be disconnected tonight at 9:30 pm as your previous month bill was not updated. Immediately contact our officer 90XXXXXX21.',
+    // The number is digit-shaped on purpose. It was written 90XXXXXX21, and
+    // the redaction was the only reason this case failed: `channel.supplied_number`
+    // needs digits to recognise "contact our officer <mobile>", so the corpus
+    // was measuring a message no scammer would ever send. 9000000021 is
+    // obviously synthetic and still exercises the rule a real one would.
+    text: 'Dear consumer, your electricity connection will be disconnected tonight at 9:30 pm as your previous month bill was not updated. Immediately contact our officer 9000000021.',
     scam: true, language: 'en', category: 'impersonation',
   },
   {

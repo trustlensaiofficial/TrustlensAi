@@ -1,4 +1,4 @@
-import type { Signal, SignalMatch } from './types';
+import type { Signal, SignalCategory, SignalMatch } from './types';
 import { isNegatedCredentialInstruction, isProtectiveSecrecyAdvice } from './match-safety';
 
 /**
@@ -38,7 +38,7 @@ const SAY = '(?:sollu(?:nga|ga)?|solunga|sollunga)';
 const RULES: TanglishRule[] = [
   {
     id: 'ta.otp_request',
-    title: 'Asks you to share an OTP or PIN (Tamil)',
+    title: 'Asks you to share an OTP or PIN',
     severity: 'critical',
     category: 'credentials',
     explanation:
@@ -56,7 +56,7 @@ const RULES: TanglishRule[] = [
   },
   {
     id: 'ta.account_block',
-    title: 'Threatens that the account will be blocked (Tamil)',
+    title: 'Threatens that the account will be blocked',
     severity: 'high',
     category: 'threat',
     explanation:
@@ -73,7 +73,7 @@ const RULES: TanglishRule[] = [
   },
   {
     id: 'ta.money_transfer',
-    title: 'Asks you to transfer or send money (Tamil)',
+    title: 'Asks you to transfer or send money',
     severity: 'high',
     category: 'payment',
     explanation:
@@ -87,7 +87,7 @@ const RULES: TanglishRule[] = [
   },
   {
     id: 'ta.link_click',
-    title: 'Pushes you to open a link (Tamil)',
+    title: 'Pushes you to open a link',
     severity: 'medium',
     category: 'link',
     explanation:
@@ -100,7 +100,7 @@ const RULES: TanglishRule[] = [
   },
   {
     id: 'ta.urgency',
-    title: 'Demands that you act immediately (Tamil)',
+    title: 'Demands that you act immediately',
     severity: 'medium',
     category: 'urgency',
     explanation:
@@ -113,7 +113,7 @@ const RULES: TanglishRule[] = [
   },
   {
     id: 'ta.impersonation',
-    title: 'Claims to be from a bank or the authorities (Tamil)',
+    title: 'Claims to be from a bank or the authorities',
     severity: 'high',
     category: 'impersonation',
     explanation:
@@ -126,7 +126,7 @@ const RULES: TanglishRule[] = [
   },
   {
     id: 'ta.remote_access',
-    title: 'Asks you to install an app or share your screen (Tamil)',
+    title: 'Asks you to install an app or share your screen',
     severity: 'critical',
     category: 'channel',
     explanation:
@@ -138,6 +138,32 @@ const RULES: TanglishRule[] = [
     ],
   },
 ];
+
+
+/**
+ * Whether a match is actually Tamil, or just English the pattern also accepts.
+ *
+ * This matters because several rules deliberately allow the Tamil demand
+ * marker to be absent — real messages mix an English verb with a Tamil object
+ * constantly. The cost is that pure English matches too: "account will be
+ * blocked" hits `ta.account_block`, and "immediately" hits `ta.urgency`.
+ *
+ * The detection is right in both cases; those ARE warning signs. The label was
+ * not. A report that tells someone it found a Tamil pattern in an English
+ * message is making a claim about their message that is simply false, and this
+ * product's whole argument is that it does not do that.
+ *
+ * So the rule still fires, and the "(Tamil)" suffix is earned by the evidence.
+ */
+const TAMIL_SCRIPT = /[\u0B80-\u0BFF]/;
+
+/** Romanised tokens that do not occur in English. */
+const TAMIL_ROMAN =
+  /\b(?:pannunga|panunga|pannuga|pannidu\w*|pannala|kattunga|kattanum|katta|udane|udaney|seekiram|sikkiram|ippove|ippothe|anupp\w*|anup\w*|panam|kanakku|akkaun[dt]|mudinj\w*|mudiy\w*|aagala|aagalai|aagville|aagidum|aagum|agiduum|aayidum|nirutha|niruthi|pathunga|paarunga|vaippu|kadaisi|nimisham|mani|mattum|indha|indhu|inniku|innaiku|illana|illaina|blaak|ulla)\b/i;
+
+function isTamilEvidence(matches: SignalMatch[]): boolean {
+  return matches.some((m) => TAMIL_SCRIPT.test(m.text) || TAMIL_ROMAN.test(m.text));
+}
 
 function collect(text: string, patterns: RegExp[]): SignalMatch[] {
   const out: SignalMatch[] = [];
@@ -161,12 +187,26 @@ function collect(text: string, patterns: RegExp[]): SignalMatch[] {
 /**
  * Runs the Tanglish rules over any text.
  *
- * Safe to run unconditionally: the patterns are specific enough that English
- * text does not match them, and real messages are frequently mixed — an
+ * Run unconditionally, because real messages mix languages freely — an
  * English bank name with a Tamil demand in the same sentence is the norm, not
- * the exception.
+ * the exception. An earlier comment here claimed English text does not match
+ * these patterns. It does: "account will be blocked" and "immediately" both
+ * hit rules labelled Tamil, which put a finding in the report attributing a
+ * Tamil pattern to a message with no Tamil in it.
+ *
+ * Two things follow. The "(Tamil)" suffix is now earned by the evidence rather
+ * than fixed in the rule. And where a rule fires on English alone in a
+ * category the English engine already reported, it is dropped — it was a
+ * second copy of the same finding under a misleading name, and two findings
+ * that say one thing read as twice the evidence.
+ *
+ * @param coveredCategories categories the deterministic English rules already
+ *        matched. Pass none to keep every match.
  */
-export function detectTanglishSignals(text: string): Signal[] {
+export function detectTanglishSignals(
+  text: string,
+  coveredCategories: ReadonlySet<SignalCategory> = new Set(),
+): Signal[] {
   const out: Signal[] = [];
   for (const rule of RULES) {
     const matches = collect(text, rule.patterns).filter(
@@ -178,9 +218,13 @@ export function detectTanglishSignals(text: string): Signal[] {
       },
     );
     if (matches.length === 0) continue;
+
+    const tamil = isTamilEvidence(matches);
+    if (!tamil && coveredCategories.has(rule.category)) continue;
+
     out.push({
       id: rule.id,
-      title: rule.title,
+      title: tamil ? `${rule.title} (Tamil)` : rule.title,
       category: rule.category,
       severity: rule.severity,
       explanation: rule.explanation,

@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: 'Offline', robots: { index: false, fo
 export default function OfflinePage() {
   return (
     <Shell>
-      <div className="page">
+      <div className="screen">
         <header className="page-head">
           <span className="chip chip-check"><WifiOff /> No connection</span>
           <h1>You are offline</h1>

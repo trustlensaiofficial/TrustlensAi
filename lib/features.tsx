@@ -148,3 +148,24 @@ export const EMERGENCY = {
 export function featureById(id: string): Feature | undefined {
   return FEATURES.find((f) => f.id === id);
 }
+
+/**
+ * Which card opens which analysis context.
+ *
+ * Kept beside the feature list rather than inside the check screen, so the
+ * card someone tapped and the header they land on cannot drift apart — the
+ * screen reads as that card opening, with its icon and its hue.
+ */
+const CONTEXT_TO_FEATURE: Record<string, string> = {
+  generic: 'message',
+  website: 'link',
+  bank_scam: 'bank',
+  job_offer: 'job',
+  invoice: 'invoice',
+  proposal: 'proposal',
+};
+
+export function featureForContext(context: string): Feature | undefined {
+  const id = CONTEXT_TO_FEATURE[context];
+  return id ? featureById(id) : undefined;
+}

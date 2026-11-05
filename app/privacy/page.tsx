@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Shell } from '@/components/ui/Shell';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { ActivityList } from '@/components/ui/ActivityList';
 import { Alert, Check, Close, Globe, Lock, Phone, Users } from '@/components/ui/icons';
 
@@ -33,15 +34,13 @@ const CANNOT = [
 export default function PrivacyPage() {
   return (
     <Shell>
-      <div className="page">
-        <header className="page-head">
-          <span className="chip chip-accent"><Lock /> Privacy</span>
-          <h1>What happens to what you check</h1>
-          <p className="lede">
-            A product that asks you to paste a suspicious message has to be clearer about its own
-            handling than the thing it is warning you about. Here is all of it.
-          </p>
-        </header>
+      <div className="screen">
+        <ScreenHeader
+          title="What happens to what you check"
+          lede="A product that asks you to paste a suspicious message owes you a clear account of its own behaviour."
+          icon={<Lock />}
+          hue="#60A5FA"
+        />
 
         <section className="section">
           <div className="grid grid-2">

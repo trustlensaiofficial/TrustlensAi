@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Shell } from '@/components/ui/Shell';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import { featureById } from '@/lib/features';
 import { demoCampaigns } from '@/lib/threat-intel/demo-network';
 import { CORROBORATION_THRESHOLD, STALE_AFTER_DAYS, type Campaign } from '@/lib/threat-intel/campaigns';
 import { Alert, Arrow, Check, Clock, Globe, Help, Lens, Lock, Phone, Users } from '@/components/ui/icons';
@@ -85,21 +87,19 @@ function CampaignCard({ campaign, index }: { campaign: Campaign; index: number }
 }
 
 export default function AlertsPage() {
+  const feature = featureById('alerts');
   const campaigns = demoCampaigns();
   const corroborated = campaigns.filter((c) => c.status === 'corroborated').length;
 
   return (
     <Shell>
-      <div className="page">
-        <header className="page-head">
-          <span className="chip chip-accent"><Users /> Community intelligence</span>
-          <h1>Scam campaigns in circulation</h1>
-          <p className="lede">
-            One person reporting one number proves nothing. When several people independently
-            report messages that share a link, a number or a payment handle, that is a campaign —
-            and it can warn the next person before they lose anything.
-          </p>
-        </header>
+      <div className="screen">
+        <ScreenHeader
+          title={feature?.title ?? "Scam alerts"}
+          lede="Campaigns recognised across several independent reports, grouped by the indicators they share."
+          icon={feature?.icon}
+          hue={feature?.hue}
+        />
 
         {/* Said once, clearly, at the top — not buried in a footnote. */}
         <p className="notice notice-check" role="note">

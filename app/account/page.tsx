@@ -2,11 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Shell } from '@/components/ui/Shell';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { ActivityList } from '@/components/ui/ActivityList';
 import { AccountHistory } from '@/components/ui/AccountHistory';
 import { PasskeyManager } from '@/components/auth/PasskeyManager';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
-import { Arrow, Check, Lock, Shield } from '@/components/ui/icons';
+import { Arrow, Check, Lock, Shield, User } from '@/components/ui/icons';
 
 export const metadata: Metadata = { title: 'Your account', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
@@ -24,12 +25,13 @@ export default async function AccountPage() {
 
   return (
     <Shell>
-      <div className="page">
-        <header className="page-head">
-          <span className="chip chip-accent"><Shield /> Account</span>
-          <h1>{name}</h1>
-          {user.email && <p className="lede">{user.email}</p>}
-        </header>
+      <div className="screen">
+        <ScreenHeader
+          title={name}
+          lede={user.email ?? undefined}
+          icon={<User />}
+          hue="#84CC16"
+        />
 
         <section className="section">
           <div className="grid grid-2">

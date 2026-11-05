@@ -10,7 +10,7 @@ export default async function EvidencePage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   return (
     <Shell>
-      <div className="page">
+      <div className="screen">
         <Link href={`/report/${id}`} className="btn btn-ghost btn-sm back-link no-print">
           <Arrow style={{ transform: 'rotate(180deg)' }} /> Back to the report
         </Link>

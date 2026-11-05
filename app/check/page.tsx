@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Shell } from '@/components/ui/Shell';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { CheckWorkspace } from '@/components/ui/CheckWorkspace';
+import { Kaval } from '@/components/ui/Kaval';
+import { featureForContext } from '@/lib/features';
 import type { InputContext } from '@/lib/analysis/types';
 
 export const metadata: Metadata = {
@@ -12,20 +15,37 @@ const CONTEXTS: InputContext[] = ['generic', 'bank_scam', 'job_offer', 'invoice'
 
 export default async function CheckPage({ searchParams }: { searchParams: Promise<{ context?: string }> }) {
   const params = await searchParams;
-  const defaultContext = CONTEXTS.includes(params.context as InputContext) ? params.context as InputContext : 'bank_scam';
+  const context = CONTEXTS.includes(params.context as InputContext)
+    ? (params.context as InputContext)
+    : 'bank_scam';
+
+  /*
+   * The card that was tapped, carried into the header.
+   *
+   * Arriving with no context at all is a direct visit rather than a card tap,
+   * so the screen falls back to the general title instead of pretending a
+   * particular card opened it.
+   */
+  const from = params.context ? featureForContext(context) : undefined;
+
   return (
     <Shell>
-      <div className="page">
-        <header className="page-head">
-          <span className="chip chip-accent">Investigation</span>
-          <h1>Is this safe to act on?</h1>
-          <p className="lede">
-            Choose what you received and paste the original content. TrustLens shows the warning signs,
-            exact evidence, checks performed, what remains unknown and the next safe step.
-          </p>
-        </header>
-        <CheckWorkspace defaultContext={defaultContext} />
+      <div className="screen">
+        <ScreenHeader
+          title={from ? from.title : 'Is this safe to act on?'}
+          lede={
+            from
+              ? from.blurb
+              : 'Choose what you received, then paste it. You will see the warning signs, the exact evidence and what is still unknown.'
+          }
+          icon={from?.icon}
+          hue={from?.hue}
+        />
+        <CheckWorkspace defaultContext={context} />
       </div>
+      {/* Kaval travels with the screen, so asking "why was this flagged?"
+          never costs you the report you are asking about. */}
+      <Kaval />
     </Shell>
   );
 }

@@ -12,6 +12,13 @@
  *
  * Deterministic rules only: live checks and cloud AI are off, so the figure
  * describes what the engine does with no network and no model.
+ *
+ * Run it with the resolve hook, or Node cannot follow the engine's own
+ * extensionless imports:
+ *
+ *   node --import ./scripts/register-hook.mjs scripts/benchmark-detection.mjs
+ *
+ * `npm run benchmark` does that for you.
  */
 import { analyze } from '../lib/analysis/orchestrator.ts';
 import { CORPUS, LANGUAGES } from '../tests/fixtures/corpus.ts';

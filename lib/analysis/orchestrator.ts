@@ -252,7 +252,15 @@ export async function analyze(options: AnalyzeOptions): Promise<Report> {
   //    Tamil written in Latin script, run unconditionally. Real messages mix
   //    languages freely — an English bank name with the demand in Tamil is the
   //    norm — so gating this on a detected language would miss most of them.
-  for (const taSignal of detectTanglishSignals(text)) {
+  //
+  //    The categories already matched above travel with it. Several Tanglish
+  //    patterns deliberately allow the Tamil marker to be absent, so they also
+  //    match bare English ("account will be blocked", "immediately"); where
+  //    the English engine has already reported that category, the Tanglish hit
+  //    is the same finding a second time under a Tamil label the evidence does
+  //    not support.
+  const covered = new Set(signals.map((s) => s.category));
+  for (const taSignal of detectTanglishSignals(text, covered)) {
     if (!signals.some((s) => s.id === taSignal.id)) signals.push(taSignal);
   }
 
