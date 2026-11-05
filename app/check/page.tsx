@@ -1,14 +1,18 @@
 import type { Metadata } from 'next';
 import { Shell } from '@/components/ui/Shell';
 import { CheckWorkspace } from '@/components/ui/CheckWorkspace';
+import type { InputContext } from '@/lib/analysis/types';
 
 export const metadata: Metadata = {
   title: 'Check something',
-  description:
-    'Paste a message, link or payment request to see its warning signs, the exact words that triggered each one, what could not be checked, and what to do next.',
+  description: 'Investigate a message, website, job offer, invoice or payment request using evidence-first checks.',
 };
 
-export default function CheckPage() {
+const CONTEXTS: InputContext[] = ['generic', 'bank_scam', 'job_offer', 'invoice', 'proposal', 'website'];
+
+export default async function CheckPage({ searchParams }: { searchParams: Promise<{ context?: string }> }) {
+  const params = await searchParams;
+  const defaultContext = CONTEXTS.includes(params.context as InputContext) ? params.context as InputContext : 'bank_scam';
   return (
     <Shell>
       <div className="page">
@@ -16,11 +20,11 @@ export default function CheckPage() {
           <span className="chip chip-accent">Investigation</span>
           <h1>Is this safe to act on?</h1>
           <p className="lede">
-            Paste the whole message so the wording can be examined. You will get the warning signs,
-            the exact words behind each one, what we could not check, and the next safe step.
+            Choose what you received and paste the original content. TrustLens shows the warning signs,
+            exact evidence, checks performed, what remains unknown and the next safe step.
           </p>
         </header>
-        <CheckWorkspace />
+        <CheckWorkspace defaultContext={defaultContext} />
       </div>
     </Shell>
   );
