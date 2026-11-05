@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Help, Lock, Settings, Shield, Users, Spark, Close } from './icons';
+import { Help, Settings, Shield, Users, Spark, Close } from './icons';
 import './FloatingUtilityPanel.css';
 
 /** A compact, thumb-friendly utility dock; primary tools stay on the dashboard. */
