@@ -1,87 +1,103 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { Shell } from '@/components/ui/Shell';
+import { FeatureCard } from '@/components/dashboard/FeatureCard';
 import { InstallApp } from '@/components/ui/InstallApp';
 import { Kaval } from '@/components/ui/Kaval';
 import { RecentActivity } from '@/components/ui/RecentActivity';
-import { Alert, Arrow, Bell, Bolt, Check, Doc, Globe, Lens, Phone, Scales, Shield, Users } from '@/components/ui/icons';
+import { EMERGENCY, FEATURES } from '@/lib/features';
+import { Arrow, Lens, Lifebuoy, Shield } from '@/components/ui/icons';
 import './dashboard.css';
 
-/** Every destination below maps to a real route and a real workflow. */
-const TOOLS = [
-  { href: '/check?context=generic', label: 'Message check', detail: 'Inspect SMS, WhatsApp, email and chat text you choose to share.', action: 'Check a message', icon: <Lens />, tone: 'cyan', group: 'Investigate' },
-  { href: '/check?context=website', label: 'Link & website check', detail: 'Review a suspicious URL and inspect available website signals.', action: 'Check a link', icon: <Globe />, tone: 'blue', group: 'Investigate' },
-  { href: '/check?context=bank_scam', label: 'Bank & UPI protection', detail: 'Look for OTP, PIN, refund, payment and impersonation pressure.', action: 'Check a payment request', icon: <Phone />, tone: 'rose', group: 'Investigate' },
-  { href: '/check?context=job_offer', label: 'Job offer check', detail: 'Review recruitment messages, fees, deposits and identity claims.', action: 'Review an offer', icon: <Users />, tone: 'violet', group: 'Investigate' },
-  { href: '/check?context=invoice', label: 'Invoice & payment check', detail: 'Inspect bills, account-change requests and payment instructions.', action: 'Review an invoice', icon: <Doc />, tone: 'amber', group: 'Investigate' },
-  { href: '/check?context=proposal', label: 'Investment claim check', detail: 'Examine return promises, deposits and high-pressure proposals.', action: 'Review a claim', icon: <Scales />, tone: 'mint', group: 'Investigate' },
-  { href: '/respond', label: 'Scam incident response', detail: 'Get the right steps if you clicked, shared details or sent money.', action: 'Get help now', icon: <Alert />, tone: 'rose', group: 'Protect' },
-  { href: '/activity', label: 'Reports & history', detail: 'Reopen checks saved on this device and manage report copies.', action: 'Open your reports', icon: <Check />, tone: 'blue', group: 'Protect' },
-  { href: '/alerts', label: 'Scam intelligence', detail: 'Explore reported patterns and example scam campaigns.', action: 'View intelligence', icon: <Bell />, tone: 'violet', group: 'Learn' },
-  { href: '/story', label: 'Safety guide', detail: 'Understand how TrustLens separates evidence, rules and AI.', action: 'Learn how it works', icon: <Bolt />, tone: 'amber', group: 'Learn' },
-];
+export const metadata: Metadata = {
+  title: 'Protection',
+  description: 'Check a message, link or payment request, and see the evidence behind every answer.',
+};
 
+/**
+ * The dashboard.
+ *
+ * Ten cards, in the order someone needs them, each opening a real workflow.
+ * The features come from `lib/features.tsx` so this screen and the menu can
+ * never disagree about what the product offers.
+ *
+ * A server component. The cards are client components only because the glass
+ * has to know whether there is a pointer to track; the page itself ships no
+ * JavaScript of its own.
+ */
 export default function Dashboard() {
   return (
     <Shell>
-      <div className="dashboard">
-        <section className="dash-welcome">
-          <div className="dash-welcome-copy">
-            <span className="dash-eyebrow"><span className="dash-live-dot" /> TRUSTLENS PROTECTION</span>
-            <h1>Pause. Verify.<br /><span>Then act.</span></h1>
-            <p>Check a message, link or payment request before you trust it. See the evidence, understand what is unknown and choose a safer next step.</p>
-            <div className="dash-primary-actions">
-              <Link href="/check" className="dash-primary"><Lens /> Start a check <Arrow /></Link>
-              <Link href="/respond" className="dash-secondary"><Phone /> I need help</Link>
-            </div>
-          </div>
-          <div className="dash-orb-scene" aria-hidden="true">
-            <div className="dash-orb dash-orb-back" />
-            <div className="dash-orb dash-orb-front"><Shield /></div>
-            <span className="dash-orbit dash-orbit-one" />
-            <span className="dash-orbit dash-orbit-two" />
-            <span className="dash-orb-spark dash-spark-one" />
-            <span className="dash-orb-spark dash-spark-two" />
+      <div className="dash">
+        <section className="dash-hero">
+          <span className="dash-eyebrow">
+            <span className="dash-dot" aria-hidden="true" />
+            Protection active
+          </span>
+          <h1>
+            Pause. Verify. <em>Then act.</em>
+          </h1>
+          <p className="dash-sub">
+            Check anything that asks you for money, details or a tap — and see the
+            evidence behind the answer, not just a verdict.
+          </p>
+          <div className="dash-acts">
+            <Link href="/check" className="dash-act dash-act-primary">
+              <Lens /> Start a check
+            </Link>
+            <Link href="/respond" className="dash-act dash-act-ghost">
+              <Lifebuoy /> I need help now
+            </Link>
           </div>
         </section>
 
-        <section className="dash-tools-section" aria-labelledby="dash-tools-title">
-          <div className="dash-section-heading">
-            <div><span className="dash-eyebrow">YOUR PROTECTION TOOLS</span><h2 id="dash-tools-title">What would you like to check?</h2></div>
-            <span className="dash-section-note">Each tool opens a real workflow</span>
+        <section className="dash-section" aria-labelledby="dash-tools">
+          <div className="dash-section-head">
+            <h2 id="dash-tools">What would you like to check?</h2>
+            <span className="dash-section-note">Every card opens a real check</span>
           </div>
-          <div className="dash-tools-grid">
-            {TOOLS.map((tool, index) => (
-              <Link key={tool.href} href={tool.href} className={`dash-tool-card dash-${tool.tone}`} style={{ '--card-index': index } as React.CSSProperties}>
-                <span className="dash-tool-topline"><span>{tool.group}</span><span className="dash-tool-number">{String(index + 1).padStart(2, '0')}</span></span>
-                <span className="dash-tool-icon">{tool.icon}</span>
-                <span className="dash-tool-content"><strong>{tool.label}</strong><span>{tool.detail}</span></span>
-                <span className="dash-tool-action">{tool.action}<Arrow /></span>
-                <span className="dash-card-glow" aria-hidden="true" />
-              </Link>
+          <ul className="feat-grid">
+            {FEATURES.map((feature, i) => (
+              <FeatureCard key={feature.id} feature={feature} index={i} />
             ))}
-          </div>
+          </ul>
         </section>
 
-        <section className="dash-lower-grid">
-          <div className="dash-history-panel">
-            <div className="dash-section-heading">
-              <div><span className="dash-eyebrow">RECENT ACTIVITY</span><h2>Your latest checks</h2></div>
-              <Link href="/activity" className="dash-text-link">See all <Arrow /></Link>
+        <section className="dash-lower">
+          <div className="dash-recent">
+            <div className="dash-section-head">
+              <h2>Your recent checks</h2>
+              <Link href="/activity" className="dash-link">
+                See all <Arrow />
+              </Link>
             </div>
             <RecentActivity />
           </div>
-          <aside className="dash-safety-card">
-            <span className="dash-safety-icon"><Phone /></span>
-            <span className="dash-eyebrow">URGENT HELP · INDIA</span>
+
+          {/* The only red on the screen. If everything is urgent, nothing is. */}
+          <aside className="dash-sos">
+            <span className="dash-sos-icon" aria-hidden="true">{EMERGENCY.icon}</span>
             <h2>Already sent money?</h2>
-            <p>Contact your bank immediately and call the national cyber-fraud helpline. Do not wait for an app report.</p>
-            <a href="tel:1930" className="dash-emergency-number">1930 <span>Call helpline <Arrow /></span></a>
-            <Link href="/respond" className="dash-text-link">See the next steps <Arrow /></Link>
+            <p>{EMERGENCY.note}</p>
+            <a href={`tel:${EMERGENCY.number}`} className="dash-sos-call">
+              {EMERGENCY.number}
+              <span>{EMERGENCY.label}</span>
+            </a>
+            <Link href="/respond" className="dash-link">
+              See every step <Arrow />
+            </Link>
           </aside>
         </section>
 
-        <section className="dash-install-section"><InstallApp /></section>
-        <p className="dash-trust-note"><Shield /> TrustLens analyses only what you choose to share. It does not silently read messages from other apps.</p>
+        <InstallApp />
+
+        <p className="dash-promise">
+          <Shield />
+          <span>
+            TrustLens analyses only what you choose to share with it. It does not read
+            messages, calls or contacts from other apps on their own.
+          </span>
+        </p>
       </div>
       <Kaval />
     </Shell>

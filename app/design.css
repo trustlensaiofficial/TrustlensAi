@@ -176,3 +176,128 @@
   .tl-lift { transition: none; }
   .tl-lift:hover, .tl-lift:active { transform: none; }
 }
+
+/* ======================================================= the app shell
+ *
+ * A brand bar and a footer, and nothing else. Navigation lives on the
+ * dashboard's cards and in the one floating dock; a header strip repeating
+ * them is how a phone screen ends up carrying the same six links twice.
+ */
+
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in oklab, var(--glass) 86%, transparent);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+  padding-top: env(safe-area-inset-top);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app-bar { background: var(--surface); }
+}
+
+.app-bar-inner {
+  width: var(--shell);
+  margin-inline: auto;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.app-bar-brand { display: inline-flex; text-decoration: none; border-radius: var(--r-sm); }
+.app-bar-brand:focus-visible { outline: none; box-shadow: var(--focus); }
+
+.app-main {
+  /* Room for the floating dock, so the last card is never trapped beneath it. */
+  padding-bottom: calc(var(--s9) + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 880px) {
+  .app-main { padding-bottom: var(--s7); }
+}
+
+.app-foot {
+  padding-block: var(--s5) calc(var(--s8) + env(safe-area-inset-bottom));
+  border-top: 1px solid color-mix(in oklab, var(--border) 45%, transparent);
+  font-size: var(--fs-2xs);
+  line-height: var(--lh-2xs);
+  color: var(--text-faint);
+}
+
+.app-foot .shell { display: grid; gap: var(--s1); }
+
+@media (min-width: 720px) {
+  .app-foot .shell { display: flex; justify-content: space-between; gap: var(--s4); }
+}
+
+/* ====================================================== Kaval, the assistant
+ *
+ * The panel's own rules predate the depth system and give it `--glass`, which
+ * is 78% opaque. That is right for chrome you glance at and wrong for a
+ * surface you read a conversation on — the dashboard behind it showed through
+ * every line. This is a reading surface, so it carries its own ground and
+ * spends the frost on its edge.
+ *
+ * These live in the components layer, above the legacy stylesheet, so the
+ * original rules stay where they are and are simply outranked.
+ */
+
+.kaval {
+  background: color-mix(in oklab, var(--surface) 96%, var(--accent));
+  border-color: color-mix(in oklab, var(--border-strong) 80%, transparent);
+  /* Above the dock (60) and its scrim (55), so opening Kaval from the dock
+     does not drop it behind the control that opened it. */
+  z-index: 70;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .kaval { background: var(--surface); }
+}
+
+/* On a phone it is a bottom sheet: full width, anchored to the bottom edge,
+   where a thumb already is. Floating it in from the right corner left a
+   16px gutter of dashboard down one side and made it read as a popup. */
+@media (max-width: 719px) {
+  .kaval {
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 86svh;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    border-bottom: none;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* The scrim that was missing. Without one the sheet has nothing to sit
+   against, and a tap outside it lands on a dashboard card. */
+.kaval::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in oklab, var(--tl-deep) 70%, transparent);
+  backdrop-filter: blur(6px) saturate(70%);
+  -webkit-backdrop-filter: blur(6px) saturate(70%);
+  animation: dock-fade var(--t-base) var(--ease) both;
+  pointer-events: none;
+}
+
+.kaval-head { background: color-mix(in oklab, var(--surface-2) 70%, transparent); }
+
+/* The composer stays reachable while the log scrolls under it. */
+.kaval-compose {
+  position: sticky;
+  bottom: 0;
+  background: color-mix(in oklab, var(--surface) 96%, var(--accent));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kaval::before { animation: none; }
+}

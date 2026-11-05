@@ -13,7 +13,7 @@ import { Alert, Arrow, Check, Close, Shield, Spark } from './icons';
  * able to ask about it without losing the report. On a phone it becomes a
  * bottom sheet, which is where a thumb already is.
  */
-export function Kaval({ report }: { report?: Report | null }) {
+export function Kaval({ report, showTrigger = false }: { report?: Report | null; showTrigger?: boolean }) {
   const [open, setOpen] = useState(false);
   const [turns, setTurns] = useState<KavalTurn[]>([]);
   const [draft, setDraft] = useState('');
@@ -96,17 +96,25 @@ export function Kaval({ report }: { report?: Report | null }) {
 
   return (
     <>
-      <button
-        type="button"
-        className={`kaval-fab${open ? ' kaval-fab-open' : ''}`}
-        aria-expanded={open}
-        aria-controls="kaval-panel"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span className="kaval-fab-glow" aria-hidden="true" />
-        {open ? <Close /> : <Spark />}
-        <span className="kaval-fab-label">{open ? 'Close' : `Ask ${KAVAL_NAME}`}</span>
-      </button>
+      {/*
+        Off by default. The floating dock owns the entry point now — two
+        triggers for one panel is how the product ended up with three things
+        floating over a 375px screen at the same time. The flag stays for a
+        surface that has no dock.
+      */}
+      {showTrigger && (
+        <button
+          type="button"
+          className={`kaval-fab${open ? ' kaval-fab-open' : ''}`}
+          aria-expanded={open}
+          aria-controls="kaval-panel"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="kaval-fab-glow" aria-hidden="true" />
+          {open ? <Close /> : <Spark />}
+          <span className="kaval-fab-label">{open ? 'Close' : `Ask ${KAVAL_NAME}`}</span>
+        </button>
+      )}
 
       {open && (
         <aside id="kaval-panel" className="kaval" role="dialog" aria-label={`${KAVAL_NAME}, the TrustLens assistant`}>
