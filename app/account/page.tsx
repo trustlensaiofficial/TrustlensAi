@@ -7,7 +7,7 @@ import { ActivityList } from '@/components/ui/ActivityList';
 import { AccountHistory } from '@/components/ui/AccountHistory';
 import { PasskeyManager } from '@/components/auth/PasskeyManager';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
-import { Arrow, Check, Lock, Shield, User } from '@/components/ui/icons';
+import { Arrow, Check, Lock, User } from '@/components/ui/icons';
 
 export const metadata: Metadata = { title: 'Your account', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';

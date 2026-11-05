@@ -5,6 +5,8 @@ import GlassCard from '@/components/ui/glass-card';
 import { Arrow } from '@/components/ui/icons';
 import { useFinePointer } from '@/lib/hooks/use-capability';
 import type { Feature } from '@/lib/features';
+import { useT } from '@/components/i18n/LocaleProvider';
+import type { DictKey } from '@/lib/i18n';
 
 /**
  * One feature, as a floating pane of glass.
@@ -24,6 +26,10 @@ import type { Feature } from '@/lib/features';
  */
 export function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
   const fine = useFinePointer();
+  const t = useT();
+  // The id is the translation namespace, so a card added to lib/features.tsx
+  // with no dictionary entry fails to compile rather than rendering a key.
+  const key = (part: 'title' | 'blurb' | 'action') => `feature.${feature.id}.${part}` as DictKey;
 
   return (
     <li className="feat" style={{ '--hue': feature.hue, '--i': index } as React.CSSProperties}>
@@ -47,10 +53,10 @@ export function FeatureCard({ feature, index }: { feature: Feature; index: numbe
             <span className="feat-icon" aria-hidden="true">{feature.icon}</span>
             <span className="feat-no" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
           </span>
-          <span className="feat-title">{feature.title}</span>
-          <span className="feat-blurb">{feature.blurb}</span>
+          <span className="feat-title">{t(key('title'))}</span>
+          <span className="feat-blurb">{t(key('blurb'))}</span>
           <span className="feat-action">
-            {feature.action}
+            {t(key('action'))}
             <Arrow />
           </span>
         </Link>

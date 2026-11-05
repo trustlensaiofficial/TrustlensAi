@@ -3,6 +3,7 @@ import { Logo } from '../brand/Logo';
 import { Ground } from './Ground';
 import { UtilityDock } from './UtilityDock';
 import { OnlineBadge } from './OnlineBadge';
+import { getTranslations } from '@/lib/i18n/server';
 
 /**
  * The app shell.
@@ -15,7 +16,7 @@ import { OnlineBadge } from './OnlineBadge';
  * `showDock` exists for the screens that are a single decision — sign-in, the
  * opening — where a floating menu is just another way to leave.
  */
-export function Shell({
+export async function Shell({
   children,
   wide,
   showDock = true,
@@ -24,6 +25,8 @@ export function Shell({
   wide?: boolean;
   showDock?: boolean;
 }) {
+  const { t } = await getTranslations();
+
   return (
     <>
       {/* Drawn once, behind everything, carrying no information. It exists so
@@ -33,7 +36,7 @@ export function Shell({
 
       <header className="app-bar">
         <div className="app-bar-inner">
-          <Link href="/home" className="app-bar-brand" aria-label="TrustLens AI — dashboard">
+          <Link href="/home" className="app-bar-brand" aria-label={t('app.home')}>
             <Logo size={28} />
           </Link>
           <OnlineBadge />
@@ -46,8 +49,8 @@ export function Shell({
 
       <footer className="app-foot">
         <div className="shell">
-          <span>TrustLens AI · Team Reshiram · DEX26223</span>
-          <span>Evidence-first analysis. Never a guarantee that something is genuine.</span>
+          <span>{t('app.footerTeam')}</span>
+          <span>{t('app.footerCaveat')}</span>
         </div>
       </footer>
     </>

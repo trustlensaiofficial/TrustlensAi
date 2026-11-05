@@ -5,7 +5,9 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ThemeToggle } from './ThemeToggle';
 import { Book, Close, Home, Lifebuoy, List, Lock, Spark, Sun, User } from './icons';
-import { KAVAL_NAME } from '@/lib/assistant/kaval';
+import { useT } from '@/components/i18n/LocaleProvider';
+import { LanguagePicker } from '@/components/i18n/LanguagePicker';
+import type { DictKey } from '@/lib/i18n';
 import './UtilityDock.css';
 
 /**
@@ -28,18 +30,20 @@ import './UtilityDock.css';
 
 interface Row {
   href: string;
-  label: string;
-  hint: string;
+  /** Translation keys, not English — the dock changes language with the rest. */
+  label: DictKey;
+  hint: DictKey;
   icon: React.ReactNode;
 }
 
 const ROWS: Row[] = [
-  { href: '/account', label: 'Your account', hint: 'Sign-in, passkeys and saved reports', icon: <User /> },
-  { href: '/privacy', label: 'Privacy and settings', hint: 'What leaves this device, and what does not', icon: <Lock /> },
-  { href: '/story', label: 'How TrustLens works', hint: 'Every check, and its limits', icon: <Book /> },
+  { href: '/account', label: 'dock.account', hint: 'dock.accountHint', icon: <User /> },
+  { href: '/privacy', label: 'dock.privacy', hint: 'dock.privacyHint', icon: <Lock /> },
+  { href: '/story', label: 'dock.story', hint: 'dock.storyHint', icon: <Book /> },
 ];
 
 export function UtilityDock() {
+  const t = useT();
   /*
    * The route the dock was opened on, or null when closed.
    *
@@ -121,8 +125,8 @@ export function UtilityDock() {
             aria-labelledby={titleId}
           >
             <div className="dock-head">
-              <h2 id={titleId}>Tools and settings</h2>
-              <button type="button" className="dock-x" onClick={close} aria-label="Close">
+              <h2 id={titleId}>{t('dock.title')}</h2>
+              <button type="button" className="dock-x" onClick={close} aria-label={t('common.close')}>
                 <Close />
               </button>
             </div>
@@ -141,8 +145,8 @@ export function UtilityDock() {
             >
               <span className="dock-kaval-icon" aria-hidden="true"><Spark /></span>
               <span className="dock-row-text">
-                <strong>Ask {KAVAL_NAME}</strong>
-                <small>Why something was flagged, and what to do next</small>
+                <strong>{t('dock.kaval')}</strong>
+                <small>{t('dock.kavalHint')}</small>
               </span>
             </button>
 
@@ -152,8 +156,8 @@ export function UtilityDock() {
                   <Link href="/home" className="dock-row">
                     <span className="dock-row-icon" aria-hidden="true"><Home /></span>
                     <span className="dock-row-text">
-                      <strong>Dashboard</strong>
-                      <small>Back to all your checks</small>
+                      <strong>{t('dock.dashboard')}</strong>
+                      <small>{t('dock.dashboardHint')}</small>
                     </span>
                   </Link>
                 </li>
@@ -163,8 +167,8 @@ export function UtilityDock() {
                   <Link href={row.href} className="dock-row">
                     <span className="dock-row-icon" aria-hidden="true">{row.icon}</span>
                     <span className="dock-row-text">
-                      <strong>{row.label}</strong>
-                      <small>{row.hint}</small>
+                      <strong>{t(row.label)}</strong>
+                      <small>{t(row.hint)}</small>
                     </span>
                   </Link>
                 </li>
@@ -174,18 +178,20 @@ export function UtilityDock() {
             <div className="dock-setting">
               <span className="dock-row-icon" aria-hidden="true"><Sun /></span>
               <span className="dock-row-text">
-                <strong>Appearance</strong>
-                <small>Light or dark</small>
+                <strong>{t('dock.appearance')}</strong>
+                <small>{t('dock.appearanceHint')}</small>
               </span>
               <ThemeToggle />
             </div>
+
+            <LanguagePicker />
 
             {/* The one number worth having in reach from every screen. */}
             <a className="dock-sos" href="tel:1930">
               <Lifebuoy />
               <span>
-                <strong>Already sent money? Call 1930</strong>
-                <small>India&rsquo;s cyber-financial fraud helpline</small>
+                <strong>{t('dock.sos')}</strong>
+                <small>{t('dock.sosHint')}</small>
               </span>
             </a>
           </div>
@@ -200,7 +206,7 @@ export function UtilityDock() {
           onClick={() => setOpenedOn((v) => (v === null ? pathname : null))}
         >
           {open ? <Close /> : <List />}
-          <span>{open ? 'Close' : 'Tools'}</span>
+          <span>{open ? t('dock.close') : t('dock.open')}</span>
         </button>
       </div>
     </>

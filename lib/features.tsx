@@ -20,9 +20,17 @@ import {
  */
 
 export interface Feature {
-  /** Stable key — used for translations and analytics, never shown. */
+  /** Stable key. Also the translation namespace: `feature.<id>.title`. */
   id: string;
   href: string;
+  /**
+   * English, and also the fallback.
+   *
+   * The rendered text comes from the dictionary — `feature.<id>.title` and
+   * friends — so a card changes language with the rest of the interface.
+   * These stay because a server component that needs a plain label (metadata,
+   * a share subject) should not have to resolve a locale to get one.
+   */
   title: string;
   /** One line. Two makes the grid ragged and nobody reads the second. */
   blurb: string;

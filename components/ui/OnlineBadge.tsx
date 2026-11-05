@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { getOnlineSnapshot, getServerOnlineSnapshot, subscribeOnline } from '@/lib/offline/connectivity';
 import { Wifi, WifiOff } from './icons';
+import { useT } from '@/components/i18n/LocaleProvider';
 
 export function useOnline(): boolean {
   return useSyncExternalStore(subscribeOnline, getOnlineSnapshot, getServerOnlineSnapshot);
@@ -15,10 +16,11 @@ export function useOnline(): boolean {
  */
 export function OnlineBadge() {
   const online = useOnline();
+  const t = useT();
   return (
-    <span className={`chip ${online ? '' : 'chip-check'}`} title={online ? 'Connected' : 'Offline — local checks still run'}>
+    <span className={`chip ${online ? '' : 'chip-check'}`} title={online ? t('app.online') : t('common.offlineNote')}>
       {online ? <Wifi /> : <WifiOff />}
-      {online ? 'Online' : 'Offline'}
+      {online ? t('app.online') : t('app.offline')}
     </span>
   );
 }

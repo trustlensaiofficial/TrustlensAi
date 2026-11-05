@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './tailwind.css';
 import { RegisterSW } from '@/components/ui/RegisterSW';
+import { LocaleProvider } from '@/components/i18n/LocaleProvider';
+import { getLocale } from '@/lib/i18n/server';
+import { LOCALE_INFO } from '@/lib/i18n';
 
 /**
  * Inter, self-hosted by Next at build time.
@@ -50,9 +53,18 @@ export const viewport: Viewport = {
  */
 const THEME = `try{var t=localStorage.getItem('trustlens.theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme='light'}`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  /*
+   * The locale is resolved before a byte is sent, so the server renders in
+   * the right language and `lang` is correct on <html> from the first parse.
+   * That attribute is not cosmetic: it decides which font the browser picks
+   * for Devanagari and Telugu, how a screen reader pronounces the page, and
+   * whether the text is offered for translation.
+   */
+  const locale = await getLocale();
+
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang={LOCALE_INFO[locale].tag} className={inter.variable} suppressHydrationWarning>
       <body>
         {/*
           Runs before anything paints, so the saved theme is on <html> by the
@@ -64,7 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         */}
         <script dangerouslySetInnerHTML={{ __html: THEME }} />
         <RegisterSW />
-        {children}
+        <LocaleProvider locale={locale}>{children}</LocaleProvider>
       </body>
     </html>
   );
