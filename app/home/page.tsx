@@ -3,7 +3,7 @@ import { Shell } from '@/components/ui/Shell';
 import { InstallApp } from '@/components/ui/InstallApp';
 import { Kaval } from '@/components/ui/Kaval';
 import { RecentActivity } from '@/components/ui/RecentActivity';
-import { Alert, Arrow, Bell, Bolt, Check, Doc, Globe, Lens, Lock, Phone, Scales, Shield, Users } from '@/components/ui/icons';
+import { Alert, Arrow, Bell, Bolt, Check, Doc, Globe, Lens, Phone, Scales, Shield, Users } from '@/components/ui/icons';
 import './dashboard.css';
 
 /** Every destination below maps to a real route and a real workflow. */
