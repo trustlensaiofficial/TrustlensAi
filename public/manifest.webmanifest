@@ -6,23 +6,77 @@
   "start_url": "/home?source=pwa",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait-primary",
   "background_color": "#060D1C",
   "theme_color": "#060D1C",
   "lang": "en-IN",
   "dir": "ltr",
-  "categories": ["security", "finance", "utilities"],
+  "categories": [
+    "security",
+    "finance",
+    "utilities"
+  ],
   "icons": [
-    { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/brand/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    {
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/brand/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
   ],
   "shortcuts": [
-    { "name": "Check a message", "short_name": "Check", "url": "/check?context=generic" },
-    { "name": "Check a link", "short_name": "Link", "url": "/check?context=website" },
-    { "name": "Something already happened", "short_name": "Get help", "url": "/respond" }
-  ]
+    {
+      "name": "Check a message",
+      "short_name": "Check",
+      "url": "/check?context=generic"
+    },
+    {
+      "name": "Check a link",
+      "short_name": "Link",
+      "url": "/check?context=website"
+    },
+    {
+      "name": "Something already happened",
+      "short_name": "Get help",
+      "url": "/respond"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

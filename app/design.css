@@ -384,3 +384,155 @@
   .screen { animation: none; }
   .screen-back { transition: none; }
 }
+
+/* ============================================================== sharing
+ *
+ * The native sheet is the real integration — the OS lists every messaging
+ * app the person has and routes the text itself. The named destinations
+ * below it are for desktop, where navigator.share mostly does not exist.
+ *
+ * Nothing here can send anything, which is also the only defensible design:
+ * a product that warns about messages should not be able to send them.
+ */
+
+.share {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s5);
+  border-radius: var(--r-lg);
+  border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .share { background: var(--surface); }
+}
+
+.share-title {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin: 0;
+  font-size: var(--fs-h4);
+  line-height: var(--lh-h4);
+}
+
+.share-title svg { width: var(--icon-lg); height: var(--icon-lg); color: var(--accent); }
+
+.share-lede { margin: 0; font-size: var(--fs-sm); line-height: var(--lh-sm); color: var(--text-dim); }
+
+.share-primary,
+.share-save {
+  display: grid;
+  grid-template-columns: var(--icon-xl) 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 2px var(--s3);
+  min-height: 56px;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  text-align: left;
+  cursor: pointer;
+}
+
+.share-primary svg,
+.share-save svg { grid-row: span 2; width: var(--icon-xl); height: var(--icon-xl); color: var(--accent); }
+.share-primary small,
+.share-save small { grid-column: 2; font-size: var(--fs-2xs); font-weight: var(--fw-regular); color: var(--text-dim); }
+
+.share-save { border-color: var(--border-strong); background: var(--surface-2); }
+.share-save svg { color: var(--text-dim); }
+
+.share-primary:focus-visible,
+.share-save:focus-visible,
+.share-target:focus-visible { outline: none; box-shadow: var(--focus); }
+
+.share-targets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  /* Five destinations: 3 up on a phone, all 5 from 420px. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s2);
+}
+
+@media (min-width: 420px) { .share-targets { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+.share-target {
+  display: grid;
+  justify-items: center;
+  gap: var(--s1);
+  width: 100%;
+  /* 44px minimum, plus room for the label underneath. */
+  min-height: 72px;
+  padding: var(--s2);
+  border-radius: var(--r-sm);
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .share-target:hover { border-color: var(--accent); color: var(--text); transform: translateY(-2px); }
+}
+
+.share-target:active { transform: translateY(0) scale(0.97); }
+
+.share-icon { display: grid; place-items: center; width: var(--icon-xl); height: var(--icon-xl); }
+.share-icon svg { width: var(--icon-xl); height: var(--icon-xl); }
+
+/* Each service in its own colour. These are other companies' marks and they
+   are recognised by colour as much as by shape; neutralising them to the
+   product's palette would make the row harder to scan, not more coherent. */
+.share-whatsapp { color: #25D366; }
+.share-telegram { color: #2AABEE; }
+.share-email { color: var(--tl-blue); }
+.share-sms { color: var(--tl-violet); }
+
+.share-evidence {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s3);
+  align-items: start;
+  padding: var(--s3);
+  border-radius: var(--r-sm);
+  background: color-mix(in oklab, var(--text) 4%, transparent);
+  cursor: pointer;
+}
+
+.share-evidence input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--accent); }
+.share-evidence span { display: grid; gap: 2px; }
+.share-evidence strong { font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
+.share-evidence small { font-size: var(--fs-2xs); line-height: var(--lh-2xs); color: var(--text-dim); }
+
+/* The share block is an action, not evidence — it has no place on a printed
+   report handed to a bank. */
+@media print { .share { display: none !important; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .share-target { transition: none; }
+  .share-target:hover, .share-target:active { transform: none; }
+}
+
+/* The brand bar is sticky, so anything scrolled to by anchor or by script
+   would otherwise land underneath it. */
+:target,
+.screen h1, .screen h2, .screen h3,
+.share, .dash-section {
+  scroll-margin-top: calc(56px + env(safe-area-inset-top) + var(--s4));
+}

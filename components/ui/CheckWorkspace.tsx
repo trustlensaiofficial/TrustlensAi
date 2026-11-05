@@ -22,9 +22,23 @@ const CONTEXTS: Array<{ id: InputContext; label: string; hint: string; icon: Rea
 
 type Phase = 'idle' | 'running' | 'done' | 'error';
 
-export function CheckWorkspace({ defaultContext = 'bank_scam' }: { defaultContext?: InputContext }) {
+export function CheckWorkspace({
+  defaultContext = 'bank_scam',
+  initialText = '',
+}: {
+  defaultContext?: InputContext;
+  /**
+   * Text the screen was opened with — from the Android share sheet, where
+   * someone picked TrustLens out of WhatsApp or their messages app.
+   *
+   * Seeded into state rather than pushed in by an effect, so the message is
+   * already in the box on the first paint instead of appearing a frame later
+   * in a field the person may already be typing in.
+   */
+  initialText?: string;
+}) {
   const [context, setContext] = useState<InputContext>(defaultContext);
-  const [text, setText] = useState('');
+  const [text, setText] = useState(initialText);
   const [liveChecks, setLiveChecks] = useState(false);
   const [allowCloudAi, setAllowCloudAI] = useState(false);
   const [saveToAccount, setSaveToAccount] = useState(false);

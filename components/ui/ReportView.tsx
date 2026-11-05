@@ -5,6 +5,7 @@ import type { Finding, Report, Signal, SignalSeverity, UserActionState } from '@
 import { responsePlanFor } from '@/lib/analysis/response-plan';
 import { helplinesFor } from '@/lib/analysis/helplines';
 import { copy, type Lang } from '@/lib/i18n/strings';
+import { ShareBar } from '@/components/report/ShareBar';
 import { Alert, Check, Chevron, Doc, Eye, Help, Lock, Phone, Scales, Shield } from './icons';
 
 /** Severity drives the visual weight, so the worst thing is read first. */
@@ -349,6 +350,8 @@ export function ReportView({ report, lang }: { report: Report; lang: Lang }) {
           ))}
         </ul>
       </section>
+
+      <ShareBar report={report} />
 
       <p className="report-foot">
         <Doc />
