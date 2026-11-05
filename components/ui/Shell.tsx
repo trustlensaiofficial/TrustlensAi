@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { FloatingUtilityPanel } from './FloatingUtilityPanel';
 
 /** Shared product shell: quiet brand header, focused content and compact utilities. */
-export function Shell({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
+export function Shell({ children, wide, showUtilities = true }: { children: React.ReactNode; wide?: boolean; showUtilities?: boolean }) {
   return (
     <>
       <header className="site-header product-header">
@@ -15,7 +15,7 @@ export function Shell({ children, wide }: { children: React.ReactNode; wide?: bo
           <span className="product-header-status"><span /> Your digital safety space</span>
         </div>
       </header>
-      <FloatingUtilityPanel />
+      {showUtilities && <FloatingUtilityPanel />}
       <main className={wide ? '' : 'shell'}>{children}</main>
       <footer className="site-footer product-footer">
         <div className="shell site-footer-inner">
