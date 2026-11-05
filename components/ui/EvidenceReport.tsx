@@ -28,6 +28,21 @@ function when(iso: string): string {
   return new Date(iso).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'short' });
 }
 
+/** Share only a concise, user-reviewable summary by default. Never include
+ * the submitted message, matched excerpts, phone numbers, URLs or raw evidence. */
+function shareSummary(report: Report): string {
+  const signals = report.signals.slice(0, 5).map((signal) => `• ${signal.title}`).join('\n');
+  return [
+    'TrustLens AI — safety check summary',
+    `Assessment: ${report.assessment.headline}`,
+    report.assessment.summary,
+    signals ? `Warning signs:\n${signals}` : 'No fixed-rule warning signs were matched.',
+    'This is an automated assessment, not proof of identity or a finding of fraud. Review the original message independently.',
+    `Report reference: ${report.id}`,
+    'https://trustlensai-u2r6.vercel.app',
+  ].join('\n\n');
+}
+
 export function EvidenceReport({ id }: { id: string }) {
   const [report, setReport] = useState<Report | null | 'missing'>(null);
   const [incidentAt, setIncidentAt] = useState('');
@@ -108,6 +123,21 @@ export function EvidenceReport({ id }: { id: string }) {
             <Download /> Print or save as PDF
           </button>
           <span className="muted-xs">Choose &ldquo;Save as PDF&rdquo; in the print dialog.</span>
+        </div>
+        <div className="stack" style={{ gap: 9, marginTop: 'var(--s4)' }}>
+          <span className="label">Share a reviewable summary</span>
+          <p className="muted-xs">Only the assessment, short warning-sign titles and report reference are included. Your original message and technical evidence stay private unless you add them yourself.</p>
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => {
+              const content = shareSummary(report);
+              if (navigator.share) void navigator.share({ title: 'TrustLens AI safety summary', text: content }).catch(() => undefined);
+              else void navigator.clipboard?.writeText(content);
+            }}>Share</button>
+            <a className="btn btn-secondary btn-sm" href={`https://wa.me/?text=${encodeURIComponent(shareSummary(report))}`} target="_blank" rel="noreferrer">WhatsApp</a>
+            <a className="btn btn-secondary btn-sm" href={`https://t.me/share/url?url=${encodeURIComponent('https://trustlensai-u2r6.vercel.app')}&text=${encodeURIComponent(shareSummary(report))}`} target="_blank" rel="noreferrer">Telegram</a>
+            <a className="btn btn-secondary btn-sm" href={`mailto:?subject=${encodeURIComponent('TrustLens AI safety check summary')}&body=${encodeURIComponent(shareSummary(report))}`}>Email</a>
+            <a className="btn btn-secondary btn-sm" href={`sms:?body=${encodeURIComponent(shareSummary(report))}`}>SMS</a>
+          </div>
         </div>
       </section>
 
