@@ -12,13 +12,13 @@
  * why.
  */
 
-const VERSION = 'tl-v1';
+const VERSION = 'tl-v2';
 const SHELL = `${VERSION}-shell`;
 const PAGES = `${VERSION}-pages`;
 
 /* Routes worth having before they are first visited — the ones someone needs
    in a crisis, when they are least likely to have a good connection. */
-const PRECACHE = ['/', '/check', '/respond', '/activity', '/privacy', '/offline', '/logo-mark.png', '/manifest.webmanifest'];
+const PRECACHE = ['/', '/check', '/respond', '/activity', '/privacy', '/offline', '/logo-mark.png', '/icon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
