@@ -1,9 +1,13 @@
+import Link from 'next/link';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { Shell } from '@/components/ui/Shell';
 import { SignIn } from '@/components/auth/SignIn';
+import { OpeningScene } from '@/components/opening/OpeningScene';
+import { Arrow } from '@/components/ui/icons';
 import { getCurrentUser } from '@/lib/supabase/auth-server';
 import { safeNextPath } from '@/lib/auth/config';
+import '../opening.css';
+import './login.css';
 
 export const metadata: Metadata = {
   title: 'Sign in',
@@ -13,6 +17,13 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Sign in.
+ *
+ * No shell: the header, the utility dock and the footer all belong to the
+ * signed-in product, and showing them around a sign-in form offers a dozen
+ * ways to wander off at the one moment the screen is asking for a decision.
+ */
 export default async function LoginPage({
   searchParams,
 }: {
@@ -24,10 +35,12 @@ export default async function LoginPage({
   if (await getCurrentUser()) redirect(next);
 
   return (
-    <Shell showUtilities={false}>
-      <div className="page signin-page">
-        <SignIn next={next} initialError={params.error?.slice(0, 180)} />
-      </div>
-    </Shell>
+    <div className="auth">
+      <OpeningScene />
+      <SignIn next={next} initialError={params.error?.slice(0, 180)} />
+      <Link href="/" className="auth-back">
+        <Arrow /> Back
+      </Link>
+    </div>
   );
 }

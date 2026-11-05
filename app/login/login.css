@@ -1,0 +1,245 @@
+/* ==========================================================================
+   Sign in.
+   --------------------------------------------------------------------------
+   Same scene as the opening, dimmed. This is a continuation of that moment,
+   not a different application — and the glass card has to read as sitting in
+   front of the scene, which is what the refractive rim buys.
+   ========================================================================== */
+
+.auth {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s5);
+  padding: max(var(--s5), env(safe-area-inset-top)) var(--s4) max(var(--s5), env(safe-area-inset-bottom));
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* The scene is reused wholesale but pulled back. At full strength it competed
+   with the card, and the card is the only thing on this screen with a job. */
+.auth .op-scene { opacity: 0.6; }
+.auth .op-panel { display: none; }
+
+.auth-card {
+  position: relative;
+  z-index: 1;
+  width: min(26rem, 100%);
+  animation: op-enter 0.6s var(--ease) both;
+}
+
+.auth-head { display: grid; justify-items: center; text-align: center; gap: var(--s2); }
+
+.auth-mark {
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--s1);
+  filter: drop-shadow(0 8px 20px color-mix(in oklab, var(--tl-blue) 40%, transparent));
+}
+
+.auth-head h1 {
+  margin: 0;
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--ls-h2);
+  color: var(--text);
+}
+
+.auth-lede {
+  margin: 0;
+  max-width: 30ch;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
+  color: var(--text-dim);
+  text-wrap: pretty;
+}
+
+/* ---------------------------------------------------------------- the error
+ * Loud enough to be seen, not so loud it reads as a security warning — the
+ * product's red is reserved for findings about the message being checked.
+ */
+.auth-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+  margin: var(--s4) 0 0;
+  padding: var(--s3);
+  border-radius: var(--r-sm);
+  background: var(--sev-high-soft);
+  border: 1px solid var(--sev-high-line);
+  color: var(--sev-high);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
+}
+
+.auth-error svg { flex: none; width: var(--icon-md); height: var(--icon-md); margin-top: 1px; }
+
+/* -------------------------------------------------------------- the buttons
+ *
+ * Solid, not glass. A control someone has to find and press at the moment
+ * they are deciding whether to trust a product is the wrong place to spend
+ * transparency — the glass is the card behind them.
+ */
+.auth-actions { display: grid; gap: var(--s3); margin-top: var(--s5); }
+
+.auth-btn {
+  display: grid;
+  grid-template-columns: var(--icon-xl) 1fr var(--icon-lg);
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  /* 52px: comfortably past the 44px touch minimum, and tall enough that the
+     label does not crowd the glyph. */
+  min-height: 52px;
+  padding: 0 var(--s4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
+  box-shadow: var(--sh-1);
+}
+
+.auth-btn svg { width: var(--icon-lg); height: var(--icon-lg); }
+.auth-btn > svg:first-child { width: var(--icon-xl); height: var(--icon-xl); }
+.auth-btn > svg:last-child { color: var(--text-faint); }
+
+@media (hover: hover) and (pointer: fine) {
+  .auth-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: var(--sh-2);
+  }
+}
+
+.auth-btn:active:not(:disabled) { transform: translateY(0) scale(0.99); }
+
+.auth-btn:focus-visible { outline: none; box-shadow: var(--focus); }
+
+.auth-btn:disabled { opacity: 0.6; cursor: progress; }
+
+/* The passkey route is the one this product would rather you took, so it
+   carries the accent. Google stays neutral — it is a third party. */
+.auth-btn-passkey {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.auth-btn-passkey > svg:first-child { color: var(--accent); }
+
+.auth-spinner {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  border-radius: 50%;
+  border: 2px solid color-mix(in oklab, var(--accent) 30%, transparent);
+  border-top-color: var(--accent);
+  animation: auth-spin 0.7s linear infinite;
+}
+
+@keyframes auth-spin { to { transform: rotate(360deg); } }
+
+/* ------------------------------------------------------------- the details
+ * Collapsed by default. Someone who knows what a passkey is should not have
+ * to read past two paragraphs explaining it; someone who does not needs the
+ * explanation at the exact moment they are deciding.
+ */
+.auth-explain { margin-top: var(--s4); }
+
+.auth-explain summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--accent);
+  cursor: pointer;
+  list-style: none;
+}
+
+.auth-explain summary::-webkit-details-marker { display: none; }
+.auth-explain summary svg { width: var(--icon-sm); height: var(--icon-sm); }
+
+.auth-explain summary::after {
+  content: '';
+  width: 7px; height: 7px;
+  margin-left: auto;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform var(--t-fast) var(--ease);
+}
+
+.auth-explain[open] summary::after { transform: rotate(-135deg) translate(-2px, -2px); }
+
+.auth-explain p {
+  margin: var(--s2) 0 0;
+  font-size: var(--fs-xs);
+  line-height: var(--lh-xs);
+  color: var(--text-dim);
+}
+
+/* ---------------------------------------------------------------- the ways out */
+
+.auth-skip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  margin-top: var(--s4);
+  padding: var(--s3);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+
+.auth-skip svg { width: var(--icon-sm); height: var(--icon-sm); }
+.auth-skip:hover { color: var(--text); background: color-mix(in oklab, var(--text) 5%, transparent); }
+.auth-skip:focus-visible { outline: none; box-shadow: var(--focus); }
+
+.auth-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+  margin: var(--s4) 0 0;
+  padding-top: var(--s4);
+  border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  font-size: var(--fs-2xs);
+  line-height: var(--lh-2xs);
+  color: var(--text-faint);
+}
+
+.auth-note svg { flex: none; width: var(--icon-sm); height: var(--icon-sm); color: var(--prov-found); margin-top: 1px; }
+
+/* The way back to the opening, below the card. */
+.auth-back {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+.auth-back:hover { color: var(--text); }
+.auth-back svg { width: var(--icon-sm); height: var(--icon-sm); rotate: 180deg; }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card { animation: none; }
+  .auth-btn { transition: none; }
+  .auth-btn:hover, .auth-btn:active { transform: none; }
+}

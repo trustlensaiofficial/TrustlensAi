@@ -25,6 +25,9 @@
   --r-xs:9px; --r-sm:13px; --r-md:17px; --r-lg:23px; --r-xl:30px; --r-pill:999px;
   --sh-1:0 2px 5px rgba(12,36,60,.05); --sh-2:0 8px 24px rgba(12,36,60,.08); --sh-3:0 22px 56px rgba(12,36,60,.12);
   --sh-glass-top:rgba(255,255,255,.84); --glass:rgba(255,255,255,.76);
+  /* The tint GlassCard paints behind its frost. White at 10% is right on a
+     dark ground and invisible on a light one, so each theme names its own. */
+  --glass-tint:rgba(255,255,255,.58);
   --font:var(--font-inter),ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:22px;--s6:30px;--s7:42px;--s8:60px;
@@ -43,6 +46,7 @@
   --prov-rule:#58DDF2;--prov-found:#69D9C7;--prov-ai:#B9A4FF;
   --sh-1:0 2px 8px rgba(0,0,0,.28);--sh-2:0 10px 28px rgba(0,0,0,.34);--sh-3:0 24px 64px rgba(0,0,0,.48);
   --sh-glass-top:rgba(255,255,255,.09);--glass:rgba(7,17,31,.78);
+  --glass-tint:rgba(255,255,255,.07);
   color-scheme:dark;
 }
 
