@@ -48,6 +48,7 @@ export function EvidenceReport({ id }: { id: string }) {
   const [incidentAt, setIncidentAt] = useState('');
   const [acted, setActed] = useState('');
   const [redact, setRedact] = useState<Redactions>({ preview: false, evidence: false });
+  const [shareStatus, setShareStatus] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -133,11 +134,15 @@ export function EvidenceReport({ id }: { id: string }) {
               if (navigator.share) void navigator.share({ title: 'TrustLens AI safety summary', text: content }).catch(() => undefined);
               else void navigator.clipboard?.writeText(content);
             }}>Share</button>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => {
+              void navigator.clipboard?.writeText(shareSummary(report)).then(() => setShareStatus('Summary copied. Review it before sending.')).catch(() => setShareStatus('Copy is unavailable in this browser. Use Share or choose an app below.'));
+            }}>Copy summary</button>
             <a className="btn btn-secondary btn-sm" href={`https://wa.me/?text=${encodeURIComponent(shareSummary(report))}`} target="_blank" rel="noreferrer">WhatsApp</a>
             <a className="btn btn-secondary btn-sm" href={`https://t.me/share/url?url=${encodeURIComponent('https://trustlensai-u2r6.vercel.app')}&text=${encodeURIComponent(shareSummary(report))}`} target="_blank" rel="noreferrer">Telegram</a>
             <a className="btn btn-secondary btn-sm" href={`mailto:?subject=${encodeURIComponent('TrustLens AI safety check summary')}&body=${encodeURIComponent(shareSummary(report))}`}>Email</a>
             <a className="btn btn-secondary btn-sm" href={`sms:?body=${encodeURIComponent(shareSummary(report))}`}>SMS</a>
           </div>
+          {shareStatus && <p className="muted-xs" role="status" aria-live="polite">{shareStatus}</p>}
         </div>
       </section>
 
