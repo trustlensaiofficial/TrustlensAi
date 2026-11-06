@@ -12,30 +12,83 @@
  * why.
  */
 
-const VERSION = 'tl-v2';
+/* v3: the page cache is keyed by language, and the precache list follows the
+   vector icons and the share-target route. */
+const VERSION = 'tl-v3';
 const SHELL = `${VERSION}-shell`;
 const PAGES = `${VERSION}-pages`;
 
 /* Routes worth having before they are first visited — the ones someone needs
-   in a crisis, when they are least likely to have a good connection. */
-const PRECACHE = ['/', '/check', '/respond', '/activity', '/privacy', '/offline', '/logo-mark.png', '/icon.svg', '/manifest.webmanifest'];
+   in a crisis, when they are least likely to have a good connection.
+   `/share` is here because the Android share sheet can hand a message to an
+   installed app that has no connection, and landing on the offline page at
+   that moment would waste the one thing the person was trying to do. */
+const PRECACHE = [
+  '/',
+  '/home',
+  '/check',
+  '/share',
+  '/respond',
+  '/activity',
+  '/privacy',
+  '/offline',
+  '/icon.svg',
+  '/brand/icon-192.png',
+  '/brand/mark.svg',
+  '/manifest.webmanifest',
+];
+
+/**
+ * The language this browser has chosen, or 'default'.
+ *
+ * Needed because server-rendered HTML is now localised and the responses do
+ * NOT carry `Vary: Cookie` — so a cache keyed on URL alone would store the
+ * Tamil copy of /home and later serve it to someone who had switched to
+ * English and gone offline. The Cache API honours Vary, but only if the
+ * server sends it, and Next does not send it for a cookie read in a server
+ * component.
+ *
+ * `cookieStore` is the only way a service worker can read a cookie — the
+ * Cookie header is not exposed on the requests it sees. It is Chromium-only,
+ * which covers Android and the installed-PWA case this matters most for.
+ * Everywhere else every language shares one bucket, which is exactly the
+ * behaviour before this change: a possible wrong-language offline page, and
+ * never a wrong answer.
+ */
+async function languageBucket() {
+  try {
+    const cookie = await self.cookieStore?.get('trustlens.lang');
+    return cookie?.value || 'default';
+  } catch {
+    return 'default';
+  }
+}
+
+/** The cache key for a page: its URL, tagged with the language it is in. */
+function pageKey(request, bucket) {
+  const url = new URL(request.url);
+  url.searchParams.set('__tl_lang', bucket);
+  return new Request(url.toString(), { headers: request.headers });
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(SHELL)
+    (async () => {
+      const cache = await caches.open(SHELL);
       // Individually, so one 404 cannot fail the whole install.
-      .then((cache) => Promise.allSettled(PRECACHE.map((url) => cache.add(url))))
-      .then(() => self.skipWaiting()),
+      await Promise.allSettled(PRECACHE.map((url) => cache.add(url)));
+      await self.skipWaiting();
+    })(),
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((k) => !k.startsWith(VERSION)).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim()),
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => !k.startsWith(VERSION)).map((k) => caches.delete(k)));
+      await self.clients.claim();
+    })(),
   );
 });
 
@@ -71,15 +124,26 @@ self.addEventListener('fetch', (event) => {
   // the offline page only when there is nothing stored at all.
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((res) => {
+      (async () => {
+        const bucket = await languageBucket();
+        const key = pageKey(request, bucket);
+        try {
+          const res = await fetch(request);
           if (res.ok) {
             const copy = res.clone();
-            void caches.open(PAGES).then((c) => c.put(request, copy));
+            void caches.open(PAGES).then((c) => c.put(key, copy));
           }
           return res;
-        })
-        .catch(async () => (await caches.match(request)) ?? (await caches.match('/offline')) ?? Response.error()),
+        } catch {
+          return (
+            (await caches.match(key)) ??
+            // A page this language has never opened, but English might have.
+            (await caches.match(request)) ??
+            (await caches.match('/offline')) ??
+            Response.error()
+          );
+        }
+      })(),
     );
     return;
   }

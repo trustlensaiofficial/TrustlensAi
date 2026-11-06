@@ -346,15 +346,28 @@
   .dash-recent { background: var(--surface); }
 }
 
+/* 44px tall, not the 22px the text alone gave it.
+ *
+ * WCAG 2.2 AA (2.5.8) sets the floor at 24x24 and these measured 22 — but
+ * the number that matters on a phone is 44, and "See all" sits in a header
+ * row beside a heading where a mis-tap lands on nothing. The negative inline
+ * margin keeps the text optically aligned with the heading despite the
+ * padding. */
 .dash-link {
   display: inline-flex;
   align-items: center;
   gap: var(--s1);
+  min-height: 44px;
+  padding-inline: var(--s2);
+  margin-inline: calc(var(--s2) * -1);
+  border-radius: var(--r-sm);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   color: var(--accent);
   text-decoration: none;
 }
+
+.dash-link:focus-visible { outline: none; box-shadow: var(--focus); }
 
 .dash-link svg { width: var(--icon-sm); height: var(--icon-sm); }
 
