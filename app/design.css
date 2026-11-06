@@ -620,3 +620,156 @@
 :root:lang(ta), :root:lang(hi), :root:lang(te) { --lh-body: 1.75; --lh-sm: 1.7; --lh-xs: 1.65; --lh-2xs: 1.6; }
 :root:lang(ta) h1, :root:lang(hi) h1, :root:lang(te) h1,
 :root:lang(ta) h2, :root:lang(hi) h2, :root:lang(te) h2 { line-height: 1.35; }
+
+/* ==========================================================================
+   Buttons, rebuilt in the supplied card's language.
+   --------------------------------------------------------------------------
+   The card's vocabulary is pills and discs: a solid accent pill for the
+   action, a circular disc for an icon on its own, flat fills, no glass, and
+   a press that travels. That last part is what makes the design feel
+   physical rather than drawn, so it is spent on every button rather than
+   saved for the hero.
+
+   These rules live in the `components` layer, above the older stylesheet, so
+   all 34 existing `.btn` call sites change at once with no markup churn —
+   a button already written as `.btn .btn-primary` simply becomes the new one.
+
+   Glass is deliberately absent here and that is not a compromise: a control
+   someone presses while deciding whether to trust a message is the wrong
+   place to spend transparency. The glass is the card behind it.
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  /* 44px: the touch floor, and the card's buttons are chunky by design. */
+  min-height: 44px;
+  padding: 0 var(--s5);
+  /* The pill is the signature. Everything else follows from it. */
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.006em;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  /* Only transform and the two paint properties — nothing that lays out. */
+  transition:
+    transform var(--t-fast) var(--spring),
+    box-shadow var(--t-base) var(--ease),
+    background var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease),
+    filter var(--t-fast) var(--ease);
+}
+
+.btn svg { width: var(--icon-lg); height: var(--icon-lg); flex: none; }
+
+/* The press. Travels far enough to feel like a key, not a hover. */
+.btn:active:not(:disabled) { transform: translateY(1px) scale(0.975); }
+.btn:focus-visible { outline: none; box-shadow: var(--focus); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) { transform: translateY(-1px); }
+}
+
+/* ---------------------------------------------------------------- variants */
+
+/*
+ * Primary. The brand sweep rather than a flat fill, because the card's
+ * accent pills read as lit and a single flat cyan does not.
+ */
+.btn-primary {
+  background: linear-gradient(118deg, var(--tl-blue), var(--tl-violet));
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 8px 22px -10px color-mix(in oklab, var(--tl-blue) 72%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(1.07);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.26),
+      0 14px 30px -10px color-mix(in oklab, var(--tl-blue) 85%, transparent);
+  }
+}
+
+.btn-secondary {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.btn-secondary:hover:not(:disabled) { background: var(--surface-3); border-color: var(--accent); }
+
+.btn-ghost { background: transparent; color: var(--text-dim); }
+.btn-ghost:hover:not(:disabled) { background: color-mix(in oklab, var(--text) 7%, transparent); color: var(--text); }
+
+.btn-danger { background: var(--sev-high); color: #fff; }
+.btn-danger:hover:not(:disabled) { filter: brightness(1.06); }
+
+/*
+ * The card's four accents, each paired with the only text colour it can
+ * legibly carry. The pairing comes from `--on-*` in tokens.css, where the
+ * measured ratios are recorded — three of the four cannot take white.
+ */
+.btn-blue   { background: var(--clr-blue);   color: var(--on-blue); }
+.btn-green  { background: var(--clr-green);  color: var(--on-green); }
+.btn-orange { background: var(--clr-orange); color: var(--on-orange); }
+.btn-red    { background: var(--clr-red);    color: var(--on-red); }
+
+/* ------------------------------------------------------------------- sizes */
+
+.btn-lg { min-height: 52px; padding: 0 var(--s6); font-size: var(--fs-lg); }
+.btn-sm { min-height: 36px; padding: 0 var(--s4); font-size: var(--fs-sm); gap: var(--s1); }
+.btn-sm svg { width: var(--icon-md); height: var(--icon-md); }
+.btn-block { width: 100%; }
+
+/*
+ * The disc — the card's `.btn-add`. An icon with no label, so it is round
+ * rather than a pill squeezed to nothing, and it keeps the full 44px even
+ * though the glyph inside is 20.
+ */
+.btn-icon {
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--text) 8%, transparent);
+  color: var(--text-dim);
+}
+
+.btn-icon:hover:not(:disabled) { background: color-mix(in oklab, var(--text) 13%, transparent); color: var(--text); }
+.btn-icon.btn-sm { width: 36px; min-height: 36px; }
+
+/*
+ * The accent pill — the card's `.btn-countdown`. A quiet, tinted capsule
+ * that reads as a status you can press, which is exactly what the feature
+ * cards' action rows and the report's secondary actions are.
+ */
+.btn-pill {
+  min-height: 34px;
+  padding: 0 var(--s4);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.01em;
+  background: color-mix(in oklab, var(--hue, var(--accent)) 16%, transparent);
+  color: var(--hue, var(--accent));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hue, var(--accent)) 30%, transparent);
+}
+
+.btn-pill svg { width: var(--icon-sm); height: var(--icon-sm); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+  .btn:hover, .btn:active { transform: none; }
+}

@@ -42,10 +42,10 @@ export default async function Dashboard() {
           </h1>
           <p className="dash-sub">{t('home.sub')}</p>
           <div className="dash-acts">
-            <Link href="/check" className="dash-act dash-act-primary">
+            <Link href="/check" className="btn btn-primary dash-act">
               <Lens /> {t('home.startCheck')}
             </Link>
-            <Link href="/respond" className="dash-act dash-act-ghost">
+            <Link href="/respond" className="btn btn-secondary dash-act">
               <Lifebuoy /> {t('home.needHelp')}
             </Link>
           </div>

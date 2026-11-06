@@ -85,17 +85,21 @@
  */
 .auth-actions { display: grid; gap: var(--s3); margin-top: var(--s5); }
 
+/* Pills, like every other button in the product — the supplied card's
+   signature shape. Still a three-column grid rather than a centred label,
+   because the provider glyph has to sit at a fixed left edge or the two
+   buttons' text starts at different places and the pair looks misaligned. */
 .auth-btn {
   display: grid;
   grid-template-columns: var(--icon-xl) 1fr var(--icon-lg);
   align-items: center;
   gap: var(--s3);
   width: 100%;
-  /* 52px: comfortably past the 44px touch minimum, and tall enough that the
-     label does not crowd the glyph. */
-  min-height: 52px;
-  padding: 0 var(--s4);
-  border-radius: var(--r-md);
+  /* 56px: these are the only two controls on the screen, so they get the
+     room, and the pill needs height to read as a pill rather than a lozenge. */
+  min-height: 56px;
+  padding: 0 var(--s5);
+  border-radius: var(--r-pill);
   border: 1px solid var(--border-strong);
   background: var(--surface);
   color: var(--text);
@@ -104,7 +108,10 @@
   font-weight: var(--fw-semibold);
   text-align: left;
   cursor: pointer;
-  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
+  transition:
+    transform var(--t-fast) var(--spring),
+    box-shadow var(--t-base) var(--ease),
+    border-color var(--t-base) var(--ease);
   box-shadow: var(--sh-1);
 }
 
@@ -114,13 +121,13 @@
 
 @media (hover: hover) and (pointer: fine) {
   .auth-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     border-color: var(--accent);
     box-shadow: var(--sh-2);
   }
 }
 
-.auth-btn:active:not(:disabled) { transform: translateY(0) scale(0.99); }
+.auth-btn:active:not(:disabled) { transform: translateY(1px) scale(0.975); }
 
 .auth-btn:focus-visible { outline: none; box-shadow: var(--focus); }
 
@@ -196,8 +203,9 @@
   justify-content: center;
   gap: var(--s2);
   margin-top: var(--s4);
-  padding: var(--s3);
-  border-radius: var(--r-sm);
+  min-height: 44px;
+  padding: 0 var(--s4);
+  border-radius: var(--r-pill);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   color: var(--text-dim);

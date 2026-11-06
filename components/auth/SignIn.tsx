@@ -24,6 +24,22 @@ type Busy = null | 'google' | 'passkey';
 export function SignIn({ next, initialError }: { next: string; initialError?: string }) {
   const [busy, setBusy] = useState<Busy>(null);
   const [error, setError] = useState<string | null>(initialError ?? null);
+  /*
+   * Set when the browser refuses the credential because the relying-party id
+   * does not cover this origin.
+   *
+   * That is a configuration fact, not a transient failure: it will fail
+   * identically every time until someone changes a dashboard field. Letting
+   * the button stay live invites a frustrating loop of tapping, waiting for
+   * the system sheet, and being refused — so after the first refusal the
+   * route is retired for the session and the explanation stays on screen.
+   *
+   * Deliberately NOT probed on mount. Reading the relying-party id means
+   * asking the server for a real challenge, and spending a network request on
+   * every visitor to pre-empt a problem most of them will never meet is the
+   * wrong trade.
+   */
+  const [passkeyUnavailable, setPasskeyUnavailable] = useState(false);
 
   const supabase = getBrowserSupabase();
   const target = safeNextPath(next, '/home');
@@ -73,6 +89,7 @@ export function SignIn({ next, initialError }: { next: string; initialError?: st
     } catch (err) {
       setBusy(null);
       setError(describePasskeyFailure(err));
+      if (isRelyingPartyMismatch(err)) setPasskeyUnavailable(true);
     }
   }, [supabase, target]);
 
@@ -112,10 +129,16 @@ export function SignIn({ next, initialError }: { next: string; initialError?: st
           type="button"
           className="auth-btn auth-btn-passkey"
           onClick={() => void withPasskey()}
-          disabled={busy !== null}
+          disabled={busy !== null || passkeyUnavailable}
         >
           <Lock />
-          <span>{busy === 'passkey' ? 'Waiting for your device…' : 'Continue with a passkey'}</span>
+          <span>
+            {passkeyUnavailable
+              ? 'Passkeys unavailable on this address'
+              : busy === 'passkey'
+                ? 'Waiting for your device…'
+                : 'Continue with a passkey'}
+          </span>
           {busy === 'passkey' ? <Spinner /> : <Arrow />}
         </button>
       </div>
@@ -168,11 +191,21 @@ export function SignIn({ next, initialError }: { next: string; initialError?: st
  * Google forever while the real cause sits one dashboard field away. So it is
  * named, and the console carries the detail an owner needs.
  */
+/**
+ * Whether the browser refused because the relying-party id does not cover
+ * this origin — a configuration fact rather than a transient failure.
+ */
+function isRelyingPartyMismatch(err: unknown): boolean {
+  const name = err instanceof Error ? err.name : '';
+  const message = err instanceof Error ? err.message : '';
+  return name === 'SecurityError' || /relying party id|registrable domain/i.test(message);
+}
+
 function describePasskeyFailure(err: unknown): string {
   const name = err instanceof Error ? err.name : '';
   const message = err instanceof Error ? err.message : '';
 
-  if (name === 'SecurityError' || /relying party id|registrable domain/i.test(message)) {
+  if (isRelyingPartyMismatch(err)) {
     if (process.env.NODE_ENV !== 'production') {
       console.error(
         '[TrustLens] Passkey relying-party id does not cover this origin. ' +

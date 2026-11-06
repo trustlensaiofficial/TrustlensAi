@@ -100,3 +100,26 @@
 :root {
   --s0:2px; --s9:80px; --s10:96px; --s11:120px;
 }
+
+/* -------------------------------------------------- the card button palette
+ * From the supplied course-card design. Kept as named colours rather than
+ * folded into the semantic tokens, because they are decorative accents and
+ * the semantic tokens carry the contrast guarantees these do not.
+ *
+ * Measured, not assumed — against white and against the design's own ink
+ * (#151419), which decides what each one can legibly carry:
+ *
+ *   blue   #1890FF   white 3.24   ink  5.65   -> ink
+ *   green  #01C3A8   white 2.24   ink  8.18   -> ink
+ *   orange #FFB741   white 1.74   ink 10.56   -> ink
+ *   red    #A63D2A   white 6.32   ink  2.90   -> white
+ *
+ * Three of the four cannot carry white text at body size, and blue only
+ * scrapes the large-text floor, so `--on-*` names the right pairing for each
+ * and nothing should hard-code white on top of them.
+ */
+:root {
+  --clr-blue:#1890FF; --clr-green:#01C3A8; --clr-orange:#FFB741; --clr-red:#A63D2A;
+  --card-ink:#151419;
+  --on-blue:var(--card-ink); --on-green:var(--card-ink); --on-orange:var(--card-ink); --on-red:#FFFFFF;
+}

@@ -89,44 +89,13 @@
 
 .dash-acts { display: flex; flex-wrap: wrap; gap: var(--s3); }
 
-.dash-act {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s2);
-  min-height: 48px;
-  padding: 0 var(--s5);
-  border-radius: var(--r-pill);
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-semibold);
-  text-decoration: none;
-  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-base) var(--ease);
-}
+/* Sizing only. Everything else — the pill, the fill, the press — comes from
+   `.btn` in design.css, so these two match every other button in the
+   product rather than being a second button system on the busiest screen. */
+.dash-act { min-height: 52px; padding: 0 var(--s6); font-size: var(--fs-lg); }
 
 .dash-act svg { width: var(--icon-lg); height: var(--icon-lg); }
 
-.dash-act-primary {
-  color: var(--accent-ink);
-  background: linear-gradient(120deg, var(--tl-blue), var(--tl-violet));
-  box-shadow: 0 10px 28px -12px color-mix(in oklab, var(--tl-blue) 70%, transparent);
-}
-
-:root:not([data-theme='dark']) .dash-act-primary { color: #fff; }
-
-.dash-act-ghost {
-  color: var(--text);
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-strong);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .dash-act:hover { transform: translateY(-2px); }
-  .dash-act-primary:hover { box-shadow: 0 16px 36px -12px color-mix(in oklab, var(--tl-blue) 80%, transparent); }
-}
-
-.dash-act:active { transform: translateY(0) scale(0.98); }
-.dash-act:focus-visible { outline: none; box-shadow: var(--focus); }
 
 /* ============================================================== the grid */
 
@@ -238,14 +207,26 @@
   text-wrap: pretty;
 }
 
+/* The accent pill from the supplied card's footer. It was a bare coloured
+   line; as a tinted capsule it reads as something you can press, which is
+   what it is — the whole card is the link. `justify-self: start` keeps it
+   hugging its label instead of stretching the grid cell. */
 .feat-action {
   display: inline-flex;
   align-items: center;
+  justify-self: start;
   gap: var(--s1);
-  margin-top: var(--s1);
+  margin-top: var(--s2);
+  min-height: 30px;
+  padding: 0 var(--s3);
+  border-radius: var(--r-pill);
   font-size: var(--fs-2xs);
   font-weight: var(--fw-semibold);
+  letter-spacing: 0.01em;
   color: var(--hue);
+  background: color-mix(in oklab, var(--hue) 15%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hue) 30%, transparent);
+  transition: background var(--t-fast) var(--ease);
 }
 
 .feat-action svg {
