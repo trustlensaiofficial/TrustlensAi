@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getLocalReport, type StoredReport } from '@/lib/offline/local-reports';
-import { LANGS, LANG_LABEL, LANG_NOTE, type Lang } from '@/lib/i18n/strings';
+import { useLocale } from '@/components/i18n/LocaleProvider';
 import { ReportView } from './ReportView';
 import { Arrow, Download, Lens } from './icons';
 
@@ -18,7 +18,9 @@ type State = { phase: 'loading' } | { phase: 'found'; row: StoredReport } | { ph
  */
 export function StoredReportView({ id }: { id: string }) {
   const [state, setState] = useState<State>({ phase: 'loading' });
-  const [lang, setLang] = useState<Lang>('en');
+  // The stored report is explained in the interface language, like every
+  // other surface. It used to carry its own picker.
+  const { locale: lang } = useLocale();
 
   useEffect(() => {
     let cancelled = false;
@@ -55,17 +57,6 @@ export function StoredReportView({ id }: { id: string }) {
 
   return (
     <>
-      <div className="lang-pick" style={{ marginBottom: 'var(--s5)' }}>
-        <span className="label">Explain in</span>
-        <div className="seg">
-          {LANGS.map((l) => (
-            <button key={l} type="button" className={`seg-btn${lang === l ? ' seg-on' : ''}`} aria-pressed={lang === l} onClick={() => setLang(l)}>
-              {LANG_LABEL[l]}
-            </button>
-          ))}
-        </div>
-        <span className="muted-xs lang-note">{LANG_NOTE[lang]}</span>
-      </div>
       <ReportView report={state.row.report} lang={lang} />
 
       <div className="check-actions" style={{ marginTop: 'var(--s6)' }}>

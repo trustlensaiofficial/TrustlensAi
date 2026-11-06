@@ -1,3 +1,15 @@
+/*
+ * Helpline names are deliberately not translated.
+ *
+ * "National Cyber Crime Helpline", "NPCI" and a bank's fraud line are the
+ * names these organisations answer to. Someone reading a Tamil report is
+ * about to dial one of them and then say who they are calling; a translated
+ * name helps nobody at that moment and could leave them describing an
+ * institution the person on the line does not recognise.
+ *
+ * The surrounding guidance — when to call, what to say — follows the
+ * interface language. The names do not.
+ */
 import type { InputContext, Report } from './types';
 
 /**

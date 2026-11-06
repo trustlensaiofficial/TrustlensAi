@@ -33,6 +33,14 @@ const ACTION_CHOICES: UserActionState[] = [
   'sent_money',
 ];
 
+/**
+ * The incident-response question, in every interface language.
+ *
+ * Tamil and Hindi were romanised here while the rest of the product moved to
+ * native script, which left a Tamil report with one English-lettered heading
+ * in the middle of it. Native script throughout now — `OTP` and `PIN` stay in
+ * Latin because that is how every bank SMS writes them.
+ */
 const ACTION_COPY: Record<Lang, {
   title: string;
   description: string;
@@ -54,33 +62,47 @@ const ACTION_COPY: Record<Lang, {
     },
   },
   ta: {
-    title: 'Idhu vandhadhukku apram neenga enna pannineenga?',
-    description: 'Neenga pannina kadaisi step-ai select pannunga. Adhukku yetha maadhiri next steps maarum.',
-    notActed: 'Neenga innum edhuvum pannala-nu solreenga. Link click pannadheenga, panam anuppadheenga, code share pannadheenga. Neenga thaniya verify pannunga.',
+    title: 'இதுவரை நீங்கள் என்ன செய்தீர்கள்?',
+    description: 'இது வந்த பிறகு நீங்கள் எடுத்த கடைசி நடவடிக்கையைத் தேர்ந்தெடுங்கள். உங்கள் பதிலைப் பொறுத்து அடுத்த படிகள் மாறும்.',
+    notActed: 'நீங்கள் இன்னும் எதுவும் செய்யவில்லை என்று சொல்கிறீர்கள். லிங்கைத் திறக்காதீர்கள், பணம் அனுப்பாதீர்கள், குறியீடுகளைப் பகிராதீர்கள் — செயல்படுவதற்கு முன் நீங்களே தனியாகச் சரிபாருங்கள்.',
     choices: {
-      not_acted: 'Message mattum vandhuchu',
-      opened_link: 'Naan link open panninen',
-      shared_credentials: 'OTP illa account details share panninen',
-      installed_app: 'Oru app install panninen',
-      remote_access: 'Screen share / remote access kuduthen',
-      approved_payment: 'Payment request approve panninen',
-      sent_money: 'Naan already panam anuppitten',
+      not_acted: 'எனக்கு வந்தது, அவ்வளவுதான்',
+      opened_link: 'நான் லிங்கைத் திறந்தேன்',
+      shared_credentials: 'நான் OTP அல்லது கணக்கு விவரங்களைப் பகிர்ந்தேன்',
+      installed_app: 'நான் ஒரு செயலியை நிறுவினேன்',
+      remote_access: 'நான் திரையைப் பகிர்ந்தேன் அல்லது ரிமோட் அணுகல் கொடுத்தேன்',
+      approved_payment: 'நான் ஒரு பணக் கோரிக்கையை அங்கீகரித்தேன்',
+      sent_money: 'நான் ஏற்கெனவே பணம் அனுப்பிவிட்டேன்',
     },
   },
   hi: {
-    title: 'Iske baad aapne kya kiya?',
-    description: 'Aapne jo sabse aage ka step liya, use chuniye. Agle steps aapke jawab ke hisaab se badlenge.',
-    notActed: 'Aapne abhi kuch nahi kiya. Link na kholen, paise na bhejen, code share na karein. Khud official channel se verify karein.',
+    title: 'अब तक आपने क्या किया है?',
+    description: 'यह मिलने के बाद आपने जो सबसे आगे का क़दम उठाया, वह चुनिए। आपके जवाब के हिसाब से अगले क़दम बदलते हैं।',
+    notActed: 'आपने कहा कि अभी कुछ नहीं किया। लिंक न खोलिए, पैसे न भेजिए, कोड साझा न कीजिए — कुछ करने से पहले ख़ुद अलग से जाँच लीजिए।',
     choices: {
-      not_acted: 'Sirf message mila',
-      opened_link: 'Maine link khola',
-      shared_credentials: 'OTP ya account details share ki',
-      installed_app: 'Maine app install ki',
-      remote_access: 'Screen share ya remote access diya',
-      approved_payment: 'Payment request approve ki',
-      sent_money: 'Maine paise bhej diye',
+      not_acted: 'बस मुझे मिला, इतना ही',
+      opened_link: 'मैंने लिंक खोला',
+      shared_credentials: 'मैंने OTP या खाते की जानकारी बताई',
+      installed_app: 'मैंने एक ऐप इंस्टॉल की',
+      remote_access: 'मैंने स्क्रीन शेयर या रिमोट एक्सेस दिया',
+      approved_payment: 'मैंने एक भुगतान अनुरोध मंज़ूर किया',
+      sent_money: 'मैंने पैसे भेज दिए',
     },
   },
+  te: {
+    title: 'ఇప్పటివరకు మీరు ఏం చేశారు?',
+    description: 'ఇది అందుకున్న తర్వాత మీరు వేసిన చివరి అడుగును ఎంచుకోండి. మీ సమాధానాన్ని బట్టి తర్వాతి అడుగులు మారతాయి.',
+    notActed: 'మీరు ఇంకా ఏమీ చేయలేదని చెప్పారు. లింక్ తెరవవద్దు, డబ్బు పంపవద్దు, కోడ్‌లు పంచుకోవద్దు — చర్య తీసుకునే ముందు స్వతంత్రంగా సరిచూడండి.',
+    choices: {
+      not_acted: 'నేను దాన్ని అందుకున్నాను, అంతే',
+      opened_link: 'నేను లింక్ తెరిచాను',
+      shared_credentials: 'నేను OTP లేదా ఖాతా వివరాలు పంచుకున్నాను',
+      installed_app: 'నేను ఒక యాప్ ఇన్‌స్టాల్ చేశాను',
+      remote_access: 'నేను స్క్రీన్ షేర్ లేదా రిమోట్ యాక్సెస్ ఇచ్చాను',
+      approved_payment: 'నేను ఒక చెల్లింపును ఆమోదించాను',
+      sent_money: 'నేను డబ్బు పంపాను',
+    },
+  }
 };
 
 /**

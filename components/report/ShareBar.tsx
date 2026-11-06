@@ -4,6 +4,8 @@ import { useCallback, useState } from 'react';
 import type { Report } from '@/lib/analysis/types';
 import { SHARE_TARGETS, buildShareText, shareSubject } from '@/lib/share';
 import { useProbe } from '@/lib/hooks/use-capability';
+import { useT } from '@/components/i18n/LocaleProvider';
+import type { DictKey } from '@/lib/i18n';
 import { Check, Copy, Download, Mail, Message, Share, Telegram, WhatsApp } from '@/components/ui/icons';
 
 /**
@@ -29,6 +31,7 @@ const ICONS = {
 } as const;
 
 export function ShareBar({ report }: { report: Report }) {
+  const t = useT();
   const [includeEvidence, setIncludeEvidence] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -66,17 +69,17 @@ export function ShareBar({ report }: { report: Report }) {
   return (
     <section className="share" aria-labelledby="share-title">
       <h2 id="share-title" className="share-title">
-        <Share /> Warn someone else
+        <Share /> {t('share.title')}
       </h2>
       <p className="share-lede">
-        Sends a short summary of what was found — not your whole message.
+        {t('share.lede')}
       </p>
 
       {canShareNatively && (
         <button type="button" className="share-primary" onClick={() => void shareNatively()}>
           <Share />
-          Share…
-          <small>WhatsApp, Telegram, email and anything else on this device</small>
+          {t('share.native')}
+          <small>{t('share.nativeHint')}</small>
         </button>
       )}
 
@@ -87,7 +90,7 @@ export function ShareBar({ report }: { report: Report }) {
               <li key={target.id}>
                 <button type="button" className="share-target" onClick={() => void copy()}>
                   <span className="share-icon" aria-hidden="true">{copied ? <Check /> : ICONS.copy}</span>
-                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                  <span>{copied ? t('share.copied') : t('share.copy')}</span>
                 </button>
               </li>
             );
@@ -105,7 +108,7 @@ export function ShareBar({ report }: { report: Report }) {
                 rel="noopener noreferrer"
               >
                 <span className={`share-icon share-${target.id}`} aria-hidden="true">{ICONS[target.id]}</span>
-                <span>{target.label}</span>
+                <span>{t(`share.${target.id}` as DictKey)}</span>
               </a>
             </li>
           );
@@ -119,18 +122,15 @@ export function ShareBar({ report }: { report: Report }) {
           onChange={(e) => setIncludeEvidence(e.target.checked)}
         />
         <span>
-          <strong>Include the exact words that were flagged</strong>
-          <small>
-            Useful for warning someone — but a real message often carries your name or the
-            last digits of your account beside them, and a forward is forever.
-          </small>
+          <strong>{t('share.includeEvidence')}</strong>
+          <small>{t('share.includeEvidenceHint')}</small>
         </span>
       </label>
 
       <button type="button" className="share-save" onClick={() => window.print()}>
         <Download />
-        Save as PDF
-        <small>Opens your printer dialog — choose “Save as PDF”</small>
+        {t('share.savePdf')}
+        <small>{t('share.savePdfHint')}</small>
       </button>
     </section>
   );

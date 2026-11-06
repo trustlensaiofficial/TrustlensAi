@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { InputContext, Report } from '@/lib/analysis/types';
 import { DEMO_CASES } from '@/lib/demo/cases';
-import { LANGS, LANG_LABEL, LANG_NOTE, type Lang } from '@/lib/i18n/strings';
+import { useLocale } from '@/components/i18n/LocaleProvider';
 import { saveLocalReport } from '@/lib/offline/local-reports';
 import { useOnline } from './OnlineBadge';
 import { ReportView } from './ReportView';
@@ -43,7 +43,15 @@ export function CheckWorkspace({
   const [allowCloudAi, setAllowCloudAI] = useState(false);
   const [saveToAccount, setSaveToAccount] = useState(false);
   const [storageNote, setStorageNote] = useState<string | null>(null);
-  const [lang, setLang] = useState<Lang>('en');
+  /*
+   * The report is explained in the interface language.
+   *
+   * There used to be a second picker here, labelled "Explain in". Two
+   * language controls on one screen is a question nobody should have to
+   * answer twice, and the second one was easy to miss — so a reader who had
+   * put the whole product into Tamil still got an English report.
+   */
+  const { locale: lang, t } = useLocale();
   const [phase, setPhase] = useState<Phase>('idle');
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +122,7 @@ export function CheckWorkspace({
         <div className="check-main">
           {/* 1 — what are you looking at */}
           <fieldset className="check-block">
-            <legend className="label">1 · What are you checking?</legend>
+            <legend className="label">1 &middot; {t('check.step1')}</legend>
             <div className="ctx-grid">
               {CONTEXTS.map((c) => (
                 <button
@@ -134,14 +142,14 @@ export function CheckWorkspace({
 
           {/* 2 — the text */}
           <div className="check-block">
-            <label className="label" htmlFor="tl-text">2 · Paste the message, or the link</label>
+            <label className="label" htmlFor="tl-text">2 &middot; {t('check.step2')}</label>
             <textarea
               id="tl-text"
               className="field check-field"
               rows={7}
               value={text}
               maxLength={8000}
-              placeholder="Paste the full message here. Links inside it are examined too."
+              placeholder={t('check.placeholder')}
               onChange={(e) => setText(e.target.value)}
             />
             <div className="check-meta">
@@ -164,7 +172,7 @@ export function CheckWorkspace({
               />
               <span className="switch-track" aria-hidden="true"><span className="switch-dot" /></span>
               <span>
-                <strong>Check links over the network</strong>
+                <strong>{t('check.liveLinks')}</strong>
                 <span className="switch-note">
                   {online
                     ? 'Resolves DNS and reads page metadata only. Private and internal addresses are refused and every redirect is re-validated.'
@@ -177,7 +185,7 @@ export function CheckWorkspace({
               <input type="checkbox" checked={allowCloudAi} onChange={(e) => setAllowCloudAI(e.target.checked)} />
               <span className="switch-track" aria-hidden="true"><span className="switch-dot" /></span>
               <span>
-                <strong>Allow optional cloud AI explanation</strong>
+                <strong>{t('check.cloudAi')}</strong>
                 <span className="switch-note">
                   Off by default. When enabled, the submitted text, matched warning signs and collected link evidence are sent to TrustLens&apos; configured AI provider. Review the message first and remove OTPs, PINs, passwords and personal details.
                 </span>
@@ -188,36 +196,19 @@ export function CheckWorkspace({
               <input type="checkbox" checked={saveToAccount} onChange={(e) => setSaveToAccount(e.target.checked)} />
               <span className="switch-track" aria-hidden="true"><span className="switch-dot" /></span>
               <span>
-                <strong>Save an account copy (optional)</strong>
+                <strong>{t('check.saveAccount')}</strong>
                 <span className="switch-note">
                   Off by default. If you are signed in, the report summary, matched excerpts and findings are saved to your TrustLens account. Without sign-in, it stays only in this browser.
                 </span>
               </span>
             </label>
 
-            <div className="lang-pick">
-              <span className="label">Explain in</span>
-              <div className="seg">
-                {LANGS.map((l) => (
-                  <button
-                    key={l}
-                    type="button"
-                    className={`seg-btn${lang === l ? ' seg-on' : ''}`}
-                    aria-pressed={lang === l}
-                    onClick={() => setLang(l)}
-                  >
-                    {LANG_LABEL[l]}
-                  </button>
-                ))}
-              </div>
-              <span className="muted-xs lang-note">{LANG_NOTE[lang]}</span>
-            </div>
           </div>
 
           <div className="check-actions">
             <button type="button" className="btn btn-primary btn-lg" onClick={analyse} disabled={busy}>
               {busy ? <Lens className="spin" /> : <Lens />}
-              {busy ? 'Checking…' : 'Check this'}
+              {busy ? t('check.running') : t('check.run')}
             </button>
             <button
               type="button"
@@ -225,7 +216,7 @@ export function CheckWorkspace({
               disabled={busy || (!text && phase === 'idle')}
               onClick={() => { setText(''); setReport(null); setStorageNote(null); setPhase('idle'); setError(null); }}
             >
-              Clear
+              {t('check.clear')}
             </button>
           </div>
 
@@ -240,7 +231,7 @@ export function CheckWorkspace({
         {/* Examples — real cases, run through the same pipeline. */}
         <aside className="check-side">
           <div className="card card-pad">
-            <h3 className="col-head"><Spark /> Try an example</h3>
+            <h3 className="col-head"><Spark /> {t('check.examples')}</h3>
             <p className="muted-xs" style={{ marginBottom: 'var(--s3)' }}>
               Real demonstration cases, including ordinary messages so you can see it does not
               over-warn. Each runs through the same pipeline as your own text.

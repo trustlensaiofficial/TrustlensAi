@@ -139,6 +139,18 @@ export const en = {
   'lang.detectionNone': 'Interface only — checks read English, Tamil and Hindi',
   'lang.planned': 'Kannada, Malayalam, Bengali and Marathi are planned.',
 
+  /* ------------------------------------------------------ the check screen */
+  'check.step1': 'What are you checking?',
+  'check.step2': 'Paste the message, or the link',
+  'check.placeholder': 'Paste the full message here. Links inside it are examined too.',
+  'check.liveLinks': 'Check links over the network',
+  'check.cloudAi': 'Allow optional cloud AI explanation',
+  'check.saveAccount': 'Save an account copy (optional)',
+  'check.run': 'Check this',
+  'check.running': 'Checking…',
+  'check.clear': 'Clear',
+  'check.examples': 'Try an example',
+
   /* --------------------------------------------------------------- the basics */
   'common.back': 'Back',
   'common.cancel': 'Cancel',
