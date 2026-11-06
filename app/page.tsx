@@ -4,6 +4,7 @@ import { LogoMark } from '@/components/brand/LogoMark';
 import { OpeningScene } from '@/components/opening/OpeningScene';
 import { StartButton } from '@/components/opening/StartButton';
 import { Shield } from '@/components/ui/icons';
+import { getTranslations } from '@/lib/i18n/server';
 import './opening.css';
 
 export const metadata: Metadata = {
@@ -33,7 +34,9 @@ const T = { word: 620, line: 1040, cta: 1280, alt: 1500, note: 1740 } as const;
  * genuinely need the client (the parallax scene, the ripple on Start) are
  * client components.
  */
-export default function Opening() {
+export default async function Opening() {
+  const { t } = await getTranslations();
+
   return (
     <div className="op">
       <OpeningScene />
@@ -58,16 +61,15 @@ export default function Opening() {
         </h1>
 
         <p className="op-line op-step" style={{ '--d': `${T.line}ms` } as React.CSSProperties}>
-          Check a message, link or payment request before you act on it — and see
-          the evidence behind every answer.
+          {t('open.line')}
         </p>
 
         <div className="op-cta op-step" style={{ '--d': `${T.cta}ms` } as React.CSSProperties}>
-          <StartButton href="/login?next=%2Fhome">Start</StartButton>
+          <StartButton href="/login?next=%2Fhome">{t('open.start')}</StartButton>
         </div>
 
         <p className="op-alt op-step" style={{ '--d': `${T.alt}ms` } as React.CSSProperties}>
-          Already have an account? <Link href="/login?next=%2Fhome">Sign in</Link>
+          {t('open.haveAccount')} <Link href="/login?next=%2Fhome">{t('open.signIn')}</Link>
         </p>
       </div>
 
@@ -79,10 +81,7 @@ export default function Opening() {
       */}
       <p className="op-note op-step" style={{ '--d': `${T.note}ms` } as React.CSSProperties}>
         <Shield />
-        <span>
-          TrustLens checks only what you choose to share with it. It cannot read your
-          messages, calls or contacts on its own.
-        </span>
+        <span>{t('open.promise')}</span>
       </p>
     </div>
   );

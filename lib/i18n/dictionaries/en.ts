@@ -139,6 +139,13 @@ export const en = {
   'lang.detectionNone': 'Interface only — checks read English, Tamil and Hindi',
   'lang.planned': 'Kannada, Malayalam, Bengali and Marathi are planned.',
 
+  /* ------------------------------------------------------- the opening */
+  'open.line': 'Check a message, link or payment request before you act on it — and see the evidence behind every answer.',
+  'open.start': 'Start',
+  'open.haveAccount': 'Already have an account?',
+  'open.signIn': 'Sign in',
+  'open.promise': 'TrustLens checks only what you choose to share with it. It cannot read your messages, calls or contacts on its own.',
+
   /* ------------------------------------------------------ the check screen */
   'check.step1': 'What are you checking?',
   'check.step2': 'Paste the message, or the link',
