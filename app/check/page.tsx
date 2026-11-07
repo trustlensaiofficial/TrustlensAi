@@ -4,7 +4,9 @@ import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { CheckWorkspace } from '@/components/ui/CheckWorkspace';
 import { Kaval } from '@/components/ui/Kaval';
 import { featureForContext } from '@/lib/features';
+import { getTranslations } from '@/lib/i18n/server';
 import type { InputContext } from '@/lib/analysis/types';
+import type { DictKey } from '@/lib/i18n';
 
 export const metadata: Metadata = {
   title: 'Check something',
@@ -27,17 +29,17 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
    * particular card opened it.
    */
   const from = params.context ? featureForContext(context) : undefined;
+  const { t } = await getTranslations();
 
   return (
     <Shell>
       <div className="screen">
         <ScreenHeader
-          title={from ? from.title : 'Is this safe to act on?'}
+          title={from ? t(`feature.${from.id}.title` as DictKey) : t('check.step1')}
           lede={
-            from
-              ? from.blurb
-              : 'Choose what you received, then paste it. You will see the warning signs, the exact evidence and what is still unknown.'
+            from ? t(`feature.${from.id}.blurb` as DictKey) : t('check.lede')
           }
+          backLabel={t('dock.dashboard')}
           icon={from?.icon}
           hue={from?.hue}
         />

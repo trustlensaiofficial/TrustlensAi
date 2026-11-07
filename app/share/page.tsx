@@ -6,6 +6,7 @@ import { Kaval } from '@/components/ui/Kaval';
 import { Share } from '@/components/ui/icons';
 import type { InputContext } from '@/lib/analysis/types';
 import { contextForShared, mergeSharedPayload } from '@/lib/share';
+import { getTranslations } from '@/lib/i18n/server';
 
 export const metadata: Metadata = {
   title: 'Check a shared message',
@@ -44,17 +45,17 @@ export default async function SharePage({
   // decisions in it, and those are worth testing rather than eyeballing.
   const shared = mergeSharedPayload(params);
   const context: InputContext = contextForShared(shared);
+  const { t } = await getTranslations();
 
   return (
     <Shell>
       <div className="screen">
         <ScreenHeader
-          title="Check this message"
+          title={t('share.pageTitle')}
           lede={
-            shared
-              ? 'Shared from another app. Nothing has been analysed yet — check it over, then run the check.'
-              : 'Nothing arrived with that share. Paste the message below instead.'
+            shared ? t('share.pageLede') : t('share.pageEmpty')
           }
+          backLabel={t('dock.dashboard')}
           icon={<Share />}
           hue="#38BDF8"
         />

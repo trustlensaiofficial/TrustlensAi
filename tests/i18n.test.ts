@@ -72,6 +72,23 @@ describe('the translations are translations', () => {
   }
 });
 
+describe('no stray glyphs from other writing systems', () => {
+  // A real slip: a CJK character got pasted into a Telugu string during an
+  // edit and was invisible in review — Telugu and Han render at similar
+  // weights and nothing in the type system or the linter can see it. The
+  // ranges below are scripts that have no business in any of these files.
+  const FOREIGN = /[\u4E00-\u9FFF\u3040-\u30FF\u0600-\u06FF\u0400-\u04FF\u0370-\u03FF]/u;
+
+  for (const [code, dict] of Object.entries(TRANSLATED)) {
+    it(`${code} contains no CJK, Arabic, Cyrillic or Greek`, () => {
+      const offenders = (Object.keys(en) as DictKey[])
+        .filter((key) => FOREIGN.test(dict[key]))
+        .map((key) => `${key}: ${dict[key].match(FOREIGN)?.[0]}`);
+      expect(offenders).toEqual([]);
+    });
+  }
+});
+
 describe('every dashboard card can be rendered in every language', () => {
   for (const locale of LOCALES) {
     it(`${locale} has a title, blurb and action for all ten cards`, () => {

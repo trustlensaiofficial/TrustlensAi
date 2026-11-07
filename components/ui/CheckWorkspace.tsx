@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import type { InputContext, Report } from '@/lib/analysis/types';
 import { DEMO_CASES } from '@/lib/demo/cases';
 import { useLocale } from '@/components/i18n/LocaleProvider';
+import type { DictKey } from '@/lib/i18n';
 import { saveLocalReport } from '@/lib/offline/local-reports';
 import { useOnline } from './OnlineBadge';
 import { ReportView } from './ReportView';
@@ -11,13 +12,15 @@ import { Kaval } from './Kaval';
 import { Alert, Bolt, Doc, Globe, Lens, Lock, Phone, Scales, Spark } from './icons';
 
 /** What the user says they are holding. The rule set changes with it. */
-const CONTEXTS: Array<{ id: InputContext; label: string; hint: string; icon: React.ReactNode }> = [
-  { id: 'bank_scam', label: 'Bank or payment', hint: 'Bank, UPI, OTP, refund', icon: <Phone /> },
-  { id: 'generic', label: 'Message or chat', hint: 'SMS, WhatsApp, email', icon: <Doc /> },
-  { id: 'website', label: 'Link or website', hint: 'A URL you were sent', icon: <Globe /> },
-  { id: 'job_offer', label: 'Job offer', hint: 'Recruitment message', icon: <Spark /> },
-  { id: 'invoice', label: 'Invoice or bill', hint: 'Payment request', icon: <Scales /> },
-  { id: 'proposal', label: 'Investment', hint: 'Returns, deposits', icon: <Bolt /> },
+/* Labels and hints come from the dictionary at render time, keyed by the
+   context id, so the chooser speaks whatever language the product is in. */
+const CONTEXTS: Array<{ id: InputContext; icon: React.ReactNode }> = [
+  { id: 'bank_scam', icon: <Phone /> },
+  { id: 'generic', icon: <Doc /> },
+  { id: 'website', icon: <Globe /> },
+  { id: 'job_offer', icon: <Spark /> },
+  { id: 'invoice', icon: <Scales /> },
+  { id: 'proposal', icon: <Bolt /> },
 ];
 
 type Phase = 'idle' | 'running' | 'done' | 'error';
@@ -133,8 +136,8 @@ export function CheckWorkspace({
                   onClick={() => setContext(c.id)}
                 >
                   <span className="ctx-icon" aria-hidden="true">{c.icon}</span>
-                  <span className="ctx-label">{c.label}</span>
-                  <span className="ctx-hint">{c.hint}</span>
+                  <span className="ctx-label">{t(`ctx.${c.id}` as DictKey)}</span>
+                  <span className="ctx-hint">{t(`ctx.${c.id}.hint` as DictKey)}</span>
                 </button>
               ))}
             </div>
@@ -153,10 +156,7 @@ export function CheckWorkspace({
               onChange={(e) => setText(e.target.value)}
             />
             <div className="check-meta">
-              <span className="muted-xs">
-                Analysed on the server and treated strictly as data — never as an instruction to the model.
-                You do not need to include your own passwords or card numbers.
-              </span>
+              <span className="muted-xs">{t('check.textNote')}</span>
               <span className="muted-xs">{text.length.toLocaleString()} / 8,000</span>
             </div>
           </div>
@@ -174,9 +174,7 @@ export function CheckWorkspace({
               <span>
                 <strong>{t('check.liveLinks')}</strong>
                 <span className="switch-note">
-                  {online
-                    ? 'Resolves DNS and reads page metadata only. Private and internal addresses are refused and every redirect is re-validated.'
-                    : 'Unavailable offline. The wording and link structure are still checked locally.'}
+                  {online ? t('check.liveLinksNote') : t('check.liveLinksOffline')}
                 </span>
               </span>
             </label>

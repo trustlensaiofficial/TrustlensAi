@@ -5,6 +5,8 @@ import Link from 'next/link';
 import type { UserActionState } from '@/lib/analysis/types';
 import { responsePlanFor } from '@/lib/analysis/response-plan';
 import { Alert, Arrow, Check, Globe, Lens, Lock, Phone, Shield } from './icons';
+import { useT } from '@/components/i18n/LocaleProvider';
+import type { DictKey } from '@/lib/i18n';
 
 /**
  * What the person has already done, ordered by how far the incident has gone.
@@ -13,17 +15,21 @@ import { Alert, Arrow, Check, Globe, Lens, Lock, Phone, Shield } from './icons';
  * scroll past advice meant for someone who only received a message. The most
  * advanced state they pick drives the plan.
  */
-const STATES: Array<{ id: UserActionState; label: string; detail: string; icon: React.ReactNode; urgent?: boolean }> = [
-  { id: 'not_acted', label: 'I only received it', detail: 'I have not clicked, replied or paid.', icon: <Shield /> },
-  { id: 'opened_link', label: 'I opened the link', detail: 'I tapped it, but I am not sure what happened next.', icon: <Globe /> },
-  { id: 'shared_credentials', label: 'I shared an OTP, PIN or password', detail: 'I typed or read out a code or account detail.', icon: <Lock />, urgent: true },
-  { id: 'installed_app', label: 'I installed an app they asked for', detail: 'They told me to download something.', icon: <Alert />, urgent: true },
-  { id: 'remote_access', label: 'I shared my screen or gave remote access', detail: 'They could see my screen or control my device.', icon: <Alert />, urgent: true },
-  { id: 'approved_payment', label: 'I approved a payment request', detail: 'I entered my UPI PIN or approved a prompt.', icon: <Phone />, urgent: true },
-  { id: 'sent_money', label: 'I transferred money', detail: 'Money has already left my account.', icon: <Phone />, urgent: true },
+/* Wording comes from the dictionary, keyed by the state id. These are the
+   seven sentences someone reads while deciding how much trouble they are
+   in, so they have to be in their own language. */
+const STATES: Array<{ id: UserActionState; icon: React.ReactNode; urgent?: boolean }> = [
+  { id: 'not_acted', icon: <Shield /> },
+  { id: 'opened_link', icon: <Globe /> },
+  { id: 'shared_credentials', icon: <Lock />, urgent: true },
+  { id: 'installed_app', icon: <Alert />, urgent: true },
+  { id: 'remote_access', icon: <Alert />, urgent: true },
+  { id: 'approved_payment', icon: <Phone />, urgent: true },
+  { id: 'sent_money', icon: <Phone />, urgent: true },
 ];
 
 export function RespondFlow() {
+  const t = useT();
   const [state, setState] = useState<UserActionState | null>(null);
   const plan = responsePlanFor(state);
   const urgent = state === 'sent_money' || state === 'approved_payment';
@@ -31,7 +37,7 @@ export function RespondFlow() {
   return (
     <div className="respond">
       <fieldset className="check-block">
-        <legend className="label">What has already happened?</legend>
+        <legend className="label">{t('respond.question')}</legend>
         <ul className="state-list">
           {STATES.map((s) => (
             <li key={s.id}>
@@ -43,8 +49,8 @@ export function RespondFlow() {
               >
                 <span className="state-icon" aria-hidden="true">{s.icon}</span>
                 <span className="state-text">
-                  <span className="state-label">{s.label}</span>
-                  <span className="state-detail">{s.detail}</span>
+                  <span className="state-label">{t(`act.${s.id}` as DictKey)}</span>
+                  <span className="state-detail">{t(`act.${s.id}.d` as DictKey)}</span>
                 </span>
                 {state === s.id && <Check className="state-tick" />}
               </button>

@@ -773,3 +773,12 @@
   .btn { transition: none; }
   .btn:hover, .btn:active { transform: none; }
 }
+
+
+/* The delete control was overlapping the timestamp on a narrow phone: the
+   row is a flex line and the icon button had no reserved width, so a long
+   localised verdict chip pushed it under the clock. `flex: none` plus a gap
+   keeps it its own column at every width. */
+.activity-row { gap: var(--s3); }
+.activity-row > button:last-child { flex: none; }
+.activity-row .recent-row { flex: 1 1 auto; min-width: 0; }

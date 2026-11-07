@@ -81,7 +81,7 @@ export default async function Dashboard() {
             <p>{t('home.sosBody')}</p>
             <a href={`tel:${EMERGENCY.number}`} className="dash-sos-call">
               {EMERGENCY.number}
-              <span>{EMERGENCY.label}</span>
+              <span>{t('dock.sosHint')}</span>
             </a>
             <Link href="/respond" className="dash-link">
               {t('home.sosSteps')} <Arrow />

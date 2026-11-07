@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { clearLocalReports, deleteLocalReport, listLocalReports, type StoredReport } from '@/lib/offline/local-reports';
 import { Arrow, Clock, Lens, Lock, Trash } from './icons';
+import { useT } from '@/components/i18n/LocaleProvider';
+import type { DictKey } from '@/lib/i18n';
 
 const CHIP = {
   high_risk: 'chip-high',
@@ -12,14 +14,11 @@ const CHIP = {
   no_signals_detected: 'chip-clear',
 } as const;
 
-const WORD = {
-  high_risk: 'Strong warning signs',
-  elevated_risk: 'Needs verification',
-  some_signals: 'A few things to check',
-  no_signals_detected: 'No strong signs',
-} as const;
+/* The verdict words come from the dictionary now, so a list of past checks
+   reads in the same language as the reports it links to. */
 
 export function ActivityList() {
+  const t = useT();
   const [rows, setRows] = useState<StoredReport[] | null>(null);
 
   const reload = useCallback(() => {
@@ -46,8 +45,8 @@ export function ActivityList() {
     return (
       <div className="empty">
         <span className="empty-icon"><Lens /></span>
-        <p className="empty-title">No checks on this device yet</p>
-        <p className="empty-note">Anything you check is saved here, in this browser, so it opens again with no network.</p>
+        <p className="empty-title">{t('activity.emptyTitleFull')}</p>
+        <p className="empty-note">{t('activity.emptyNoteFull')}</p>
         <Link href="/check" className="btn btn-primary btn-sm">Check something <Arrow /></Link>
       </div>
     );
@@ -59,11 +58,11 @@ export function ActivityList() {
         {rows.map((r) => (
           <li key={r.id} className="activity-row">
             <Link href={`/report/${r.id}`} className="recent-row grow">
-              <span className={`chip ${CHIP[r.level]}`}>{WORD[r.level]}</span>
+              <span className={`chip ${CHIP[r.level]}`}>{t(`verdict.${r.level}` as DictKey)}</span>
               <span className="recent-preview">{r.preview}</span>
               <span className="recent-when"><Clock /> {new Date(r.createdAt).toLocaleString()}</span>
             </Link>
-            <button type="button" className="btn btn-ghost btn-sm" aria-label="Delete this report" onClick={() => void remove(r.id)}>
+            <button type="button" className="btn btn-ghost btn-sm" aria-label={t('activity.delete')} onClick={() => void remove(r.id)}>
               <Trash />
             </button>
           </li>
@@ -72,9 +71,9 @@ export function ActivityList() {
 
       <div className="row" style={{ gap: 'var(--s3)', marginTop: 'var(--s5)', flexWrap: 'wrap' }}>
         <button type="button" className="btn btn-danger btn-sm" onClick={() => void clearAll()}>
-          <Trash /> Delete all {rows.length} from this device
+          <Trash /> {t('activity.deleteAll').replace('{n}', String(rows.length))}
         </button>
-        <span className="muted-xs"><Lock style={{ width: 13, height: 13, verticalAlign: '-2px' }} /> Deleting here removes them from this browser immediately.</span>
+        <span className="muted-xs"><Lock style={{ width: 13, height: 13, verticalAlign: '-2px' }} /> {t('activity.deleteNote')}</span>
       </div>
     </>
   );

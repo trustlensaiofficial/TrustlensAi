@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Shell } from '@/components/ui/Shell';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import { getTranslations } from '@/lib/i18n/server';
 import { featureById } from '@/lib/features';
 import { demoCampaigns } from '@/lib/threat-intel/demo-network';
 import { CORROBORATION_THRESHOLD, STALE_AFTER_DAYS, type Campaign } from '@/lib/threat-intel/campaigns';
@@ -86,8 +87,9 @@ function CampaignCard({ campaign, index }: { campaign: Campaign; index: number }
   );
 }
 
-export default function AlertsPage() {
+export default async function AlertsPage() {
   const feature = featureById('alerts');
+  const { t } = await getTranslations();
   const campaigns = demoCampaigns();
   const corroborated = campaigns.filter((c) => c.status === 'corroborated').length;
 
@@ -95,8 +97,9 @@ export default function AlertsPage() {
     <Shell>
       <div className="screen">
         <ScreenHeader
-          title={feature?.title ?? "Scam alerts"}
-          lede="Campaigns recognised across several independent reports, grouped by the indicators they share."
+          title={t('feature.alerts.title')}
+          lede={t('screen.alerts.lede')}
+          backLabel={t('dock.dashboard')}
           icon={feature?.icon}
           hue={feature?.hue}
         />

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { listLocalReports, type StoredReport } from '@/lib/offline/local-reports';
 import { Arrow, Clock, Lens } from './icons';
+import { useT } from '@/components/i18n/LocaleProvider';
 
 const LEVEL_CHIP = {
   high_risk: 'chip-high',
@@ -28,6 +29,7 @@ const LEVEL_WORD = {
  * state with different copy.
  */
 export function RecentActivity({ limit = 4 }: { limit?: number }) {
+  const t = useT();
   const [rows, setRows] = useState<StoredReport[] | null>(null);
 
   useEffect(() => {
@@ -51,8 +53,8 @@ export function RecentActivity({ limit = 4 }: { limit?: number }) {
     return (
       <div className="empty">
         <span className="empty-icon"><Lens /></span>
-        <p className="empty-title">Nothing checked yet</p>
-        <p className="empty-note">Checks you run are kept on this device, so they work offline and need no account.</p>
+        <p className="empty-title">{t('activity.emptyTitle')}</p>
+        <p className="empty-note">{t('activity.emptyNote')}</p>
         <Link href="/check" className="btn btn-primary btn-sm">Check something <Arrow /></Link>
       </div>
     );

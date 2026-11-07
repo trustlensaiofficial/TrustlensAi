@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Shell } from '@/components/ui/Shell';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import { getTranslations } from '@/lib/i18n/server';
 import { ActivityList } from '@/components/ui/ActivityList';
 import { Alert, Check, Close, Globe, Lock, Phone, Users } from '@/components/ui/icons';
 
@@ -31,13 +32,15 @@ const CANNOT = [
   { title: 'It cannot recover money', body: 'If a payment has gone, TrustLens points you at 1930 and your bank fast. It has no power to reverse a transfer, and will never suggest it does.' },
 ];
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const { t } = await getTranslations();
   return (
     <Shell>
       <div className="screen">
         <ScreenHeader
-          title="What happens to what you check"
-          lede="A product that asks you to paste a suspicious message owes you a clear account of its own behaviour."
+          title={t('screen.privacy.title')}
+          lede={t('screen.privacy.lede')}
+          backLabel={t('dock.dashboard')}
           icon={<Lock />}
           hue="#60A5FA"
         />
